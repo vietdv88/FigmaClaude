@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import { saveCookiesToDoc, CookieRow } from './google-docs';
+import { saveCookiesToGitHub, fetchCookiesFromGitHub, isSessionValid, CookieRow } from './github-store';
 
 // pkg exe → thư mục chứa exe
 // bundle.js → __dirname = thư mục chứa bundle.js (cùng chỗ config.enc)
@@ -92,7 +92,6 @@ function loadAccounts(): Account[] {
   return emails.map((email, i) => ({ email, password: passwords[i], totpSecret: secrets[i] }));
 }
 
-const DOC_ID   = process.env.GOOGLE_DOC_ID ?? '';
 const accounts = loadAccounts();
 
 const sameSiteMap: Record<string, string> = { Strict: 'strict', Lax: 'lax', None: 'no_restriction' };
@@ -108,8 +107,22 @@ async function loginAccount(browser: Browser, account: Account): Promise<LoginRe
     const page: Page = await context.newPage();
 
     console.log(`${tag} Truy cap figma.com/login...`);
-    await page.goto('https://www.figma.com/login', { waitUntil: 'domcontentloaded' });
+    const loginResponse = await page.goto('https://www.figma.com/login', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1500);
+
+    // Bu tru lech dong ho he thong bang gio server (header Date) de OTP luon dung,
+    // ke ca khi dong ho may chay tool bi sai/lech mui gio.
+    let clockDriftMs = 0;
+    const serverDateHeader = loginResponse?.headers()['date'];
+    if (serverDateHeader) {
+      const serverTimeMs = new Date(serverDateHeader).getTime();
+      if (!Number.isNaN(serverTimeMs)) {
+        clockDriftMs = serverTimeMs - Date.now();
+        if (Math.abs(clockDriftMs) > 5000) {
+          console.log(`${tag} [WARN] Dong ho may lech ~${Math.round(clockDriftMs / 1000)}s so voi server, da tu bu tru.`);
+        }
+      }
+    }
 
     console.log(`${tag} Dien email va password...`);
     await page.locator('input[type="email"], input[name="email"]').first().fill(email);
@@ -120,8 +133,22 @@ async function loginAccount(browser: Browser, account: Account): Promise<LoginRe
     const bodyText = (await page.locator('body').textContent()) ?? '';
     if (bodyText.toLowerCase().includes('authentication code') || bodyText.toLowerCase().includes('recovery code')) {
       console.log(`${tag} Man 2FA - generate OTP...`);
+      authenticator.options = { epoch: Date.now() + clockDriftMs };
       const otp = authenticator.generate(totpSecret);
-      await page.getByRole('textbox').first().fill(otp);
+
+      const otpBoxes = page.getByRole('textbox');
+      const boxCount = await otpBoxes.count();
+      console.log(`${tag} [DEBUG] OTP=${otp}, tim thay ${boxCount} o nhap.`);
+
+      if (boxCount === otp.length) {
+        // Man hinh dung nhieu o rieng, moi o 1 chu so (vd: 6 o cho ma 6 so)
+        for (let i = 0; i < otp.length; i++) {
+          await otpBoxes.nth(i).fill(otp[i]);
+        }
+      } else {
+        // Man hinh dung 1 o nhap chung ca ma
+        await otpBoxes.first().fill(otp);
+      }
       await page.waitForTimeout(300);
       await page.locator('button[type="submit"]').first().click();
       await page.waitForURL(url => !url.toString().includes('/login'), { timeout: 15000 }).catch(() => {});
@@ -170,28 +197,58 @@ async function main(): Promise<void> {
   acquireLock();
   let browser: Browser | null = null;
   try {
-    console.log('Khoi dong Chrome...');
-    browser = await chromium.launch({ channel: 'chrome', headless: false, slowMo: 100 });
+    // Bước 1: Đọc cookie đã lưu lần trước + test nhanh (1 request, không mở Chrome) xem
+    // còn dùng được không — tài khoản nào còn sống thì bỏ qua, đỡ phải đăng nhập lại.
+    console.log('Kiem tra cookie hien co tren GitHub...');
+    const existing = await fetchCookiesFromGitHub().catch((err) => {
+      console.warn(`[WARN] Khong doc duoc cookie cu tren GitHub (${err.message}), se dang nhap lai tat ca.`);
+      return {} as Record<string, CookieRow[]>;
+    });
 
-    // Bước 1: Login tất cả tài khoản song song
-    console.log(`\nDang nhap ${accounts.length} tai khoan cung luc...\n`);
-    const results = await Promise.all(accounts.map(a => loginAccount(browser!, a)));
-
-    // Bước 2: Ghi Google Docs tuần tự (tránh race condition khi xóa/tạo tab)
-    const successful = results.filter(r => r.success);
-    if (DOC_ID && successful.length > 0) {
-      console.log(`\n[Google Docs] Luu ${successful.length} tai khoan vao Doc...\n`);
-      for (let i = 0; i < successful.length; i++) {
-        await saveCookiesToDoc(DOC_ID, successful[i].cookies, successful[i].account.email, i === 0);
+    const reused: Record<string, CookieRow[]> = {};
+    const toRelogin: Account[] = [];
+    for (const acc of accounts) {
+      const tag = `[${acc.email.split('@')[0]}]`;
+      const cached = existing[acc.email];
+      if (cached && (await isSessionValid(cached))) {
+        console.log(`${tag} Cookie cu van con hoat dong, bo qua dang nhap lai.`);
+        reused[acc.email] = cached;
+      } else {
+        console.log(`${tag} Cookie cu da het han hoac chua co, can dang nhap lai.`);
+        toRelogin.push(acc);
       }
     }
 
+    // Bước 2: Chỉ mở Chrome + đăng nhập lại đúng những tài khoản cần làm mới cookie
+    let results: LoginResult[] = [];
+    if (toRelogin.length > 0) {
+      console.log(`\nKhoi dong Chrome, dang nhap ${toRelogin.length}/${accounts.length} tai khoan...\n`);
+      browser = await chromium.launch({ channel: 'chrome', headless: false, slowMo: 100 });
+      results = await Promise.all(toRelogin.map((a) => loginAccount(browser!, a)));
+    } else {
+      console.log('\nTat ca cookie hien co deu con hoat dong, khong can dang nhap lai tai khoan nao.\n');
+    }
+
+    // Bước 3: Ghi đè GitHub bằng cookie mới (vừa đăng nhập) + cookie cũ còn dùng được
+    const successful = results.filter((r) => r.success);
+    const cookiesByEmail: Record<string, CookieRow[]> = { ...reused };
+    for (const r of successful) cookiesByEmail[r.account.email] = r.cookies;
+
+    if (Object.keys(cookiesByEmail).length > 0) {
+      console.log(`\n[GitHub] Luu ${Object.keys(cookiesByEmail).length} tai khoan...\n`);
+      await saveCookiesToGitHub(cookiesByEmail);
+    }
+
     // Tổng kết
-    const failed = results.filter(r => !r.success);
+    const failed = results.filter((r) => !r.success);
+    const okCount = Object.keys(cookiesByEmail).length;
     console.log('\n' + '='.repeat(60));
-    console.log(`HOAN THANH: ${successful.length}/${accounts.length} tai khoan thanh cong.`);
+    console.log(
+      `HOAN THANH: ${okCount}/${accounts.length} tai khoan co cookie hop le ` +
+        `(${Object.keys(reused).length} tai su dung lai, ${successful.length} vua dang nhap moi).`,
+    );
     if (failed.length > 0) {
-      console.log(`THAT BAI (${failed.length}): ${failed.map(r => r.account.email.split('@')[0]).join(', ')}`);
+      console.log(`THAT BAI (${failed.length}): ${failed.map((r) => r.account.email.split('@')[0]).join(', ')}`);
     }
     console.log('='.repeat(60));
 

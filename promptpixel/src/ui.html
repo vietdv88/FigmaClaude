@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PromptPixel</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        background: var(--figma-color-bg);
+        color: var(--figma-color-text);
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      button, input, select, textarea { font: inherit; }
+
+      header {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        border-bottom: 1px solid var(--figma-color-border);
+      }
+
+      .brand { display: flex; align-items: center; gap: 10px; }
+      .mark {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        place-items: center;
+        border-radius: 9px;
+        background: #d9ff43;
+        color: #141414;
+        font-size: 17px;
+        font-weight: 900;
+      }
+      h1 { margin: 0; font-size: 14px; letter-spacing: .08em; }
+      .subtitle { margin-top: 2px; color: var(--figma-color-text-secondary); }
+
+      nav {
+        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+        margin: 12px 16px 0;
+        padding: 3px;
+        border-radius: 10px;
+        background: var(--figma-color-bg-secondary);
+      }
+      nav button {
+        border: 0;
+        border-radius: 7px;
+        padding: 8px;
+        background: transparent;
+        color: var(--figma-color-text-secondary);
+        cursor: pointer;
+      }
+      nav button.active {
+        background: var(--figma-color-bg);
+        color: var(--figma-color-text);
+        box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+      }
+
+      main { flex: 1; overflow-y: auto; padding: 16px; }
+      footer {
+        flex-shrink: 0;
+        display: grid;
+        gap: 10px;
+        padding: 12px 16px 16px;
+        border-top: 1px solid var(--figma-color-border);
+        background: var(--figma-color-bg);
+      }
+      [hidden] { display: none !important; }
+      textarea.autogrow { overflow: hidden; resize: none; }
+      #generate-errors { max-height: 240px; overflow-y: auto; }
+      #generate-errors li { white-space: pre-wrap; }
+      #generate-comparison { max-height: 160px; overflow-y: auto; white-space: pre-wrap; }
+      #generate-html-wireframe pre {
+        max-height: 260px;
+        margin: 8px 0 0;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: ui-monospace, monospace;
+        font-size: 10.5px;
+        line-height: 1.4;
+      }
+      .stack { display: grid; gap: 12px; }
+      .field { display: grid; gap: 6px; }
+      label { color: var(--figma-color-text-secondary); font-weight: 600; }
+      input, select, textarea {
+        width: 100%;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 8px;
+        padding: 9px 10px;
+        outline: none;
+        background: var(--figma-color-bg);
+        color: var(--figma-color-text);
+      }
+      input:focus, select:focus, textarea:focus { border-color: #8ead00; }
+      textarea { min-height: 190px; resize: vertical; line-height: 1.5; }
+      #rules textarea { min-height: 80px; }
+      input[type="checkbox"] { width: auto; flex: none; }
+      .item-row input[type="text"], .item-row input[type="password"] { flex: 1; width: auto; min-width: 0; }
+
+      .button {
+        border: 0;
+        border-radius: 8px;
+        padding: 9px 12px;
+        cursor: pointer;
+        font-weight: 650;
+      }
+      .button.primary { background: #d9ff43; color: #141414; }
+      .button.secondary {
+        background: var(--figma-color-bg-secondary);
+        color: var(--figma-color-text);
+      }
+      .button.danger { color: var(--figma-color-text-danger); background: transparent; }
+      .button:disabled { cursor: default; opacity: 0.7; }
+      .spinner {
+        display: inline-block;
+        width: 11px;
+        height: 11px;
+        margin-right: 6px;
+        vertical-align: -1px;
+        border: 2px solid currentColor;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: promptpixel-spin 0.6s linear infinite;
+      }
+      @keyframes promptpixel-spin { to { transform: rotate(360deg); } }
+      .help-wrap { position: relative; display: inline-block; }
+      .help-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        border: none;
+        background: transparent;
+        color: var(--figma-color-text-secondary);
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 0;
+        margin-left: 4px;
+        vertical-align: middle;
+      }
+      .help-popover {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 6px;
+        width: 240px;
+        max-width: 70vw;
+        padding: 10px 12px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 8px;
+        background: var(--figma-color-bg);
+        color: var(--figma-color-text);
+        box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
+        z-index: 20;
+        line-height: 1.5;
+        font-weight: 400;
+      }
+      .help-popover a { color: #8ead00; word-break: break-all; }
+      .actions { display: flex; gap: 8px; }
+      .actions .button { flex: 1; }
+      footer .tab-actions > .button { display: block; width: 100%; }
+
+      .note {
+        padding: 10px 12px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 8px;
+        color: var(--figma-color-text-secondary);
+        line-height: 1.45;
+      }
+      .list { display: grid; gap: 8px; }
+      ul.list, ol.list { list-style: none; margin: 0; padding: 0; }
+      .component-row {
+        padding: 6px 10px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 7px;
+      }
+      .component-link {
+        background: none;
+        border: 0;
+        padding: 0;
+        margin: 0;
+        text-align: left;
+        color: inherit;
+        cursor: pointer;
+        text-decoration: underline;
+        text-decoration-color: transparent;
+      }
+      .component-link:hover { text-decoration-color: currentColor; }
+      .group-details { padding: 8px 10px; }
+      .group-details summary { font-weight: 650; }
+      .group-details .list { margin-top: 8px; }
+      .item {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 9px;
+      }
+      .item-row { display: flex; align-items: center; gap: 10px; }
+      .item-copy { min-width: 0; flex: 1; }
+      .item-title { overflow: hidden; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+      .item-meta { margin-top: 3px; color: var(--figma-color-text-secondary); }
+      .item textarea { min-height: 56px; }
+      .item-editor {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 9px;
+      }
+      .item-editor textarea { min-height: 64px; }
+      .check-row { display: flex; align-items: center; gap: 9px; }
+      .check-row input { width: auto; }
+      .empty { padding: 28px 14px; text-align: center; color: var(--figma-color-text-secondary); }
+      .status { min-height: 18px; color: var(--figma-color-text-danger); }
+      details {
+        border: 1px solid var(--figma-color-border);
+        border-radius: 8px;
+        padding: 10px;
+      }
+      summary { cursor: pointer; color: var(--figma-color-text-secondary); }
+      details .stack { margin-top: 12px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <div class="mark">P</div>
+        <div>
+          <h1>PromptPixel</h1>
+          <div class="subtitle">Design-system native AI</div>
+        </div>
+      </div>
+    </header>
+
+    <nav aria-label="PromptPixel sections">
+      <button class="active" data-tab="provider">AI</button>
+      <button data-tab="libraries">Libraries</button>
+      <button data-tab="rules">Rules</button>
+      <button data-tab="generate">Generate</button>
+    </nav>
+
+    <main>
+      <section id="provider" class="stack">
+        <div class="field">
+          <label for="provider-kind">Provider</label>
+          <select id="provider-kind">
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="openai-compatible">OpenAI compatible</option>
+            <option value="custom">Custom endpoint</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="api-key">
+            API key
+            <span class="help-wrap">
+              <button type="button" class="help-icon" id="api-key-help-toggle">?</button>
+              <div class="help-popover" id="api-key-help" hidden></div>
+            </span>
+          </label>
+          <div class="item-row">
+            <input id="api-key" type="password" autocomplete="off" placeholder="sk-…" />
+            <button type="button" class="button secondary" id="edit-api-key" hidden>Sửa</button>
+          </div>
+        </div>
+        <details>
+          <summary>Advanced</summary>
+          <div class="stack">
+            <div class="field">
+              <label for="model">Model override</label>
+              <div class="item-row">
+                <input id="model" type="text" list="model-datalist" autocomplete="off" placeholder="Auto" />
+                <button type="button" class="button secondary" id="load-models">Tải danh sách</button>
+              </div>
+              <datalist id="model-datalist"></datalist>
+            </div>
+            <div class="field">
+              <label for="base-url">Custom base URL</label>
+              <input id="base-url" placeholder="Tự động theo provider" />
+            </div>
+          </div>
+        </details>
+        <div class="note">Model được chọn tự động. API key được lưu trên thiết bị này và giữ nguyên cho tới khi bạn xóa, browser cache bị xóa, hoặc provider revoke key.</div>
+      </section>
+
+      <section id="libraries" class="stack" hidden>
+        <div class="note">PromptPixel tải các library đang được bật trong file hiện tại. AI chỉ được dùng những library bạn giữ ở trạng thái bật.</div>
+        <div id="library-list" class="list"></div>
+      </section>
+
+      <section id="rules" class="stack" hidden>
+        <div class="note">Chia rule theo loại màn hình để AI hiểu rõ và bạn không bỏ sót yêu cầu nào.</div>
+        <div class="field">
+          <label for="rules-screen-size">Kích thước màn hình chuẩn</label>
+          <select id="rules-screen-size">
+            <option value="1366x768">1366 × 768</option>
+            <option value="1920x1080">1920 × 1080</option>
+            <option value="1440x900">1440 × 900</option>
+            <option value="1280x800">1280 × 800</option>
+            <option value="1024x768">1024 × 768</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rules-general">Chung (áp dụng cho mọi màn hình)</label>
+          <textarea id="rules-general" class="autogrow" placeholder="- Spacing theo bội số 4
+- Padding mobile 24px
+- Font, cỡ chữ, màu sắc theo theme
+- Luôn dùng Button/Primary cho CTA chính"></textarea>
+        </div>
+        <div class="field">
+          <label for="rules-overview">Tổng quan / Dashboard</label>
+          <textarea id="rules-overview" class="autogrow" placeholder="- Bố cục dạng lưới thẻ thống kê (card)
+- Có bộ lọc theo thời gian ở trên cùng
+- Biểu đồ đặt bên dưới các thẻ số liệu"></textarea>
+        </div>
+        <div class="field">
+          <label for="rules-list">Danh sách</label>
+          <textarea id="rules-list" class="autogrow" placeholder="- Có ô tìm kiếm và bộ lọc phía trên bảng
+- Bảng có phân trang
+- Nút Thêm mới đặt ở góc phải trên cùng"></textarea>
+        </div>
+        <div class="field">
+          <label for="rules-detail">Chi tiết</label>
+          <textarea id="rules-detail" class="autogrow" placeholder="- Chia 2 cột: thông tin chính bên trái, phụ bên phải
+- Nút Lưu / Hủy đặt cố định ở cuối màn hình"></textarea>
+        </div>
+      </section>
+
+      <section id="generate" class="stack" hidden>
+        <div class="note">PromptPixel sẽ dùng component trong các library đang bật, cùng design rules, để dựng giao diện từ mô tả của bạn.</div>
+        <div class="field">
+          <label for="generate-prompt">Mô tả màn hình</label>
+          <textarea id="generate-prompt" placeholder="Ví dụ: Màn hình đăng nhập với email, password, nút đăng nhập chính"></textarea>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="generate-use-selection" />
+          <label for="generate-use-selection">Vẽ lại theo ảnh của vùng đang chọn trên canvas</label>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div id="footer-provider" class="tab-actions actions">
+        <button id="save-provider" class="button primary">Lưu provider</button>
+        <button id="delete-api-key" class="button secondary">Xóa API key</button>
+      </div>
+      <div id="footer-libraries" class="tab-actions" hidden></div>
+      <div id="footer-rules" class="tab-actions" hidden>
+        <button id="save-rules" class="button primary">Lưu design rules</button>
+      </div>
+      <div id="footer-generate" class="tab-actions stack" hidden>
+        <div id="generate-status" class="note" hidden></div>
+        <details id="generate-html-wireframe" hidden>
+          <summary>Xem HTML wireframe (bước 1, trước khi convert sang component)</summary>
+          <pre id="generate-html-wireframe-content"></pre>
+        </details>
+        <ul id="generate-errors" class="list" hidden></ul>
+        <div id="generate-comparison" class="note" hidden></div>
+        <button id="generate-submit" class="button primary">Generate</button>
+      </div>
+      <div id="status" class="status" role="status"></div>
+    </footer>
+
+    <script>
+      const state = {
+        plugin: null,
+        savedApiKeyIds: [],
+        openLibraryDetails: new Set(),
+        openGroupDetails: new Set()
+      };
+
+      const $ = (selector) => document.querySelector(selector);
+      const send = (pluginMessage) => parent.postMessage({ pluginMessage }, "*");
+
+      document.querySelectorAll("nav button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("nav button").forEach((item) => item.classList.remove("active"));
+          document.querySelectorAll("main section").forEach((item) => item.hidden = true);
+          document.querySelectorAll("footer .tab-actions").forEach((item) => item.hidden = true);
+          button.classList.add("active");
+          const section = $(`#${button.dataset.tab}`);
+          section.hidden = false;
+          $(`#footer-${button.dataset.tab}`).hidden = false;
+          // heights computed while a section was display:none are wrong (scrollHeight
+          // reads 0), so recompute now that it's actually visible
+          section.querySelectorAll("textarea.autogrow").forEach(autoGrow);
+        });
+      });
+
+      function autoGrow(el) {
+        el.style.height = "auto";
+        el.style.height = `${el.scrollHeight}px`;
+      }
+
+      document.querySelectorAll("textarea.autogrow").forEach((el) => {
+        el.addEventListener("input", () => autoGrow(el));
+      });
+
+      const API_KEY_HELP = {
+        openai: {
+          url: "https://platform.openai.com/api-keys",
+          text: 'Đăng nhập rồi bấm "Create new secret key".'
+        },
+        anthropic: {
+          url: "https://console.anthropic.com/settings/keys",
+          text: 'Đăng nhập rồi bấm "Create Key".'
+        },
+        gemini: {
+          url: "https://aistudio.google.com/apikey",
+          text: 'Đăng nhập bằng tài khoản Google rồi bấm "Create API key".'
+        },
+        openrouter: {
+          url: "https://openrouter.ai/keys",
+          text: 'Đăng nhập rồi bấm "Create Key".'
+        },
+        "openai-compatible": {
+          url: null,
+          text: "Lấy API key từ nhà cung cấp endpoint tương thích OpenAI bạn đang dùng (VD: Groq, Together AI, hoặc server tự host)."
+        },
+        custom: {
+          url: null,
+          text: "Lấy API key theo hướng dẫn của endpoint tùy chỉnh bạn đang kết nối tới."
+        }
+      };
+
+      function updateApiKeyHelp() {
+        const info = API_KEY_HELP[$("#provider-kind").value];
+        const popover = $("#api-key-help");
+        if (!info) {
+          popover.innerHTML = "";
+          return;
+        }
+        const link = info.url
+          ? `<div><a href="${escapeHtml(info.url)}" target="_blank" rel="noopener">${escapeHtml(info.url)}</a></div>`
+          : "";
+        popover.innerHTML = `${link}<div${link ? ' style="margin-top:6px"' : ""}>${escapeHtml(info.text)}</div>`;
+      }
+
+      $("#api-key-help-toggle").addEventListener("click", (event) => {
+        event.stopPropagation();
+        updateApiKeyHelp();
+        $("#api-key-help").hidden = !$("#api-key-help").hidden;
+      });
+
+      document.addEventListener("click", (event) => {
+        const popover = $("#api-key-help");
+        if (!popover.hidden && event.target.id !== "api-key-help-toggle" && !popover.contains(event.target)) {
+          popover.hidden = true;
+        }
+      });
+
+      const SAVED_API_KEY_PLACEHOLDER = "saved-api-key-placeholder";
+
+      function refreshApiKeyField() {
+        const id = `provider-${$("#provider-kind").value}`;
+        const isSaved = state.savedApiKeyIds.includes(id);
+        const input = $("#api-key");
+        input.disabled = isSaved;
+        input.value = isSaved ? SAVED_API_KEY_PLACEHOLDER : "";
+        input.placeholder = isSaved ? "" : "sk-…";
+        $("#edit-api-key").hidden = !isSaved;
+      }
+
+      function applyProviderProfileToFields(kind) {
+        const profile = (state.plugin?.providerProfiles || []).find(
+          (item) => item.id === `provider-${kind}`
+        );
+        $("#model").value = profile && profile.model !== "auto" ? profile.model : "";
+        $("#base-url").value = profile?.baseUrl || "";
+      }
+
+      $("#provider-kind").addEventListener("change", () => {
+        applyProviderProfileToFields($("#provider-kind").value);
+        $("#model-datalist").innerHTML = "";
+        updateApiKeyHelp();
+        refreshApiKeyField();
+      });
+      updateApiKeyHelp();
+
+      $("#edit-api-key").addEventListener("click", () => {
+        const input = $("#api-key");
+        input.disabled = false;
+        input.value = "";
+        input.placeholder = "Nhập API key mới…";
+        input.focus();
+        $("#edit-api-key").hidden = true;
+      });
+
+      $("#load-models").addEventListener("click", () => {
+        const provider = $("#provider-kind").value;
+        const name = $("#provider-kind").selectedOptions[0].textContent;
+        const baseUrl = $("#base-url").value.trim();
+        const apiKeyInput = $("#api-key");
+        const apiKey = apiKeyInput.disabled ? undefined : apiKeyInput.value.trim() || undefined;
+        $("#load-models").disabled = true;
+        $("#load-models").innerHTML = '<span class="spinner"></span>Đang tải...';
+        send({
+          type: "LOAD_PROVIDER_MODELS",
+          profile: { id: `provider-${provider}`, name, provider, model: "auto", baseUrl: baseUrl || undefined },
+          apiKey
+        });
+      });
+
+      $("#save-provider").addEventListener("click", () => {
+        const provider = $("#provider-kind").value;
+        const name = $("#provider-kind").selectedOptions[0].textContent;
+        const model = $("#model").value.trim() || "auto";
+        const baseUrl = $("#base-url").value.trim();
+        const apiKeyInput = $("#api-key");
+        const apiKey = apiKeyInput.disabled ? "" : apiKeyInput.value.trim();
+        const id = `provider-${provider}`;
+
+        if (!apiKey && !state.savedApiKeyIds.includes(id)) {
+          $("#status").textContent = "API key là bắt buộc.";
+          return;
+        }
+
+        send({
+          type: "SAVE_PROVIDER",
+          profile: { id, name, provider, model, baseUrl: baseUrl || undefined },
+          apiKey: apiKey || undefined
+        });
+        $("#status").textContent = "";
+      });
+
+      $("#delete-api-key").addEventListener("click", () => {
+        const provider = $("#provider-kind").value;
+        send({ type: "DELETE_API_KEY", activeProviderId: `provider-${provider}` });
+      });
+
+      $("#save-rules").addEventListener("click", () => {
+        const [width, height] = $("#rules-screen-size").value.split("x").map(Number);
+        send({
+          type: "SAVE_RULES",
+          rules: {
+            general: $("#rules-general").value,
+            overview: $("#rules-overview").value,
+            list: $("#rules-list").value,
+            detail: $("#rules-detail").value
+          },
+          screenSize: { width, height }
+        });
+      });
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (ch) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        }[ch]));
+      }
+
+      $("#generate-submit").addEventListener("click", () => {
+        const prompt = $("#generate-prompt").value.trim();
+        const useSelectionImage = $("#generate-use-selection").checked;
+        if (!prompt && !useSelectionImage) {
+          $("#status").textContent = "Nhập mô tả màn hình hoặc chọn dùng ảnh từ canvas.";
+          return;
+        }
+        $("#generate-submit").disabled = true;
+        $("#generate-errors").hidden = true;
+        $("#generate-errors").innerHTML = "";
+        $("#generate-comparison").hidden = true;
+        $("#generate-comparison").textContent = "";
+        $("#generate-html-wireframe").hidden = true;
+        $("#generate-html-wireframe-content").textContent = "";
+        $("#generate-status").hidden = false;
+        $("#generate-status").textContent = "Đang generate…";
+        send({ type: "GENERATE_UI", prompt, useSelectionImage });
+      });
+
+      function bindDiscoverButton() {
+        const button = $("#discover-libraries");
+        if (button) button.addEventListener("click", () => send({ type: "DISCOVER_ENABLED_LIBRARIES" }));
+      }
+
+      function renderLoadSection(library, componentsForLibrary, textStylesForLibrary, paintStylesForLibrary) {
+        const textStyleList = textStylesForLibrary.length
+          ? `<ul class="list">${textStylesForLibrary.map((style) => `<li class="component-row">${escapeHtml(style.name)}</li>`).join("")}</ul>`
+          : '<div class="empty">Chưa nạp text style nào.</div>';
+
+        const paintStyleList = paintStylesForLibrary.length
+          ? `<ul class="list">${paintStylesForLibrary.map((style) => `<li class="component-row">${escapeHtml(style.name)}</li>`).join("")}</ul>`
+          : '<div class="empty">Chưa nạp color style nào.</div>';
+
+        function renderComponentRow(component, isIconGroup) {
+          if (isIconGroup) {
+            return `
+              <li class="component-row">
+                <div class="item-row">
+                  <button class="component-link item-copy" data-focus-component data-component-id="${escapeHtml(component.id)}">${escapeHtml(component.name)}</button>
+                  <button class="button danger" data-delete-component data-component-id="${escapeHtml(component.id)}">Xóa</button>
+                </div>
+                <div class="item-meta">${escapeHtml(component.aiDescription || "")}</div>
+              </li>
+            `;
+          }
+          return `
+            <li class="component-row">
+              <div class="item-row">
+                <button class="component-link item-copy" data-focus-component data-component-id="${escapeHtml(component.id)}">${escapeHtml(component.name)}</button>
+                <button class="button secondary" data-edit-component data-component-id="${escapeHtml(component.id)}">Sửa</button>
+                <button class="button danger" data-delete-component data-component-id="${escapeHtml(component.id)}">Xóa</button>
+              </div>
+              ${component.aiDescription ? `<div class="item-meta">${escapeHtml(component.aiDescription)}</div>` : ""}
+              <div class="item-editor" data-editor-for="${escapeHtml(component.id)}" hidden>
+                <div class="field">
+                  <label>Mô tả cho AI</label>
+                  <textarea data-ai-description placeholder="Mô tả khi nào dùng component này (VD: nút bấm chính, dùng cho hành động quan trọng nhất trên màn hình)">${escapeHtml(component.aiDescription || "")}</textarea>
+                </div>
+                <button class="button primary" data-save-component data-component-id="${escapeHtml(component.id)}">Lưu</button>
+              </div>
+            </li>
+          `;
+        }
+
+        const groups = new Map();
+        for (const component of componentsForLibrary) {
+          const group = component.pageName || "(Không rõ page)";
+          if (!groups.has(group)) groups.set(group, []);
+          groups.get(group).push(component);
+        }
+
+        const componentList = componentsForLibrary.length
+          ? [...groups].map(([groupName, comps]) => {
+              const groupKey = `${library.id}::${groupName}`;
+              const isGroupOpen = state.openGroupDetails.has(groupKey);
+              const isIconGroup = groupName.trim().toLowerCase() === "icons";
+              return `
+                <details class="group-details" data-group-key="${escapeHtml(groupKey)}" ${isGroupOpen ? "open" : ""}>
+                  <summary>${escapeHtml(groupName)} (${comps.length})</summary>
+                  <ul class="list">${comps.map((component) => renderComponentRow(component, isIconGroup)).join("")}</ul>
+                </details>
+              `;
+            }).join("")
+          : '<div class="empty">Chưa nạp component nào.</div>';
+
+        const alreadyLoaded =
+          componentsForLibrary.length > 0 || textStylesForLibrary.length > 0 || paintStylesForLibrary.length > 0;
+        const loadButtonLabel = alreadyLoaded
+          ? "Nạp lại component, text style & color style"
+          : "Nạp component, text style & color style";
+        const isLibraryOpen = state.openLibraryDetails.has(library.id);
+
+        return `
+          <details data-library-details-key="${escapeHtml(library.id)}" ${isLibraryOpen ? "open" : ""}>
+            <summary>Nạp component, text style &amp; color style (${componentsForLibrary.length} component, ${textStylesForLibrary.length} text style, ${paintStylesForLibrary.length} color style)</summary>
+            <div class="stack">
+              <div class="note">Mở file thư viện gốc của "${escapeHtml(library.name)}" trong Figma, rồi quay lại đây bấm nút bên dưới để nạp toàn bộ component, text style, và color style của thư viện này. Dữ liệu được lưu chung cho plugin — mở file khác để thiết kế vẫn dùng lại được, không cần nạp lại.</div>
+              <button class="button primary" data-load-components>${escapeHtml(loadButtonLabel)}</button>
+              <div class="note">Component nào có mặt trong danh sách là AI được phép dùng. Bấm "Xóa" để bỏ component không muốn dùng. Danh sách được gom theo đúng page trong file gốc — đặt tên page là "Icons" để AI biết đó là kho icon khi cần thay icon cho component khác.</div>
+              ${componentList}
+              <div class="note">Text style — AI dùng cho các đoạn text tự do (không gắn với component nào). Mặc định là "Body Regular".</div>
+              ${textStyleList}
+              <div class="note">Color style — AI dùng để tô nền cho khung tự vẽ (không gắn với component nào).</div>
+              ${paintStyleList}
+            </div>
+          </details>
+        `;
+      }
+
+      function renderLibraries(libraries, enabledLibraryIds) {
+        const list = $("#library-list");
+
+        if (!libraries.length) {
+          list.innerHTML = `
+            <div class="empty">File này chưa add thư viện nào. Vui lòng add thư viện (Assets → Team library) rồi bấm nút dưới.</div>
+            <button id="discover-libraries" class="button primary">Quét thư viện</button>
+          `;
+          bindDiscoverButton();
+          return;
+        }
+
+        const components = state.plugin?.components || [];
+        const textStyles = state.plugin?.textStyles || [];
+        const paintStyles = state.plugin?.paintStyles || [];
+
+        list.innerHTML = libraries.map(() => `
+          <div class="item">
+            <div class="item-row">
+              <input type="checkbox" data-enabled />
+              <div class="item-copy">
+                <div class="item-title"></div>
+                <div class="item-meta"></div>
+              </div>
+              <button class="button danger" data-delete-library>Xóa</button>
+            </div>
+            <textarea data-description placeholder="Mô tả để AI biết khi nào dùng thư viện này (VD: chứa logo ứng dụng / chứa các component chính như Button, Textbox, Combobox để kéo ra khi thiết kế)."></textarea>
+            <div data-load-section></div>
+          </div>
+        `).join("") + '<button id="discover-libraries" class="button secondary">+ Thêm thư viện khác</button>';
+        bindDiscoverButton();
+
+        list.querySelectorAll(".item").forEach((row, index) => {
+          const library = libraries[index];
+          const componentsForLibrary = components.filter((component) => component.libraryId === library.id);
+          const textStylesForLibrary = textStyles.filter((style) => style.libraryId === library.id);
+          const paintStylesForLibrary = paintStyles.filter((style) => style.libraryId === library.id);
+          row.querySelector(".item-title").textContent = library.name;
+          const collectionCount = library.variableCollectionKeys?.length || 0;
+          row.querySelector(".item-meta").textContent = `${collectionCount} variable collection(s) · ${componentsForLibrary.length} component(s), ${textStylesForLibrary.length} text style(s), ${paintStylesForLibrary.length} color style(s) đã nạp`;
+          const checkbox = row.querySelector("[data-enabled]");
+          const isEnabled = enabledLibraryIds.includes(library.id);
+          checkbox.checked = isEnabled;
+          checkbox.addEventListener("change", () => send({
+            type: "TOGGLE_LIBRARY",
+            libraryId: library.id,
+            enabled: checkbox.checked
+          }));
+          row.querySelector("[data-delete-library]").addEventListener("click", () => send({
+            type: "DELETE_LIBRARY",
+            libraryId: library.id
+          }));
+          const description = row.querySelector("[data-description]");
+          description.value = library.description || "";
+          description.addEventListener("change", () => send({
+            type: "SAVE_LIBRARY",
+            library: { ...library, description: description.value.trim() }
+          }));
+
+          const loadSection = row.querySelector("[data-load-section]");
+          if (!isEnabled) {
+            loadSection.innerHTML = "";
+            return;
+          }
+          loadSection.innerHTML = renderLoadSection(
+            library,
+            componentsForLibrary,
+            textStylesForLibrary,
+            paintStylesForLibrary
+          );
+          loadSection.querySelector("[data-load-components]").addEventListener("click", (event) => {
+            const button = event.currentTarget;
+            button.dataset.originalLabel = button.textContent;
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner"></span>Đang quét...';
+            send({ type: "SCAN_CURRENT_FILE_LIBRARY", libraryId: library.id });
+          });
+
+          loadSection.querySelectorAll("[data-delete-component]").forEach((button) => {
+            button.addEventListener("click", () => send({
+              type: "REMOVE_COMPONENT",
+              componentId: button.dataset.componentId
+            }));
+          });
+
+          loadSection.querySelectorAll("[data-focus-component]").forEach((button) => {
+            button.addEventListener("click", () => send({
+              type: "FOCUS_COMPONENT",
+              componentId: button.dataset.componentId
+            }));
+          });
+
+          loadSection.querySelectorAll("[data-edit-component]").forEach((button) => {
+            const componentId = button.dataset.componentId;
+            const editor = loadSection.querySelector(`[data-editor-for="${componentId}"]`);
+            button.addEventListener("click", () => {
+              editor.hidden = !editor.hidden;
+            });
+          });
+
+          loadSection.querySelectorAll("[data-save-component]").forEach((button) => {
+            button.addEventListener("click", () => {
+              const componentId = button.dataset.componentId;
+              const component = componentsForLibrary.find((item) => item.id === componentId);
+              if (!component) return;
+              const editor = loadSection.querySelector(`[data-editor-for="${componentId}"]`);
+              const aiDescription = editor.querySelector("[data-ai-description]").value.trim();
+              send({
+                type: "UPDATE_COMPONENT",
+                component: { ...component, aiDescription }
+              });
+              editor.hidden = true;
+            });
+          });
+
+          const libraryDetails = loadSection.querySelector("[data-library-details-key]");
+          if (libraryDetails) {
+            libraryDetails.addEventListener("toggle", () => {
+              if (libraryDetails.open) state.openLibraryDetails.add(library.id);
+              else state.openLibraryDetails.delete(library.id);
+            });
+          }
+
+          loadSection.querySelectorAll("[data-group-key]").forEach((groupDetails) => {
+            const groupKey = groupDetails.dataset.groupKey;
+            groupDetails.addEventListener("toggle", () => {
+              if (groupDetails.open) state.openGroupDetails.add(groupKey);
+              else state.openGroupDetails.delete(groupKey);
+            });
+          });
+        });
+      }
+
+      // The main thread (code.ts) has no DOM to parse HTML with — this iframe is a real browser
+      // context, so parsing happens here. The wireframe is styled through a `<style>` block with
+      // class selectors (not inline `style="..."` attributes — see buildHtmlWireframePrompt), so
+      // a plain DOMParser tree (detached, never rendered) would never actually apply that CSS at
+      // all. See parseHtmlWireframe below for how the wireframe actually gets rendered (a hidden
+      // Shadow DOM host) so a real layout pass happens before anything is measured.
+      //
+      // Positioning is ABSOLUTE, not reconstructed Auto Layout: every element's exact rendered
+      // box (getBoundingClientRect, relative to its own parent) is captured and carried straight
+      // through to Figma as that node's x/y/width/height. This sidesteps translating CSS's
+      // flexbox/grid semantics (direction, wrap, align, stretch-vs-hug, gap) into Figma Auto
+      // Layout's — a persistent source of drift (misaligned rows, overlapping/clipped content)
+      // since the two box models don't correspond 1:1 — at the cost of the result not
+      // auto-reflowing like an idiomatic Figma Auto Layout frame would if hand-edited afterward.
+      function rectRelativeTo(rect, parentRect) {
+        return { x: rect.left - parentRect.left, y: rect.top - parentRect.top, width: rect.width, height: rect.height };
+      }
+
+      // "Mixed content" bare text (e.g. the "Label" in `<li><span class="icon">X</span> Label</li>`)
+      // has no element of its own to call getBoundingClientRect on — a Range over just those text
+      // nodes gives their real rendered extent instead.
+      function measureDirectTextRect(el, parentRect) {
+        const range = document.createRange();
+        let union = null;
+        for (const child of el.childNodes) {
+          if (child.nodeType !== Node.TEXT_NODE || !child.textContent || !child.textContent.trim()) continue;
+          range.selectNodeContents(child);
+          const rect = range.getBoundingClientRect();
+          if (rect.width <= 0 && rect.height <= 0) continue;
+          union = union
+            ? {
+                left: Math.min(union.left, rect.left),
+                top: Math.min(union.top, rect.top),
+                right: Math.max(union.left + union.width, rect.left + rect.width),
+                bottom: Math.max(union.top + union.height, rect.top + rect.height)
+              }
+            : { left: rect.left, top: rect.top, right: rect.left + rect.width, bottom: rect.top + rect.height };
+        }
+        if (!union) return undefined;
+        return rectRelativeTo(
+          { left: union.left, top: union.top, width: union.right - union.left, height: union.bottom - union.top },
+          parentRect
+        );
+      }
+
+      function elementToNode(el, win, parentRect) {
+        const tag = el.tagName.toLowerCase();
+        const classes = el.className && typeof el.className === "string"
+          ? el.className.trim().split(/\s+/).filter(Boolean)
+          : [];
+        const attrs = {};
+        for (const attr of el.attributes) {
+          if (attr.name === "class") continue;
+          attrs[attr.name] = attr.value;
+        }
+        const ownRect = el.getBoundingClientRect();
+        const computed = win.getComputedStyle(el);
+        const style = {
+          ...rectRelativeTo(ownRect, parentRect),
+          backgroundColor: computed.backgroundColor,
+          borderTopWidth: computed.borderTopWidth,
+          borderTopStyle: computed.borderTopStyle,
+          borderTopColor: computed.borderTopColor,
+          boxShadow: computed.boxShadow,
+          borderTopLeftRadius: computed.borderTopLeftRadius,
+          color: computed.color
+        };
+        // Treat <svg> as ONE atomic leaf (an icon graphic) — never recurse into its internal
+        // <path>/<circle>/<rect>/... markup. Those have no text of their own and aren't a
+        // "meaningful empty leaf" tag either, so walking into them would decompose the icon into
+        // a container wrapping content that then gets silently dropped entirely — an invisible
+        // gap left exactly where the icon graphic should be.
+        const elementChildren = tag === "svg" ? [] : [...el.children];
+        const children = elementChildren.map((child) => elementToNode(child, win, ownRect));
+        const node = { tag, classes, attrs, children, style };
+        // Collect this element's OWN direct text — text nodes that are immediate children of
+        // `el`, not nested inside any child element. Covers a pure leaf (all its content is a
+        // text node, so this equals el.textContent) AND "mixed content" (an icon element
+        // followed by unwrapped label text, e.g. `<li><span class="icon">X</span> Label</li>`)
+        // — only walking el.children (elements) would otherwise silently drop that label text
+        // entirely, since it was never inside its own listed child element.
+        let directText = "";
+        for (const child of el.childNodes) {
+          if (child.nodeType === Node.TEXT_NODE) directText += `${child.textContent || ""} `;
+        }
+        directText = directText.trim();
+        if (directText) {
+          node.text = directText;
+          // Only a distinct measurement for MIXED content (an element with both this bare text
+          // AND element children) — a pure leaf's text already occupies its own element's full
+          // measured box (`style` above), no separate rect needed.
+          if (elementChildren.length > 0) {
+            node.textRect = measureDirectTextRect(el, ownRect);
+          }
+        }
+        return node;
+      }
+
+      // Tags that can appear as literal (non-content) elements once a full HTML document string
+      // is parsed via innerHTML — the fragment-parsing algorithm used by innerHTML doesn't
+      // create real <html>/<head>/<body> wrapper elements (their contents get hoisted directly
+      // into the target instead), so these show up as plain siblings alongside the real content
+      // and need to be skipped when walking "actual UI elements".
+      const NON_CONTENT_TAGS = new Set(["STYLE", "SCRIPT", "META", "TITLE", "LINK", "HEAD", "BASE"]);
+
+      function parseHtmlWireframe(html, screenWidth, screenHeight) {
+        // Setting `shadow.innerHTML` to a FULL document string never actually creates a literal
+        // <body> element — browsers ignore a <body> start tag encountered mid-fragment-parse
+        // (only its children get inserted) — so a `body { background: ... }` rule (an extremely
+        // common way for a wireframe to set the whole screen's own background) would silently
+        // match nothing at all. Extracting the real <body>'s inner HTML via DOMParser (which DOES
+        // build a genuine document, <body> included) and re-creating a fresh, real `<body>`
+        // element ourselves keeps that rule matching something.
+        const parsedDoc = new DOMParser().parseFromString(html, "text/html");
+        const styleHtml = [...parsedDoc.querySelectorAll("style")].map((el) => el.outerHTML).join("");
+        const bodyInnerHtml = parsedDoc.body ? parsedDoc.body.innerHTML : html;
+
+        const host = document.createElement("div");
+        // Sized to the actual target canvas (not a generic placeholder) so the real browser
+        // layout — percentage widths, flex-wrap breakpoints — matches what the wireframe was
+        // actually designed for; `overflow: visible` so content taller than that nominal height
+        // still measures correctly rather than being cut off mid-layout. `contain: layout` makes
+        // the host itself the containing block for any `position: fixed`/`position: absolute`
+        // descendant (a common modal-wireframe pattern: `.modal-overlay { position: fixed; top:0;
+        // left:0; width:100%; height:100% }`) — without it, a fixed/absolute-with-no-positioned-
+        // ancestor element resolves against the REAL iframe viewport instead of this host (since
+        // the host being `position:fixed` itself doesn't establish a containing block for its own
+        // descendants), landing its rect thousands of pixels away from the host's own box and
+        // pushing that entire subtree off-canvas — Figma then clips it away entirely, i.e. exactly
+        // a "renders blank" result despite the source HTML being completely valid.
+        host.style.cssText = `position:fixed;top:-9999px;left:-9999px;width:${screenWidth}px;height:${screenHeight}px;overflow:visible;contain:layout;`;
+        document.body.appendChild(host);
+        try {
+          // A shadow root is a real, rendered part of the page (so getBoundingClientRect/
+          // getComputedStyle resolve real cascaded/laid-out values, unlike a detached DOMParser
+          // tree) while keeping the wireframe's own `<style>` block fully scoped to it — it
+          // can't leak out and clash with this plugin UI's own styles (both commonly use generic
+          // class names like `.icon`/`.button`), and outer styles don't leak in either. All
+          // synchronous — no iframe/onload timing to get wrong.
+          const shadow = host.attachShadow({ mode: "open" });
+          const bodyEl = document.createElement("body");
+          bodyEl.innerHTML = styleHtml + bodyInnerHtml;
+          shadow.appendChild(bodyEl);
+
+          const bodyRect = bodyEl.getBoundingClientRect();
+          const rootBackgroundColor = window.getComputedStyle(bodyEl).backgroundColor;
+          const contentChildren = [...bodyEl.children].filter((el) => !NON_CONTENT_TAGS.has(el.tagName));
+          return {
+            rootBackgroundColor,
+            nodes: contentChildren.map((el) => elementToNode(el, window, bodyRect))
+          };
+        } finally {
+          host.remove();
+        }
+      }
+
+      onmessage = (event) => {
+        const message = event.data.pluginMessage;
+        if (!message) return;
+
+        if (message.type === "PARSE_HTML_WIREFRAME") {
+          try {
+            const result = parseHtmlWireframe(message.html || "", message.screenWidth || 1366, message.screenHeight || 768);
+            send({
+              type: "HTML_WIREFRAME_PARSED",
+              requestId: message.requestId,
+              nodes: result.nodes,
+              rootBackgroundColor: result.rootBackgroundColor
+            });
+          } catch (error) {
+            send({
+              type: "HTML_WIREFRAME_PARSE_ERROR",
+              requestId: message.requestId,
+              message: error instanceof Error ? error.message : String(error)
+            });
+          }
+        }
+
+        if (message.type === "STATE_CHANGED") {
+          state.plugin = message.state;
+          state.savedApiKeyIds = message.savedApiKeyIds || [];
+          $("#rules-general").value = message.state.rules?.general || "";
+          $("#rules-overview").value = message.state.rules?.overview || "";
+          $("#rules-list").value = message.state.rules?.list || "";
+          $("#rules-detail").value = message.state.rules?.detail || "";
+          document.querySelectorAll("textarea.autogrow").forEach(autoGrow);
+          const screenSize = message.state.screenSize || { width: 1366, height: 768 };
+          $("#rules-screen-size").value = `${screenSize.width}x${screenSize.height}`;
+          renderLibraries(
+            message.state.libraries || [],
+            message.state.enabledLibraryIds || []
+          );
+          const active = message.state.providerProfiles.find(
+            (profile) => profile.id === message.state.activeProviderId
+          );
+          if (active) {
+            $("#provider-kind").value = active.provider;
+          }
+          applyProviderProfileToFields($("#provider-kind").value);
+          refreshApiKeyField();
+        }
+
+        if (message.type === "ERROR") {
+          $("#status").textContent = message.message;
+          $("#generate-submit").disabled = false;
+          $("#generate-status").hidden = true;
+          document.querySelectorAll("[data-load-components]:disabled").forEach((button) => {
+            button.disabled = false;
+            if (button.dataset.originalLabel) button.textContent = button.dataset.originalLabel;
+          });
+          $("#load-models").disabled = false;
+          $("#load-models").textContent = "Tải danh sách";
+        }
+
+        if (message.type === "PROVIDER_MODELS") {
+          $("#load-models").disabled = false;
+          $("#load-models").textContent = "Tải danh sách";
+          $("#model-datalist").innerHTML = message.models
+            .map((modelId) => `<option value="${escapeHtml(modelId)}"></option>`)
+            .join("");
+        }
+
+        if (message.type === "GENERATE_STARTED") {
+          $("#generate-status").hidden = false;
+          $("#generate-status").textContent = "Đang generate…";
+        }
+
+        if (message.type === "GENERATE_STATUS") {
+          $("#generate-status").hidden = false;
+          $("#generate-status").textContent = message.status;
+        }
+
+        if (message.type === "GENERATE_HTML_WIREFRAME") {
+          $("#generate-html-wireframe").hidden = false;
+          $("#generate-html-wireframe").open = true;
+          $("#generate-html-wireframe-content").textContent = message.html;
+        }
+
+        if (message.type === "GENERATE_WARNINGS") {
+          const list = $("#generate-errors");
+          list.hidden = false;
+          list.innerHTML = message.warnings.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+        }
+
+        if (message.type === "GENERATE_ERROR") {
+          $("#generate-submit").disabled = false;
+          $("#generate-status").hidden = true;
+          const list = $("#generate-errors");
+          list.hidden = false;
+          list.innerHTML = message.errors.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+        }
+
+        if (message.type === "GENERATE_SUCCESS") {
+          $("#generate-submit").disabled = false;
+          $("#generate-status").hidden = true;
+          $("#generate-prompt").value = "";
+        }
+
+        if (message.type === "GENERATE_COMPARISON") {
+          const box = $("#generate-comparison");
+          box.hidden = false;
+          box.textContent = message.comparison;
+        }
+      };
+
+      send({ type: "READY" });
+    </script>
+  </body>
+</html>

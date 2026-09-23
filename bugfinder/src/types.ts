@@ -171,7 +171,9 @@ export type UiToPluginMessage =
   | { type: "get-ui-locale" }
   | { type: "save-ui-locale"; locale: "vi" | "en" }
   | { type: "get-color-libraries" }
-  | { type: "select-color-library"; libraryName: string | null };
+  | { type: "select-color-library"; libraryName: string | null }
+  | { type: "get-figma-token" }
+  | { type: "save-figma-token"; token: string };
 
 /** One side of a 2-frame text comparison: every text node found under the selected root, keyed by a structural path (sibling index at each level, e.g. "0.2.1" — not layer name, since editing a text's content can auto-rename its layer) so the same logical element can be matched up against the other side. */
 export interface CompareSide {
@@ -218,4 +220,5 @@ export type PluginToUiMessage =
       status: "idle" | "loading" | "ready" | "error";
       error?: string;
       colorCount?: number;
-    };
+    }
+  | { type: "figma-token"; token: string };

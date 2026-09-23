@@ -42,7 +42,7 @@
     <!-- Right — thứ tự chuẩn: Settings → MISA AI → AMIS Chat → Bell → Help → More -->
     <div class="header-right">
       <slot name="header-actions" />
-      <button class="btn-icon-white" title="Thiết lập màu sắc và hiển thị" @click="openSettings">
+      <button ref="toolsBtnRef" class="btn-icon-white" title="Các tiện ích và thiết lập" @click="openToolsPopover">
         <TIcon name="settings" :stroke-width="2" />
       </button>
       <button class="btn-icon-white" title="MISA AI">
@@ -98,6 +98,43 @@
             <p class="search-hint-title">Gợi ý cách nhập từ khóa tìm kiếm nhiều điều kiện</p>
             <p class="search-hint-item">Ví dụ 1: Tìm phiếu chi tiền cho Nguyễn Minh Anh trong tháng này.</p>
             <p class="search-hint-item">Ví dụ 2: Tìm chứng từ bán hàng cho Công ty cổ phần ABC trong tháng này.</p>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <!-- ── Tools & Settings Popover ── -->
+  <Teleport to="body">
+    <Transition name="search-pop">
+      <div v-if="showToolsPopover" ref="toolsPopoverRef" class="tools-popover" :style="toolsPopoverStyle">
+        <p class="tools-popover__title">Các tiện ích và thiết lập</p>
+        <div class="tools-popover__body">
+          <div class="tools-popover__columns">
+            <div v-for="col in toolColumns" :key="col.title" class="tools-col">
+              <p class="tools-col__title">{{ col.title }}</p>
+              <button
+                v-for="item in col.items" :key="item.label"
+                class="tools-item"
+                @click="onToolItemClick(item)"
+              >
+                {{ item.label }}
+                <span v-if="item.tag" class="tools-item__tag">{{ item.tag }}</span>
+              </button>
+            </div>
+          </div>
+          <div class="tools-popover__side">
+            <div v-for="sec in toolSideSections" :key="sec.title" class="tools-col">
+              <p class="tools-col__title">{{ sec.title }}</p>
+              <button
+                v-for="item in sec.items" :key="item.label"
+                class="tools-item"
+                @click="onToolItemClick(item)"
+              >
+                {{ item.label }}
+                <span v-if="item.tag" class="tools-item__tag">{{ item.tag }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -417,9 +454,108 @@ function onDocMousedown(e) {
   const inWrap    = searchWrapRef.value?.contains(e.target)
   const inPopover = popoverRef.value?.contains(e.target)
   if (!inWrap && !inPopover) closeSearch()
+
+  const inToolsBtn = toolsBtnRef.value?.contains(e.target)
+  const inToolsPop = toolsPopoverRef.value?.contains(e.target)
+  if (!inToolsBtn && !inToolsPop) closeToolsPopover()
 }
-onMounted(() => document.addEventListener('mousedown', onDocMousedown))
-onUnmounted(() => document.removeEventListener('mousedown', onDocMousedown))
+function onDocKeydown(e) {
+  if (e.key !== 'Escape') return
+  closeSearch()
+  closeToolsPopover()
+}
+onMounted(() => {
+  document.addEventListener('mousedown', onDocMousedown)
+  document.addEventListener('keydown', onDocKeydown)
+})
+onUnmounted(() => {
+  document.removeEventListener('mousedown', onDocMousedown)
+  document.removeEventListener('keydown', onDocKeydown)
+})
+
+/* ── Tools & Settings popover ── */
+const toolsBtnRef      = ref(null)
+const toolsPopoverRef  = ref(null)
+const showToolsPopover = ref(false)
+const toolsPopoverStyle = ref({})
+
+const toolColumns = [
+  {
+    title: 'Nghiệp vụ',
+    items: [
+      { label: 'Quản lý danh mục' },
+      { label: 'Nhập số dư ban đầu' },
+    ],
+  },
+  {
+    title: 'Tiện ích',
+    items: [
+      { label: 'Bảo trì dữ liệu' },
+      { label: 'Ghi sổ/bỏ ghi theo lô' },
+      { label: 'Đánh lại số chứng từ' },
+      { label: 'Phục hồi chứng từ đã xóa nhầm' },
+      { label: 'Lấy chứng từ từ dữ liệu khác' },
+      { label: 'Kiểm tra đối chiếu chứng từ, sổ sách' },
+      { label: 'Kiểm soát hồ sơ và hạch toán', tag: 'Mới' },
+      { label: 'Gợi ý, nhắc nhở thông minh' },
+      { label: 'Tra cứu thông tin doanh nghiệp' },
+      { label: 'Nhật ký truy cập' },
+      { label: 'Mã QR thanh toán' },
+    ],
+  },
+  {
+    title: 'Công cụ khác',
+    items: [
+      { label: 'Hướng dẫn chuyển đổi từ SME' },
+      { label: 'Chuyển đổi từ AMIS Kế toán bản cũ' },
+      { label: 'Danh sách lệnh tính giá, bảo trì,... đang thực hiện' },
+      { label: 'Xóa bộ nhớ đệm nâng cao' },
+      { label: 'Cập nhật số dư từ dữ liệu năm trước' },
+      { label: 'Danh sách người dùng đang truy cập', tag: 'Mới' },
+    ],
+  },
+]
+
+const toolSideSections = [
+  {
+    title: 'Công ty của bạn',
+    items: [
+      { label: 'Thông tin công ty' },
+      { label: 'Quản lý người dùng và phân quyền', tag: 'Mới' },
+      { label: 'Quản lý dữ liệu' },
+    ],
+  },
+  {
+    title: 'Thiết lập',
+    items: [
+      { label: 'Tùy chọn' },
+      { label: 'Ngày hạch toán' },
+      { label: 'Kết nối ứng dụng' },
+      { label: 'Ngôn ngữ' },
+      { label: 'Thiết lập cấu hình gửi email' },
+      { label: 'Thiết lập ký số' },
+      { label: 'Thiết lập màu sắc và hiển thị', action: 'color-settings' },
+    ],
+  },
+]
+
+function openToolsPopover() {
+  if (toolsBtnRef.value) {
+    const rect = toolsBtnRef.value.getBoundingClientRect()
+    toolsPopoverStyle.value = {
+      position: 'fixed',
+      top:   (rect.bottom + 8) + 'px',
+      right: (window.innerWidth - rect.right) + 'px',
+      zIndex: 9500,
+    }
+  }
+  showToolsPopover.value = true
+}
+function closeToolsPopover() { showToolsPopover.value = false }
+function onToolItemClick(item) {
+  closeToolsPopover()
+  if (item.action === 'color-settings') openSettings()
+}
 
 /* ── Dialog state ── */
 const showSettings      = ref(false)
@@ -830,5 +966,88 @@ watch(showSettings, (v) => { if (v) nextTick(scalePreview) })
 .search-pop-enter-from, .search-pop-leave-to {
   opacity: 0;
   transform: translateY(-6px);
+}
+
+/* ── Tools & Settings Popover ── */
+.tools-popover {
+  width: 880px;
+  max-width: calc(100vw - 32px);
+  background: var(--bg-white);
+  border-radius: var(--radius-dialog);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--stroke-neutral-light);
+  font-family: var(--font-family);
+  padding: 20px 24px 24px;
+}
+.tools-popover__title {
+  font-size: 16px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin: 0 0 20px;
+}
+.tools-popover__body {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.tools-popover__columns {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 24px;
+}
+.tools-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tools-popover__columns .tools-col:first-child { flex: 0 0 140px; }
+.tools-popover__side {
+  flex: 0 0 240px;
+  background: var(--bg-neutral-light);
+  border-radius: var(--radius-default);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.tools-col__title {
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+.tools-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
+  margin: 0 -8px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-default);
+  font-size: 13px;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  text-align: left;
+  line-height: 20px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.tools-item:hover { background: var(--bg-neutral-hover); }
+.tools-item__tag {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  background: var(--bg-warning);
+  color: var(--text-white);
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
 }
 </style>

@@ -664,12 +664,85 @@
         border-radius: 2px;
         padding: 0 1px;
       }
+      .comments-filter-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 12px;
+      }
+      .comments-filter-row select {
+        flex: 1;
+        min-width: 0;
+        padding: 4px 8px;
+        font-size: 11px;
+        border: 1px solid var(--figma-color-border, #d0d0d0);
+        border-radius: 4px;
+        background: var(--figma-color-bg, #fff);
+        color: inherit;
+      }
+      .comments-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 12px 12px;
+      }
+      .comment-item {
+        display: block;
+        border: 1px solid var(--figma-color-border, #e6e6e6);
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 8px;
+        color: inherit;
+        text-decoration: none;
+      }
+      .comment-item.is-reply {
+        margin-left: 20px;
+        background: var(--figma-color-bg-secondary, #f7f7f7);
+      }
+      .comment-item.is-linkable {
+        cursor: pointer;
+      }
+      .comment-item.is-linkable:hover {
+        border-color: var(--figma-color-text-brand, #18a0fb);
+        background: rgba(24, 160, 251, 0.06);
+      }
+      .comment-item-head {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        margin-bottom: 4px;
+      }
+      .comment-author {
+        font-weight: 600;
+      }
+      .comment-date {
+        opacity: 0.6;
+      }
+      .comment-badge {
+        margin-left: auto;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: #eee;
+        color: #555;
+      }
+      .comment-badge.is-resolved {
+        background: #e6f6ec;
+        color: #1a9c4c;
+      }
+      .comment-message {
+        font-size: 12px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
     </style>
   </head>
   <body>
     <div class="top-tabs">
       <button class="top-tab active" type="button" data-top-tab="review">Review</button>
       <button class="top-tab" type="button" data-top-tab="compare">So sánh Text</button>
+      <button class="top-tab" type="button" data-top-tab="comments">Xem Comment</button>
       <div id="langSwitcher" class="lang-switcher">
         <button class="lang-btn active" type="button" data-locale="vi">🇻🇳</button>
         <button class="lang-btn" type="button" data-locale="en">🇬🇧</button>
@@ -778,6 +851,54 @@
         </div>
         <div id="compareResults" class="compare-results"></div>
       </div>
+    </div>
+
+    <div id="commentsView" class="hidden">
+      <div class="section api-key-section">
+        <div class="label-row">
+          <label class="small" for="figmaToken">Figma Personal Access Token</label>
+          <button id="figmaTokenHelpBtn" class="help-icon" type="button" aria-label="Hướng dẫn lấy Personal Access Token">?</button>
+          <div id="figmaTokenTooltip" class="tooltip-box">
+            Tạo token miễn phí tại
+            <a href="https://www.figma.com/developers/api#access-tokens" target="_blank" rel="noopener">figma.com/developers/api</a>:
+            <ol>
+              <li>Vào Figma → Settings → Security → Personal access tokens.</li>
+              <li>Bấm <b>Generate new token</b>, chọn quyền đọc file/comment.</li>
+              <li>Copy token và dán vào ô bên cạnh — chỉ lưu trên máy bạn, không gửi đi đâu khác ngoài Figma.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="api-row">
+          <input id="figmaToken" type="password" placeholder="Dán Personal Access Token vào đây..." />
+          <button id="saveFigmaTokenBtn" class="secondary">Lưu</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="label-row">
+          <label class="small" id="figmaFileLinkLabel" for="figmaFileLink">Link hoặc file key của file Figma</label>
+        </div>
+        <div class="api-row">
+          <input id="figmaFileLink" type="text" placeholder="Dán link file Figma (hoặc dán thẳng file key)..." />
+        </div>
+        <div class="actions-col">
+          <button id="fetchCommentsBtn" class="primary big" type="button">Tải comment của file này</button>
+        </div>
+        <div class="actions-row">
+          <span id="commentsStatus" class="status"></span>
+        </div>
+      </div>
+
+      <div id="commentsFilterRow" class="comments-filter-row hidden">
+        <select id="commentsAuthorFilter"></select>
+        <select id="commentsStatusFilter">
+          <option value="all">Tất cả trạng thái</option>
+          <option value="unresolved">Chưa resolve</option>
+          <option value="resolved">Đã resolve</option>
+        </select>
+      </div>
+
+      <div id="commentsList" class="comments-list"></div>
     </div>
 
     <!--UI_SCRIPT-->

@@ -284,6 +284,7 @@ onMounted(() => {
 }
 .kpi-card:hover .card__btn-icon,
 .card:hover .card__btn-icon { opacity: 1; }
+.card__btn-icon:hover { background: var(--bg-neutral-hover); color: var(--text-primary); }
 .card__btn-icon .ti { font-size: 15px; }
 
 /* Charts row */

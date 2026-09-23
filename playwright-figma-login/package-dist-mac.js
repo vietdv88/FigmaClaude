@@ -1,6 +1,6 @@
 /**
  * Tạo thư mục dist-package-mac/ để phân phối cho macOS (Apple Silicon):
- *   bundle.js + playwright-core + config.enc + service-account.json + node (arm64) + run.sh
+ *   bundle.js + playwright-core + config.enc + node (arm64) + run.sh
  */
 const { execSync } = require('child_process');
 const fs   = require('fs');
@@ -42,15 +42,9 @@ if (!fs.existsSync(playwrightSrc)) {
 fs.mkdirSync(path.join(DIST, 'node_modules'), { recursive: true });
 copyDir(playwrightSrc, playwrightDest);
 
-// 4. Copy config.enc + service-account.json
+// 4. Copy config.enc
 console.log('[4/6] Copying config files...');
 fs.copyFileSync(path.join(ROOT, 'config.enc'), path.join(DIST, 'config.enc'));
-const serviceAccountSrc = path.join(ROOT, 'service-account.json');
-if (fs.existsSync(serviceAccountSrc)) {
-  fs.copyFileSync(serviceAccountSrc, path.join(DIST, 'service-account.json'));
-} else {
-  console.warn('   [WARN] service-account.json not found — thêm file này vào dist-package-mac/ trước khi đóng gói.');
-}
 
 // 5. Copy Node runtime macOS (arm64) đã bundle sẵn trong repo
 console.log('[5/6] Copying Node.js runtime (darwin-arm64)...');
@@ -66,12 +60,12 @@ if (fs.existsSync(nodeMacSrc)) {
 // 6. Tạo run.sh
 console.log('[6/6] Creating run.sh...');
 const sh = `#!/usr/bin/env bash
-# Figma Auto Login + Cookie Sync to Google Docs (macOS / Apple Silicon)
+# Figma Auto Login + Cookie Sync to GitHub (macOS / Apple Silicon)
 cd "$(dirname "$0")"
 
 echo ""
 echo " ================================================"
-echo "   Figma Auto Login + Cookie Sync to Google Docs"
+echo "   Figma Auto Login + Cookie Sync to GitHub"
 echo " ================================================"
 echo ""
 
@@ -123,11 +117,6 @@ if [ ! -f "config.enc" ]; then
   read -p "Nhan Enter de dong..." _
   exit 1
 fi
-if [ ! -f "service-account.json" ]; then
-  echo "[LOI] Khong tim thay file service-account.json"
-  read -p "Nhan Enter de dong..." _
-  exit 1
-fi
 
 # -- Chay chinh --
 "$NODE_CMD" bundle.js
@@ -136,7 +125,7 @@ EXIT_CODE=$?
 echo ""
 if [ "$EXIT_CODE" -eq 0 ]; then
   echo " ================================================"
-  echo "   HOAN THANH! Cookie da duoc luu vao Google Docs"
+  echo "   HOAN THANH! Cookie da duoc luu vao GitHub"
   echo " ================================================"
 else
   echo " ================================================"
@@ -166,7 +155,7 @@ const sizeMB = (dirSize(DIST) / 1024 / 1024).toFixed(1);
 const zipMB  = (fs.statSync(zipPath).size / 1024 / 1024).toFixed(1);
 console.log(`\n✅ dist-package-mac/ — ${files} files, ${sizeMB} MB`);
 console.log(`✅ figma-login-mac.zip — ${zipMB} MB`);
-console.log('   Nội dung: run.command  run.sh  bundle.js  node  node_modules/playwright-core  config.enc  service-account.json');
+console.log('   Nội dung: run.command  run.sh  bundle.js  node  node_modules/playwright-core  config.enc');
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function copyDir(src, dest) {

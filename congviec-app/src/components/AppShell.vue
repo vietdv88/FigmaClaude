@@ -1,6 +1,6 @@
 <template>
   <div class="app-shell">
-    <ControlHeader app-name="Công việc" :no-meta="true">
+    <ControlHeader app-name="Công việc" :no-meta="true" :hide-trial-banner="true">
       <template #logo-icon>
         <svg width="32" height="32" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
           <path d="M0 14C0 2.8 2.8 0 14 0C25.2 0 28 2.8 28 14C28 25.2 25.2 28 14 28C2.8 28 0 25.2 0 14Z" fill="url(#cv_grad)"/>

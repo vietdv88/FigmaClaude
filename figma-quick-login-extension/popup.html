@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<title>Figma Quick Login</title>
+<style>
+  body {
+    width: 300px;
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    font-size: 13px;
+    margin: 0;
+    padding: 12px;
+    color: #1a1a1a;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-size: 14px;
+    margin: 0;
+  }
+  #refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: #f7f7f7;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    padding: 6px 10px;
+  }
+  #refresh .icon {
+    font-size: 20px;
+  }
+  #refresh:hover {
+    background: #eef4ff;
+    border-color: #7aa7ff;
+  }
+  #refresh:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  #accounts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  #accounts button {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 8px 10px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    background: #f7f7f7;
+    cursor: pointer;
+    text-align: left;
+    font-size: 13px;
+  }
+  #accounts button:hover {
+    background: #eef4ff;
+    border-color: #7aa7ff;
+  }
+  #accounts button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  #accounts .ts {
+    font-size: 11px;
+    color: #888;
+    font-weight: normal;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  #status {
+    min-height: 34px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: #f2f2f2;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    word-break: break-word;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #status.error {
+    background: #fdeaea;
+    color: #a10000;
+  }
+  #status.success {
+    background: #e9f9ee;
+    color: #0a6b2c;
+  }
+  #status.loading {
+    background: #eef4ff;
+    color: #274b8c;
+  }
+  #status.warning {
+    background: #fff6e0;
+    color: #8a5a00;
+  }
+  .spinner {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    border-top-color: currentColor;
+    flex: none;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Chọn tài khoản Figma</h1>
+    <button id="refresh" type="button" title="Xoá cache & tải lại cookie mới nhất (cache tự hết hạn sau 15 phút)">
+      <span class="icon">⟳</span> Tải lại
+    </button>
+  </div>
+  <div id="accounts"></div>
+  <div id="status">Chọn một tài khoản để đăng nhập.</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

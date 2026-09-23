@@ -18,6 +18,8 @@ Việc kiểm tra chính tả/ngôn ngữ áp dụng cho **mọi text layer** tr
 
 **Ngoại lệ duy nhất**: layer tuy để `visible = true` nhưng bị **1 layer khác đè kín hoàn toàn lên trên** (cùng cấp, đứng sau trong thứ tự layer, hình dạng đặc/không trong suốt, phủ kín trọn vẹn vùng của layer đó) — coi như không ai nhìn thấy được nội dung này nên bỏ qua **toàn bộ** kiểm tra (cả chính tả lẫn Design System), đồng thời không gửi lên AI (đỡ tốn cả thời gian lẫn chi phí gọi API). Cố tình kiểm tra rất chặt để tránh bỏ sót nhầm nội dung thật: chỉ tính khi layer đè lên là **hình khối đặc** (không phải mask, độ mờ ~100%, có fill solid gần như không trong suốt) và **bounding box phủ trọn** layer bị che — đè 1 phần, đè bằng hình mờ, hay chỉ là layer trang trí không tính.
 
+Rule này so từng layer với **mọi layer con đứng sau nó trong cùng 1 parent** — với 1 parent có rất nhiều con (bảng dữ liệu hàng trăm dòng, sheet icon...) phép so này tăng theo cấp số nhân (bình phương số con), từng khiến plugin **crash cả sandbox chạy plugin của Figma** (lỗi `Aborted()` trong runtime của Figma, không phải lỗi JS thường) khi Review 1 file thật có parent quá nhiều con. Để tránh lặp lại, parent nào có **trên 200 layer con** thì bỏ qua hẳn rule này cho các layer con của nó (coi như không có layer nào che layer nào) — đây là đánh đổi có chủ đích: rule vốn chỉ xử lý 1 trường hợp hiếm (nội dung nháp còn sót lại bị đè), không đáng để rủi ro crash cả phiên làm việc.
+
 Riêng 1 rule cục bộ **so sánh giữa các layer với nhau** thay vì đọc từng layer độc lập: **cùng 1 cụm từ (≥ 2 từ) viết hoa/thường không nhất quán** — ví dụ layer này ghi "iGOV Kế toán", layer khác lại "IGOV Kế toán" hoặc "iGOV kế toán" trong cùng 1 lựa chọn. Không phải cứ khác nhau 1 chữ hoa là bị tính lỗi ngay: nếu toàn bộ các cách viết khác nhau tìm được chỉ khác nhau ở chữ cái **đầu tiên** viết hoa hay thường (ví dụ "Kế toán" so với "kế toán") thì bỏ qua, vì đó là kiểu viết hoa tiêu đề/đầu câu bình thường, không chứng minh được gì. Chỉ khi có ít nhất 1 cách viết cho thấy kiểu viết hoa bất thường hơn thế — chữ không phải đầu tiên cũng viết hoa (ví dụ "Kế Toán"), hoặc 1 mẫu đặc biệt như "iGOV" — mới coi đây là 1 tên riêng/thương hiệu cố định cần đồng nhất, và báo lỗi cho mọi layer dùng cách viết khác. Không tự động chọn 1 cách viết "chuẩn" nào cả — Fix lỗi hiện tất cả các cách viết khác đang có trong lựa chọn dưới dạng nút bấm để **người dùng tự quyết định** nên đồng bộ về cách viết nào. Chỉ so khớp toàn bộ nội dung layer (không tách từng từ trong câu).
 
 ## 2 tab: Review Website vs Review Web App
@@ -97,7 +99,7 @@ Trong màn hình kết quả có thanh tab lọc theo loại lỗi (Tất cả /
 
 ## Tab "So sánh Text": đối chiếu nội dung giữa 2 frame
 
-Ngay đầu popup có 2 tab cấp cao nhất: **Review** (toàn bộ nội dung ở trên — kiểm tra chính tả/Design System cho 1 lựa chọn) và **So sánh Text** (tính năng riêng, không liên quan chính tả/AI/rule) — dùng khi có 2 frame cấu trúc tương tự nhau (ví dụ 2 phiên bản/2 trạng thái của cùng 1 màn hình) và muốn biết chỗ nào nội dung text đang lệch nhau giữa 2 bên.
+Ngay đầu popup có 3 tab cấp cao nhất: **Review** (toàn bộ nội dung ở trên — kiểm tra chính tả/Design System cho 1 lựa chọn), **So sánh Text** (tính năng riêng, không liên quan chính tả/AI/rule) — dùng khi có 2 frame cấu trúc tương tự nhau (ví dụ 2 phiên bản/2 trạng thái của cùng 1 màn hình) và muốn biết chỗ nào nội dung text đang lệch nhau giữa 2 bên, và **Xem Comment** (xem mục riêng bên dưới).
 
 Cách dùng: chọn **đúng 2 frame** trên canvas (giữ Shift để chọn cả 2 cùng lúc), chuyển sang tab So sánh Text, bấm **So sánh** (màn hình chuyển sang kết quả, có nút **"← Quay lại"** để chọn cặp frame khác). Plugin ghép từng text layer giữa 2 frame theo **vị trí trong cây** (thứ tự layer con ở từng cấp, ví dụ layer con thứ 3 trong layer con thứ 1 của frame) — **không dùng tên layer** để khớp, vì Figma tự đổi tên layer text theo đúng nội dung mỗi khi nội dung đổi (kể cả do chính plugin sửa), nếu khớp theo tên sẽ bị lệch ngay sau lần đồng bộ đầu tiên.
 
@@ -109,10 +111,29 @@ Giới hạn: khớp theo vị trí cấu trúc nên nếu 2 frame có số lư�
 
 Giới hạn cần biết: việc khớp cặp layer dựa vào tên + vị trí cấu trúc — nếu 2 frame có tên layer khác nhau hoàn toàn hoặc cấu trúc cây bị xáo trộn (thêm/xóa/đổi thứ tự layer cha), việc khớp cặp có thể sai lệch hoặc bỏ sót. Phù hợp nhất khi 2 frame là bản sao/biến thể gần giống nhau của cùng 1 thiết kế.
 
+## Tab "Xem Comment": lọc comment của file theo người viết/trạng thái
+
+Figma Plugin API **không có cách nào đọc comment của file** — tính năng này gọi thẳng **Figma REST API** (`GET /v1/files/:file_key/comments`) ngay từ UI của plugin thay vì qua Plugin API, nên cần thêm 1 bước xác thực riêng, tách biệt hoàn toàn với Gemini API key:
+
+1. Dán **Figma Personal Access Token** (tạo tại Figma → Settings → Security → Personal access tokens, xem hướng dẫn qua nút "?" cạnh ô nhập) rồi bấm **Lưu** — token chỉ lưu trên máy qua `figma.clientStorage`, không gửi đi đâu ngoài Figma.
+2. Dán **link file Figma đang mở** (URL trên thanh địa chỉ, dạng `.../file/...`, `.../design/...` hay `.../proto/...` đều được) vào ô "Link hoặc file key của file Figma" — hoặc dán thẳng file key nếu đã biết. Plugin tự tách file key ra khỏi URL bằng regex, không cần bạn tự cắt link.
+3. Bấm **"Tải comment của file này"**.
+4. Sau khi tải xong, 2 ô lọc hiện ra: **người viết** (danh sách tự gom từ chính các comment vừa tải, không cần biết trước) và **trạng thái** (Tất cả / Đã resolve / Chưa resolve). Danh sách bên dưới lọc lại ngay lập tức theo lựa chọn, không cần tải lại từ Figma.
+
+Khi đã lọc theo đúng 1 người, tên người viết không hiện lại trên từng dòng nữa (dư thừa vì đã lọc rồi theo đúng người đó) — chỉ còn nhãn trạng thái + nội dung comment, cho gọn.
+
+Về trạng thái: chỉ **comment gốc** (không phải reply trong 1 thread) mới thực sự mang `resolved_at` từ Figma — reply luôn có `resolved_at = null` dù cả thread đã resolve. Plugin tự suy ra đúng trạng thái cho reply bằng cách kế thừa từ comment gốc của thread chứa nó, để lọc theo trạng thái không bị sai đối với reply.
+
+Bấm thẳng vào **cả card** của 1 comment (không cần icon riêng) để mở vị trí đó trong Figma (tab mới) — dựng link theo `client_meta.node_id` mà API trả về (node/frame comment đó được ghim vào) + query `?node-id=` chuẩn của Figma. **Lưu ý**: Figma không công bố URL riêng để mở thẳng đúng popup của 1 comment cụ thể (không có tài liệu chính thức nào cho việc này) — link này chỉ đưa bạn tới đúng node/frame chứa comment, không tự bung popup comment đó ra. Comment nào ghim thả nổi trên canvas (không gắn vào node/frame nào) thì không có `node_id` nên card đó không bấm được (hiện như văn bản thường, không đổi màu khi hover).
+
+**Vì sao phải tự dán link/file key thay vì plugin tự lấy?** Plugin API có `figma.fileKey`, nhưng property này **chỉ hoạt động với private/organization plugin có bật `enablePrivatePluginApi`** (yêu cầu gói Enterprise + cấu hình riêng từ admin) — với 1 plugin thường như BugFinder, `figma.fileKey` luôn trả về `undefined`. Dán link/file key thủ công là cách duy nhất hoạt động được cho mọi người dùng, không riêng gì tổ chức có Enterprise.
+
+**Giới hạn**: file chưa từng lưu vào Figma (draft cục bộ, chưa có file key thật) thì không tải được comment — Figma REST API không có khái niệm về file dạng này.
+
 ## Cài đặt & build
 
 ```bash
-cd misa-review-ui
+cd bugfinder
 npm install
 npm run build
 ```
@@ -125,7 +146,7 @@ Muốn tự động build lại khi sửa code: `npm run watch`.
 
 1. Mở Figma desktop app.
 2. Menu **Plugins → Development → Import plugin from manifest...**
-3. Chọn file `manifest.json` trong thư mục `misa-review-ui`.
+3. Chọn file `manifest.json` trong thư mục `bugfinder`.
 4. Chạy plugin từ **Plugins → Development → BugFinder**.
 
 ## Sử dụng
@@ -149,4 +170,4 @@ Các thông báo kiểu "đã lưu", "đã áp dụng gợi ý" hiện dưới d
 - **Review Web App** quét toàn bộ layer (không chỉ text) trong lựa chọn, tối đa 3000 layer/lần — lựa chọn quá lớn sẽ chỉ quét phần đầu và báo qua thông báo Figma. Việc quét cây layer chạy đồng bộ (nhanh); các lượt gọi Figma API cần bất đồng bộ (so sánh Gap với component gốc, tra tên effect style) được gom lại và chạy **song song** sau khi quét xong thay vì tuần tự, nên quét lượng lớn layer không bị chậm tuyến tính theo số lượng.
 - Nếu 1 text layer dùng nhiều font/cỡ chữ khác nhau trong cùng layer (mixed styles), rule font/cỡ chữ đọc **từng đoạn text riêng** (qua `getStyledTextSegments`) và báo lỗi cho từng font/cỡ chữ sai tìm thấy, không bỏ qua cả layer chỉ vì có nhiều style trộn lẫn.
 - Rule chiều cao/bo góc control chỉ chạy khi tên layer/component khớp từ khóa trong Control Registry (button, textbox, checkbox...) — dựa theo tên, không đọc component gốc trong thư viện.
-- Manifest có `"documentAccess": "dynamic-page"` — plugin chỉ dùng API bất đồng bộ để đọc node/style/component gốc (`getNodeByIdAsync`, `getMainComponentAsync`, `getStyleByIdAsync`, `getLocalPaintStylesAsync`...), không còn dùng các hàm đồng bộ đã deprecated (`figma.getNodeById`, `instance.mainComponent` đọc trực tiếp...) — cần giữ nguyên khi thêm code mới, dùng hàm đồng bộ cũ sẽ throw exception ngay lập tức.
+- Manifest **không** bật `"documentAccess": "dynamic-page"` — có thử bật nhưng gây crash toàn bộ JS runtime sandbox của Figma (`Aborted()` trong `get_absoluteBoundingBox`, xem `isOccludedBySibling`) khi Review Website trên file thật, nên đã bỏ lại. Dù vậy, code vẫn ưu tiên dùng các API bất đồng bộ khi có sẵn (`getNodeByIdAsync`, `getMainComponentAsync`, `getStyleByIdAsync`, `getLocalPaintStylesAsync`...) thay vì bản đồng bộ đã deprecated — các hàm này hoạt động bình thường ở cả 2 chế độ, chỉ là không **bắt buộc** phải dùng khi không bật dynamic-page.

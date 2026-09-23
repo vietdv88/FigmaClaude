@@ -69,6 +69,19 @@ const customRulesLabelEl = document.getElementById("customRulesLabel") as HTMLLa
 const ignorePatternsLabelEl = document.getElementById("ignorePatternsLabel") as HTMLLabelElement;
 const selectionPrefixEl = document.getElementById("selectionPrefix") as HTMLSpanElement;
 const comparePrefixEl = document.getElementById("comparePrefix") as HTMLSpanElement;
+const commentsView = document.getElementById("commentsView") as HTMLDivElement;
+const figmaTokenInput = document.getElementById("figmaToken") as HTMLInputElement;
+const saveFigmaTokenBtn = document.getElementById("saveFigmaTokenBtn") as HTMLButtonElement;
+const figmaTokenHelpBtn = document.getElementById("figmaTokenHelpBtn") as HTMLButtonElement;
+const figmaTokenTooltip = document.getElementById("figmaTokenTooltip") as HTMLDivElement;
+const figmaFileLinkLabelEl = document.getElementById("figmaFileLinkLabel") as HTMLLabelElement;
+const figmaFileLinkInput = document.getElementById("figmaFileLink") as HTMLInputElement;
+const fetchCommentsBtn = document.getElementById("fetchCommentsBtn") as HTMLButtonElement;
+const commentsStatusEl = document.getElementById("commentsStatus") as HTMLSpanElement;
+const commentsFilterRowEl = document.getElementById("commentsFilterRow") as HTMLDivElement;
+const commentsAuthorFilterEl = document.getElementById("commentsAuthorFilter") as HTMLSelectElement;
+const commentsStatusFilterEl = document.getElementById("commentsStatusFilter") as HTMLSelectElement;
+const commentsListEl = document.getElementById("commentsList") as HTMLDivElement;
 let customRules = "";
 let ignorePatterns = "";
 let hasSelection = false;
@@ -412,6 +425,7 @@ function applyStaticTranslations() {
   topTabButtons.forEach((btn) => {
     if (btn.dataset.topTab === "review") btn.textContent = t("tab.review");
     else if (btn.dataset.topTab === "compare") btn.textContent = t("tab.compare");
+    else if (btn.dataset.topTab === "comments") btn.textContent = t("tab.comments");
   });
 
   configTabButtons.forEach((btn) => {
@@ -443,6 +457,30 @@ function applyStaticTranslations() {
     btn.classList.toggle("active", btn.dataset.locale === getLocale());
   });
 
+  figmaTokenHelpBtn.setAttribute("aria-label", t("comments.tokenHelpAria"));
+  figmaTokenTooltip.innerHTML = `
+    ${t("comments.tokenHelpIntro")}
+    <a href="https://www.figma.com/developers/api#access-tokens" target="_blank" rel="noopener">figma.com/developers/api</a>:
+    <ol>
+      <li>${t("comments.tokenHelpStep1")}</li>
+      <li>${t("comments.tokenHelpStep2")}</li>
+      <li>${t("comments.tokenHelpStep3")}</li>
+    </ol>
+  `;
+  figmaTokenInput.placeholder = t("comments.tokenPlaceholder");
+  figmaFileLinkLabelEl.textContent = t("comments.fileLinkLabel");
+  figmaFileLinkInput.placeholder = t("comments.fileLinkPlaceholder");
+  saveFigmaTokenBtn.textContent = t("comments.tokenSaveBtn");
+  fetchCommentsBtn.textContent = t("comments.fetchBtn");
+  commentsStatusFilterEl.innerHTML = `
+    <option value="all">${escapeHtml(t("comments.filterStatusAll"))}</option>
+    <option value="unresolved">${escapeHtml(t("comments.filterStatusUnresolved"))}</option>
+    <option value="resolved">${escapeHtml(t("comments.filterStatusResolved"))}</option>
+  `;
+  commentsStatusFilterEl.value = commentStatusFilter;
+  renderCommentsAuthorFilter();
+  renderCommentsList();
+
   renderRulesPanel();
   renderFilterTabs();
   render();
@@ -467,19 +505,29 @@ function parseIgnorePatterns(): string[] {
 function showResultsView() {
   configView.classList.add("hidden");
   compareView.classList.add("hidden");
+  commentsView.classList.add("hidden");
   resultsView.classList.remove("hidden");
 }
 
 function showConfigView() {
   resultsView.classList.add("hidden");
   compareView.classList.add("hidden");
+  commentsView.classList.add("hidden");
   configView.classList.remove("hidden");
 }
 
 function showCompareView() {
   configView.classList.add("hidden");
   resultsView.classList.add("hidden");
+  commentsView.classList.add("hidden");
   compareView.classList.remove("hidden");
+}
+
+function showCommentsView() {
+  configView.classList.add("hidden");
+  resultsView.classList.add("hidden");
+  compareView.classList.add("hidden");
+  commentsView.classList.remove("hidden");
 }
 
 function showComparePicker() {
@@ -500,6 +548,7 @@ topTabButtons.forEach((btn) => {
     if (!tab) return;
     topTabButtons.forEach((b) => b.classList.toggle("active", b === btn));
     if (tab === "compare") showCompareView();
+    else if (tab === "comments") showCommentsView();
     else showConfigView();
   });
 });
@@ -937,6 +986,204 @@ async function processScannedNodesInner(nodes: ScannedNode[], includeDesign: boo
   }
 }
 
+// ---- View Comments tab ----
+// Figma's Plugin API has no comment access at all — this calls the REST API
+// (GET /v1/files/:key/comments) directly from the UI thread with a
+// user-supplied Personal Access Token, which never leaves this device except
+// to Figma itself (same trust model as the Gemini API key).
+interface FigmaComment {
+  id: string;
+  parent_id: string;
+  user: { handle: string };
+  created_at: string;
+  resolved_at: string | null;
+  message: string;
+  client_meta?: { node_id?: string };
+}
+interface CommentRow extends FigmaComment {
+  effectiveResolved: boolean;
+}
+
+let figmaToken = "";
+let commentRows: CommentRow[] = [];
+let commentAuthorFilter = "all";
+let commentStatusFilter: "all" | "resolved" | "unresolved" = "all";
+
+function setCommentsStatus(text: string) {
+  commentsStatusEl.textContent = text;
+}
+
+/**
+ * `figma.fileKey` (the Plugin API property) only works for private/org
+ * plugins with `enablePrivatePluginApi` — a regular plugin like this one
+ * always gets `undefined`, so there's no way to auto-detect the current
+ * file's key. The user pastes the file's URL (any of Figma's /file/, /design/,
+ * /proto/ URL forms) or the bare key directly.
+ */
+function parseFigmaFileKey(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+  const urlMatch = trimmed.match(/figma\.com\/(?:file|design|proto)\/([a-zA-Z0-9]+)/);
+  if (urlMatch) return urlMatch[1];
+  return /^[a-zA-Z0-9]+$/.test(trimmed) ? trimmed : null;
+}
+
+/** A reply's own `resolved_at` is always null even inside a resolved thread — Figma only marks the top-level comment resolved — so a reply's effective status is inherited from its parent. */
+function toCommentRows(raw: FigmaComment[]): CommentRow[] {
+  const byId = new Map(raw.map((c) => [c.id, c]));
+  return raw.map((c) => {
+    const parent = c.parent_id ? byId.get(c.parent_id) : undefined;
+    const effectiveResolved = !!(c.resolved_at || parent?.resolved_at);
+    return { ...c, effectiveResolved };
+  });
+}
+
+let lastFileKey: string | null = null;
+
+/**
+ * Figma doesn't publish a URL format that pops open a specific comment's
+ * thread directly — only `client_meta.node_id` (the node the comment is
+ * pinned to) is documented, so this jumps to that node/frame via the
+ * standard `?node-id=` deep link instead of a true comment permalink. A
+ * comment pinned loose on the canvas (not attached to any frame) has no
+ * `node_id` at all, so there's nothing to link to in that case.
+ */
+function commentFigmaLink(comment: CommentRow, fileKey: string): string | null {
+  const nodeId = comment.client_meta?.node_id;
+  if (!nodeId) return null;
+  return `https://www.figma.com/file/${fileKey}?node-id=${encodeURIComponent(nodeId.replace(/:/g, "-"))}`;
+}
+
+async function fetchComments() {
+  if (!figmaToken.trim()) {
+    setCommentsStatus(t("comments.statusNoToken"));
+    return;
+  }
+  const fileKey = parseFigmaFileKey(figmaFileLinkInput.value);
+  if (!fileKey) {
+    setCommentsStatus(t("comments.statusNoFileKey"));
+    return;
+  }
+  lastFileKey = fileKey;
+  fetchCommentsBtn.disabled = true;
+  commentsFilterRowEl.classList.add("hidden");
+  commentsListEl.innerHTML = "";
+  setCommentsStatus(t("comments.statusLoading"));
+  try {
+    const res = await fetch(`https://api.figma.com/v1/files/${fileKey}/comments`, {
+      headers: { "X-Figma-Token": figmaToken.trim() },
+    });
+    if (res.status === 401 || res.status === 403) throw new Error(t("comments.statusTokenInvalid"));
+    if (!res.ok) throw new Error(t("comments.statusHttpError", { status: res.status }));
+    const data = (await res.json()) as { comments?: FigmaComment[] };
+    commentRows = toCommentRows(data.comments ?? []);
+    if (commentRows.length === 0) {
+      setCommentsStatus(t("comments.statusEmpty"));
+    } else {
+      setCommentsStatus(t("comments.statusLoaded", { count: commentRows.length }));
+      commentsFilterRowEl.classList.remove("hidden");
+    }
+    renderCommentsAuthorFilter();
+    renderCommentsList();
+  } catch (err) {
+    setCommentsStatus(err instanceof Error ? err.message : t("comments.statusNetworkError"));
+  } finally {
+    fetchCommentsBtn.disabled = false;
+  }
+}
+
+function renderCommentsAuthorFilter() {
+  const authors = Array.from(new Set(commentRows.map((c) => c.user.handle))).sort((a, b) =>
+    a.localeCompare(b)
+  );
+  const options = [`<option value="all">${escapeHtml(t("comments.filterAuthorAll"))}</option>`].concat(
+    authors.map(
+      (name) => `<option value="${escapeHtml(name)}" ${name === commentAuthorFilter ? "selected" : ""}>${escapeHtml(name)}</option>`
+    )
+  );
+  commentsAuthorFilterEl.innerHTML = options.join("");
+  // Reset to "all" if the previously selected author isn't in the new result set.
+  if (commentAuthorFilter !== "all" && !authors.includes(commentAuthorFilter)) {
+    commentAuthorFilter = "all";
+  }
+  commentsAuthorFilterEl.value = commentAuthorFilter;
+}
+
+function filteredCommentRows(): CommentRow[] {
+  return commentRows.filter((c) => {
+    if (commentAuthorFilter !== "all" && c.user.handle !== commentAuthorFilter) return false;
+    if (commentStatusFilter === "resolved" && !c.effectiveResolved) return false;
+    if (commentStatusFilter === "unresolved" && c.effectiveResolved) return false;
+    return true;
+  });
+}
+
+function renderCommentsList() {
+  const rows = filteredCommentRows();
+  if (commentRows.length === 0) {
+    commentsListEl.innerHTML = "";
+    return;
+  }
+  if (rows.length === 0) {
+    commentsListEl.innerHTML = `<div class="empty">${escapeHtml(t("comments.resultsEmpty"))}</div>`;
+    return;
+  }
+  // The author name is only worth repeating on every row when the list still
+  // mixes authors — once filtered down to one person, it's redundant noise.
+  const showAuthor = commentAuthorFilter === "all";
+  commentsListEl.innerHTML = rows
+    .map((c) => {
+      const badgeClass = c.effectiveResolved ? "comment-badge is-resolved" : "comment-badge";
+      const badgeText = c.effectiveResolved ? t("comments.badgeResolved") : t("comments.badgeUnresolved");
+      const authorHtml = showAuthor ? `<span class="comment-author">${escapeHtml(c.user.handle)}</span>` : "";
+      const link = lastFileKey ? commentFigmaLink(c, lastFileKey) : null;
+      // The whole card is the click target when a link is available, rather
+      // than a small separate icon — a plain <div> (no link) otherwise, since
+      // there's nowhere for it to navigate to.
+      const tag = link ? "a" : "div";
+      const linkAttrs = link
+        ? ` href="${escapeHtml(link)}" target="_blank" rel="noopener" title="${escapeHtml(t("comments.openInFigma"))}"`
+        : "";
+      return `
+        <${tag} class="comment-item${c.parent_id ? " is-reply" : ""}${link ? " is-linkable" : ""}"${linkAttrs}>
+          <div class="comment-item-head">
+            ${authorHtml}
+            <span class="${badgeClass}">${escapeHtml(badgeText)}</span>
+          </div>
+          <div class="comment-message">${escapeHtml(c.message)}</div>
+        </${tag}>
+      `;
+    })
+    .join("");
+}
+
+figmaTokenHelpBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  figmaTokenTooltip.classList.toggle("show");
+});
+document.addEventListener("click", (e) => {
+  if (!figmaTokenTooltip.contains(e.target as Node) && e.target !== figmaTokenHelpBtn) {
+    figmaTokenTooltip.classList.remove("show");
+  }
+});
+
+saveFigmaTokenBtn.addEventListener("click", () => {
+  figmaToken = figmaTokenInput.value.trim();
+  send({ type: "save-figma-token", token: figmaToken });
+});
+
+fetchCommentsBtn.addEventListener("click", () => void fetchComments());
+
+commentsAuthorFilterEl.addEventListener("change", () => {
+  commentAuthorFilter = commentsAuthorFilterEl.value;
+  renderCommentsList();
+});
+
+commentsStatusFilterEl.addEventListener("change", () => {
+  commentStatusFilter = commentsStatusFilterEl.value as "all" | "resolved" | "unresolved";
+  renderCommentsList();
+});
+
 window.onmessage = (event: MessageEvent) => {
   const msg = event.data.pluginMessage as PluginToUiMessage;
   if (!msg) return;
@@ -1015,6 +1262,10 @@ window.onmessage = (event: MessageEvent) => {
     case "color-library-status":
       colorLibraryStatus = { status: msg.status, error: msg.error, colorCount: msg.colorCount };
       renderRulesPanel();
+      break;
+    case "figma-token":
+      figmaToken = msg.token;
+      figmaTokenInput.value = msg.token;
       break;
   }
 };
@@ -1215,3 +1466,4 @@ send({ type: "get-custom-rules" });
 send({ type: "get-ignore-patterns" });
 send({ type: "get-selection-info" });
 send({ type: "get-color-libraries" });
+send({ type: "get-figma-token" });

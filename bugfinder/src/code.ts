@@ -14,6 +14,7 @@ const CUSTOM_RULES_STORAGE_KEY = "custom-rules";
 const IGNORE_PATTERNS_STORAGE_KEY = "ignore-patterns";
 const UI_LOCALE_STORAGE_KEY = "ui-locale";
 const COLOR_LIBRARY_STORAGE_KEY = "color-library-key";
+const FIGMA_TOKEN_STORAGE_KEY = "figma-pat";
 const MAX_TEXT_LENGTH = 4000;
 const MAX_SCANNED_NODES = 3000;
 
@@ -60,12 +61,21 @@ function isOpaqueCover(node: SceneNode): boolean {
  * conservative: only a fully opaque, fully covering, non-mask sibling counts;
  * partial overlap or a semi-transparent shape isn't enough to skip checking.
  */
+// Above this, the occlusion check's O(n²) sibling scan (every node checked
+// against every later sibling in the same parent) risks piling up hundreds
+// of thousands of native property reads in one synchronous burst on a large
+// parent (a data table row, an icon sheet...) — enough to have crashed
+// Figma's plugin sandbox outright in practice. Occlusion-by-a-later-sibling
+// is a rare cleanup-content edge case, not worth that risk at scale.
+const OCCLUSION_SIBLING_LIMIT = 200;
+
 function isOccludedBySibling(node: SceneNode): boolean {
-  const box = node.absoluteBoundingBox;
-  if (!box) return false;
   const parent = node.parent;
   if (!parent || !("children" in parent)) return false;
   const siblings = parent.children;
+  if (siblings.length > OCCLUSION_SIBLING_LIMIT) return false;
+  const box = node.absoluteBoundingBox;
+  if (!box) return false;
   const myIndex = siblings.indexOf(node);
   for (let i = myIndex + 1; i < siblings.length; i++) {
     const sibling = siblings[i];
@@ -922,6 +932,16 @@ async function saveApiKey(key: string) {
   figma.notify(t("code.apiKeySaved"));
 }
 
+async function sendFigmaToken() {
+  const token = (await figma.clientStorage.getAsync(FIGMA_TOKEN_STORAGE_KEY)) || "";
+  post({ type: "figma-token", token });
+}
+
+async function saveFigmaToken(token: string) {
+  await figma.clientStorage.setAsync(FIGMA_TOKEN_STORAGE_KEY, token);
+  figma.notify(t("code.figmaTokenSaved"));
+}
+
 async function sendRulesConfig() {
   const config =
     (await figma.clientStorage.getAsync(RULES_CONFIG_STORAGE_KEY)) || {};
@@ -1112,6 +1132,12 @@ figma.ui.onmessage = (msg: UiToPluginMessage) => {
       break;
     case "select-color-library":
       void selectColorLibrary(msg.libraryName);
+      break;
+    case "get-figma-token":
+      void sendFigmaToken();
+      break;
+    case "save-figma-token":
+      void saveFigmaToken(msg.token);
       break;
   }
 };

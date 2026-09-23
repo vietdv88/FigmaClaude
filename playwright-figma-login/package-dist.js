@@ -1,6 +1,6 @@
 /**
  * Tạo thư mục dist-package/ để phân phối:
- *   bundle.js + playwright-core + config.enc + service-account.json + run.bat
+ *   bundle.js + playwright-core + config.enc + run.bat
  */
 const { execSync } = require('child_process');
 const fs     = require('fs');
@@ -41,8 +41,7 @@ copyDir(playwrightSrc, playwrightDest);
 
 // 4. Copy file config + node.exe
 console.log('[4/5] Copying config files + node.exe...');
-fs.copyFileSync(path.join(ROOT, 'config.enc'),           path.join(DIST, 'config.enc'));
-fs.copyFileSync(path.join(ROOT, 'service-account.json'), path.join(DIST, 'service-account.json'));
+fs.copyFileSync(path.join(ROOT, 'config.enc'), path.join(DIST, 'config.enc'));
 const nodeExeSrc = path.join(ROOT, 'node.exe');
 if (fs.existsSync(nodeExeSrc)) {
   fs.copyFileSync(nodeExeSrc, path.join(DIST, 'node.exe'));
@@ -59,7 +58,7 @@ title Figma Cookie Collector
 
 echo.
 echo  ================================================
-echo    Figma Auto Login + Cookie Sync to Google Docs
+echo    Figma Auto Login + Cookie Sync to GitHub
 echo  ================================================
 echo.
 
@@ -101,10 +100,6 @@ if not exist "config.enc" (
     echo [LOI] Khong tim thay file config.enc
     goto :DONE
 )
-if not exist "service-account.json" (
-    echo [LOI] Khong tim thay service-account.json
-    goto :DONE
-)
 
 REM -- Chay chinh --
 %NODE_CMD% bundle.js
@@ -113,7 +108,7 @@ set EXIT_CODE=%errorlevel%
 echo.
 if %EXIT_CODE% equ 0 (
     echo  ================================================
-    echo    HOAN THANH! Cookie da duoc luu vao Google Docs
+    echo    HOAN THANH! Cookie da duoc luu vao GitHub
     echo  ================================================
 ) else (
     echo  ================================================
@@ -141,7 +136,7 @@ const sizeMB = (dirSize(DIST) / 1024 / 1024).toFixed(1);
 const zipMB  = (fs.statSync(zipPath).size / 1024 / 1024).toFixed(1);
 console.log(`\n✅ dist-package/ — ${files} files, ${sizeMB} MB`);
 console.log(`✅ figma-login.zip — ${zipMB} MB`);
-console.log('   Nội dung: run.bat  bundle.js  node_modules/playwright-core  config.enc  service-account.json');
+console.log('   Nội dung: run.bat  bundle.js  node_modules/playwright-core  config.enc');
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function copyDir(src, dest) {

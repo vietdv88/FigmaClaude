@@ -5,9 +5,8 @@
   "main": "dist/code.js",
   "ui": "dist/ui.html",
   "editorType": ["figma"],
-  "documentAccess": "dynamic-page",
   "permissions": ["teamlibrary"],
   "networkAccess": {
-    "allowedDomains": ["https://generativelanguage.googleapis.com"]
+    "allowedDomains": ["https://generativelanguage.googleapis.com", "https://api.figma.com"]
   }
 }

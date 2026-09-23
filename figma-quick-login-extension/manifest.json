@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Figma Quick Login",
+  "version": "1.0.0",
+  "description": "Đăng nhập nhanh các tài khoản Figma dùng chung bằng cookie đã lưu sẵn, không cần Cookie Editor.",
+  "permissions": ["cookies", "storage"],
+  "host_permissions": [
+    "https://figma.com/*",
+    "https://www.figma.com/*",
+    "https://*.figma.com/*",
+    "https://raw.githubusercontent.com/vietdv88/Figma/refs/heads/main/cookies.enc"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Figma Quick Login"
+  }
+}

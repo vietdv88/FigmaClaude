@@ -50,7 +50,13 @@
       "Bash(cd /Users/dvviet/Github/IconApp/IconApp && find . -maxdepth 1 -type f -name \"*.cshtml*\"; echo \"---Pages root---\"; find ./Pages -maxdepth 1 -type f | sort)",
       "Read(//Users/dvviet/Github/IconApp/IconApp/**)",
       "Bash(find /Users/dvviet/Github/IconApp/IconApp/wwwroot/js -maxdepth 1 -iname \"*search*\" -o -iname \"*icon*\" 2>/dev/null | grep -v node_modules)",
-      "Read(//Users/dvviet/Github/IconApp/IconApp/wwwroot/js/**)"
+      "Read(//Users/dvviet/Github/IconApp/IconApp/wwwroot/js/**)",
+      "Bash(grep -n 'input, select, textarea {' -A 8 /Users/dvviet/Github/FigmaClaude/promptpixel/src/ui.html)",
+      "Bash(node --check /tmp/ui-script-check.js)",
+      "Bash(rm -f /tmp/ui-script-check.js)"
+    ],
+    "additionalDirectories": [
+      "/private/tmp"
     ]
   }
 }

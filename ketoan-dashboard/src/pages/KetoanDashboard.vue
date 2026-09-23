@@ -878,8 +878,15 @@ watch(currentTheme, () => initCharts())
   display: flex; justify-content: center;
 }
 .tnm-inner {
-  width: 100%; max-width: 960px;
+  width: 100%; max-width: 1280px;
   display: flex; flex-direction: column; gap: 16px;
+}
+
+/* Button lớn kiểu website — chỉ áp riêng cho trang Tính năng mới, không đụng .btn chung */
+.tnm-wrapper .btn {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 15px;
 }
 
 /* ── Shared atoms ── */
@@ -947,8 +954,9 @@ watch(currentTheme, () => initCharts())
 
 /* ════ Hero card: text LEFT, visual RIGHT ════ */
 .tnm-hero {
-  display: flex; min-height: 280px;
-  border-radius: var(--radius-dialog); overflow: hidden;
+  display: flex; align-items: center;
+  padding: 24px; gap: 24px;
+  border-radius: var(--radius-dialog);
   background: var(--bg-white);
   box-shadow: var(--shadow-card);
   cursor: pointer; transition: box-shadow 0.2s, transform 0.2s;
@@ -956,13 +964,13 @@ watch(currentTheme, () => initCharts())
 .tnm-hero:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 
 .tnm-hero__body {
-  flex: 1; padding: 36px 40px;
+  flex: 1;
   display: flex; flex-direction: column; gap: 12px; justify-content: center;
   min-width: 0;
 }
 .tnm-hero__title {
-  font-size: var(--text-h2); font-weight: var(--fw-bold);
-  line-height: var(--text-h2-lh); color: var(--text-primary);
+  font-size: 32px; font-weight: var(--fw-bold);
+  line-height: 40px; color: var(--text-primary);
 }
 .tnm-hero__meta {
   display: flex; align-items: center; gap: 6px;
@@ -970,15 +978,17 @@ watch(currentTheme, () => initCharts())
   margin-top: -8px;
 }
 .tnm-hero__desc {
-  font-size: var(--text-body-md); color: var(--text-primary);
-  line-height: var(--text-body-md-lh);
+  font-size: 16px; color: var(--text-primary);
+  line-height: 24px;
 }
 .tnm-hero__actions { display: flex; gap: 12px; margin-top: 4px; align-items: center; }
 
-/* Hero thumbnail (right side) */
+/* Hero thumbnail (right side) — tỉ lệ chuẩn CMS 670:418 */
 .tnm-hero__thumb {
-  width: 44%; flex-shrink: 0;
+  width: 670px; flex-shrink: 0;
+  aspect-ratio: 670 / 418;
   position: relative; padding: 20px;
+  border-radius: var(--radius-default); overflow: hidden;
 }
 .tnm-hero__ico {
   position: absolute; bottom: 20px; right: 24px;
@@ -1010,16 +1020,18 @@ watch(currentTheme, () => initCharts())
 }
 .tnm-grid3-card {
   display: flex; flex-direction: column;
+  padding: 16px; gap: 16px;
   border-radius: var(--radius-dialog);
-  background: var(--bg-white); overflow: hidden;
+  background: var(--bg-white);
   box-shadow: var(--shadow-card);
   cursor: pointer; transition: box-shadow 0.15s, transform 0.15s;
 }
 .tnm-grid3-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 
 .tnm-grid3-card__thumb {
-  height: 200px; flex-shrink: 0;
+  aspect-ratio: 670 / 418; flex-shrink: 0;
   position: relative; padding: 16px;
+  border-radius: var(--radius-default); overflow: hidden;
 }
 .tnm-thumb-ico {
   width: 56px; height: 56px; border-radius: 16px;
@@ -1030,7 +1042,7 @@ watch(currentTheme, () => initCharts())
 }
 
 .tnm-grid3-card__body {
-  flex: 1; padding: 16px;
+  flex: 1;
   display: flex; flex-direction: column; gap: 6px;
 }
 .tnm-grid3-card__title {
@@ -1051,11 +1063,11 @@ watch(currentTheme, () => initCharts())
 /* ════ Alternating rows: Các tính năng mới khác ════ */
 .tnm-alt-list { display: flex; flex-direction: column; gap: 16px; }
 .tnm-alt-row {
-  display: flex; gap: 0;
-  border-radius: var(--radius-dialog); overflow: hidden;
+  display: flex; align-items: center; gap: 24px;
+  padding: 24px;
+  border-radius: var(--radius-dialog);
   background: var(--bg-white);
   box-shadow: var(--shadow-card);
-  min-height: 260px;
   cursor: pointer; transition: box-shadow 0.15s, transform 0.15s;
 }
 .tnm-alt-row:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
@@ -1063,10 +1075,12 @@ watch(currentTheme, () => initCharts())
 
 .tnm-alt-row__thumb {
   width: 36%; flex-shrink: 0;
+  aspect-ratio: 670 / 418;
   position: relative; padding: 20px;
+  border-radius: var(--radius-default); overflow: hidden;
 }
 .tnm-alt-row__body {
-  flex: 1; padding: 28px 32px;
+  flex: 1;
   display: flex; flex-direction: column; gap: 10px; justify-content: center;
 }
 .tnm-alt-row__title {

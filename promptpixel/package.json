@@ -1,0 +1,17 @@
+{
+  "name": "promptpixel-figma-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generate Figma interfaces from your design rules and published components.",
+  "scripts": {
+    "clean": "node scripts/clean.mjs",
+    "build": "npm run clean && esbuild src/code.ts --bundle --format=iife --target=es2022 --outfile=dist/code.js && node scripts/copy-ui.mjs",
+    "watch": "esbuild src/code.ts --bundle --format=iife --target=es2022 --outfile=dist/code.js --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.117.0",
+    "esbuild": "^0.25.9",
+    "typescript": "^5.9.2"
+  }
+}

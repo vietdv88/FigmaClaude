@@ -12,6 +12,7 @@ const router = createRouter({
     { path: '/',              redirect: '/viec-cua-toi' },
     { path: '/tong-quan',     component: TongQuanPage },
     { path: '/viec-cua-toi',  component: ViecCuaToiPage },
+    { path: '/du-an/:id',     component: ViecCuaToiPage },
     { path: '/bao-cao',       component: BaoCaoPage },
     { path: '/:pathMatch(.*)*', redirect: '/tong-quan' },
   ]

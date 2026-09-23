@@ -417,7 +417,11 @@ const filteredGroups = computed(() => {
     .filter(g => g.label.toLowerCase().includes(q) || g.projects.length > 0)
     .map(g => ({ ...g, expanded: true }))
 })
-function onSelectProject(id) { activeProjectId.value = id; emit('select-project', id) }
+function onSelectProject(id) {
+  activeProjectId.value = id
+  emit('select-project', id)
+  router.push(`/du-an/${id}`)
+}
 
 /* ── Inline edits ── */
 function startGroupEdit(g) { g._editVal = g.label; g._editing = true }
@@ -900,7 +904,7 @@ onBeforeUnmount(() => {
 .cv-search-ico .ti { font-size: 14px; }
 .cv-search-input {
   flex: 1; min-width: 0; border: none; background: transparent; outline: none;
-  font-size: 12px; color: var(--text-primary);
+  font-size: 13px; color: var(--text-primary);
 }
 .cv-search-input::placeholder { color: var(--text-hint); }
 .cv-tool-btn {
@@ -937,7 +941,7 @@ onBeforeUnmount(() => {
 .cv-chevron { color: var(--icon-neutral); flex-shrink: 0; }
 .cv-chevron .ti { font-size: 13px; }
 .cv-group__name {
-  flex: 1; min-width: 0; font-size: 12px; font-weight: var(--fw-semibold);
+  flex: 1; min-width: 0; font-size: 13px; font-weight: var(--fw-semibold);
   color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -953,7 +957,7 @@ onBeforeUnmount(() => {
 .cv-proj.active .cv-proj__name { color: var(--text-brand); font-weight: var(--fw-semibold); }
 .cv-proj__dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 .cv-proj__name {
-  flex: 1; min-width: 0; font-size: 12px; color: var(--text-primary);
+  flex: 1; min-width: 0; font-size: 13px; color: var(--text-primary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -973,7 +977,7 @@ onBeforeUnmount(() => {
 /* ── Inline edit ── */
 .cv-inline-input {
   flex: 1; min-width: 0; border: 1px solid var(--stroke-brand); border-radius: 4px;
-  padding: 0 4px; height: 22px; font-size: 12px; color: var(--text-primary);
+  padding: 0 4px; height: 22px; font-size: 13px; color: var(--text-primary);
   background: var(--bg-white); outline: none;
 }
 
@@ -981,7 +985,7 @@ onBeforeUnmount(() => {
 .cv-add-group {
   display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 8px;
   border: none; background: transparent; border-radius: var(--radius-default);
-  font-size: 12px; color: var(--text-hint); cursor: pointer;
+  font-size: 13px; color: var(--text-hint); cursor: pointer;
   transition: background 0.1s, color 0.1s; white-space: nowrap;
 }
 .cv-add-group:hover { background: var(--bg-neutral-hover); color: var(--text-primary); }
@@ -1335,5 +1339,40 @@ onBeforeUnmount(() => {
   display: flex; align-items: center; justify-content: flex-end; gap: 8px;
   padding: 12px 18px; border-top: 1px solid var(--stroke-neutral-light);
   background: var(--neutral-100); flex-shrink: 0;
+}
+
+/* ══ Sidebar: Dark mode (khi chọn "Tối" ở thiết lập màu sắc) ══ */
+:root[data-sidebar="dark"] .qab-split { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); }
+:root[data-sidebar="dark"] .qab-main,
+:root[data-sidebar="dark"] .qab-arr { color: rgba(255,255,255,0.9); }
+:root[data-sidebar="dark"] .qab-main:hover,
+:root[data-sidebar="dark"] .qab-arr:hover { background: rgba(255,255,255,0.16); }
+:root[data-sidebar="dark"] .qab-sep { background: rgba(255,255,255,0.3); }
+
+:root[data-sidebar="dark"] .cv-sep { background: rgba(255,255,255,0.08); }
+
+:root[data-sidebar="dark"] .cv-search-ico,
+:root[data-sidebar="dark"] .cv-tool-btn,
+:root[data-sidebar="dark"] .cv-chevron,
+:root[data-sidebar="dark"] .qa-dd__ico,
+:root[data-sidebar="dark"] .cv-act { color: rgba(255,255,255,0.5); }
+:root[data-sidebar="dark"] .cv-search-input { color: rgba(255,255,255,0.9); }
+:root[data-sidebar="dark"] .cv-search-input::placeholder { color: rgba(255,255,255,0.35); }
+:root[data-sidebar="dark"] .cv-tool-btn:hover,
+:root[data-sidebar="dark"] .cv-act:hover { background: rgba(255,255,255,0.12); }
+:root[data-sidebar="dark"] .cv-act--del:hover { color: var(--text-danger); }
+
+:root[data-sidebar="dark"] .cv-group__hd:hover,
+:root[data-sidebar="dark"] .cv-proj:hover { background: rgba(255,255,255,0.08); }
+:root[data-sidebar="dark"] .cv-group__name,
+:root[data-sidebar="dark"] .cv-proj__name { color: rgba(255,255,255,0.85); }
+:root[data-sidebar="dark"] .cv-proj.active { background: rgba(255,255,255,0.12); }
+:root[data-sidebar="dark"] .cv-proj.active .cv-proj__name { color: #fff; }
+
+:root[data-sidebar="dark"] .cv-add-group { color: rgba(255,255,255,0.4); }
+:root[data-sidebar="dark"] .cv-add-group:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
+
+:root[data-sidebar="dark"] .cv-inline-input {
+  background: rgba(255,255,255,0.08); color: #fff; border-color: var(--bg-brand);
 }
 </style>

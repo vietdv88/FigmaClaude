@@ -1,4 +1,15 @@
 ﻿<template>
+  <!-- ── Trial expiry banner ── -->
+  <div v-if="showTrialBanner" class="trial-banner">
+    <p class="trial-banner__text">
+      Thời gian dùng thử <strong>{{ appName }}</strong> của quý khách còn <strong>{{ trialDaysLeft }}</strong> ngày. Vui lòng nâng cấp phiên bản chính thức để không bị gián đoạn công việc.
+    </p>
+    <div class="trial-banner__actions">
+      <button class="btn btn--warning btn--sm">Nâng cấp ngay</button>
+      <button class="trial-banner__dismiss" @click="showTrialBanner = false">Để sau</button>
+    </div>
+  </div>
+
   <!-- ── Global Header ── -->
   <header class="global-header" :class="{ 'global-header--white': currentMode === 'light' }">
     <!-- Left -->
@@ -43,7 +54,7 @@
       </template>
     </div>
 
-    <!-- Right — search + actions — thứ tự chuẩn: Search → Settings → MISA AI → AMIS Chat → Bell → Help → More -->
+    <!-- Right — search + actions — thứ tự chuẩn: Search → MISA AI → AMIS Chat → Bell → Help → More → Settings → Avatar -->
     <div class="header-right">
       <slot name="header-search">
         <div class="search-box-header">
@@ -53,9 +64,6 @@
       </slot>
       <slot name="header-actions" />
       <div class="header-toolbar">
-        <button class="btn-icon-white" title="Thiết lập màu sắc và hiển thị" @click="openSettings">
-          <TIcon name="settings" />
-        </button>
         <button class="btn-icon-white" title="MISA AI">
           <slot name="ai-icon"><IconMisaAI /></slot>
         </button>
@@ -73,10 +81,145 @@
         <button class="btn-icon-white" title="Thêm tùy chọn">
           <TIcon name="dots-circle-horizontal" />
         </button>
+        <button ref="toolsBtnRef" class="btn-icon-white" title="Các tiện ích và thiết lập" @click="openToolsPopover">
+          <TIcon name="settings" />
+        </button>
       </div>
       <div class="header-avatar">VT</div>
     </div>
   </header>
+
+  <!-- ── Tools & Settings Popover ── -->
+  <Teleport to="body">
+    <Transition name="tools-pop">
+      <div v-if="showToolsPopover" ref="toolsPopoverRef" class="tools-popover" :style="toolsPopoverStyle">
+        <p class="tools-popover__title">Các tiện ích và thiết lập</p>
+        <div class="tools-popover__body">
+          <div class="tools-popover__columns">
+            <div v-for="col in toolColumns" :key="col.title" class="tools-col">
+              <p class="tools-col__title">{{ col.title }}</p>
+              <button
+                v-for="item in col.items" :key="item.label"
+                class="tools-item"
+                @click="onToolItemClick(item)"
+              >
+                {{ item.label }}
+                <span v-if="item.tag" class="tools-item__tag">{{ item.tag }}</span>
+              </button>
+            </div>
+          </div>
+          <div class="tools-popover__side">
+            <div v-for="sec in toolSideSections" :key="sec.title" class="tools-col">
+              <p class="tools-col__title">{{ sec.title }}</p>
+              <button
+                v-for="item in sec.items" :key="item.label"
+                class="tools-item"
+                @click="onToolItemClick(item)"
+              >
+                {{ item.label }}
+                <span v-if="item.tag" class="tools-item__tag">{{ item.tag }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <!-- ── Kết nối ứng dụng Dialog ── -->
+  <Teleport to="body">
+    <Transition name="overlay">
+      <div v-if="showConnectApps" class="dialog-overlay connect-overlay" @mousedown.self="closeConnectApps">
+        <Transition name="dialog">
+          <div class="connect-dialog" @click.stop>
+            <!-- Header -->
+            <div class="connect-dialog__header">
+              <h2 class="connect-dialog__title">Kết nối</h2>
+              <div class="connect-dialog__header-actions">
+                <button class="btn-icon" title="Trợ giúp"><TIcon name="help-circle" /></button>
+                <button class="btn-icon" @click="closeConnectApps"><TIcon name="x" /></button>
+              </div>
+            </div>
+
+            <!-- Sync info bar -->
+            <div class="connect-syncbar">
+              <div class="connect-syncbar__left">
+                <TIcon name="database" />
+                <span class="connect-syncbar__label">Dữ liệu đồng bộ với các ứng dụng AMIS</span>
+                <span class="connect-version-tag">2025_2</span>
+                <a class="connect-link" href="#" @click.prevent>Thay đổi</a>
+              </div>
+              <div class="connect-syncbar__right">
+                <a class="connect-link" href="#" @click.prevent><TIcon name="external-link" /> Chuẩn hóa danh mục với AMIS Hệ thống</a>
+                <a class="connect-link" href="#" @click.prevent><TIcon name="settings" /> Thiết lập đồng bộ dữ liệu</a>
+              </div>
+            </div>
+
+            <!-- Body: sidebar + grid -->
+            <div class="connect-body">
+              <div class="connect-sidebar">
+                <button
+                  v-for="c in connectCategories" :key="c.id"
+                  class="connect-sidebar__item"
+                  :class="{ 'connect-sidebar__item--active': connectCategory === c.id }"
+                  @click="connectCategory = c.id"
+                >
+                  <TIcon :name="c.icon" />
+                  <span>{{ c.label }}</span>
+                </button>
+              </div>
+              <div class="connect-grid-wrap">
+                <div class="connect-toolbar">
+                  <div class="connect-segment">
+                    <button
+                      v-for="t in connectTabs" :key="t.id"
+                      class="connect-segment__item"
+                      :class="{ 'connect-segment__item--active': connectTab === t.id }"
+                      @click="connectTab = t.id"
+                    >{{ t.label }}</button>
+                  </div>
+                  <div class="connect-search">
+                    <TIcon name="search" />
+                    <input v-model="connectSearch" type="text" placeholder="Tìm kiếm ứng dụng..." />
+                  </div>
+                </div>
+                <div class="connect-grid">
+                  <div v-for="app in filteredConnectApps" :key="app.id" class="connect-card">
+                    <div class="connect-card__head">
+                      <div class="connect-card__icon" :style="{ background: app.color }">
+                        <TIcon :name="app.icon" />
+                      </div>
+                      <div class="connect-card__title">
+                        <span class="connect-card__name">{{ app.name }}</span>
+                        <span class="connect-card__status" :class="app.connected ? 'is-connected' : 'is-pending'">
+                          {{ app.connected ? 'Đã kết nối' : 'Chưa kết nối' }}
+                        </span>
+                      </div>
+                      <div class="connect-card__actions">
+                        <button class="btn-icon btn-icon--sm" title="Hướng dẫn" @click.stop>
+                          <TIcon name="help-circle" />
+                        </button>
+                        <button
+                          class="btn btn--sm"
+                          :class="app.connected ? 'btn--outline-danger' : 'btn--outline'"
+                          @click.stop="toggleConnect(app)"
+                        >
+                          <TIcon :name="app.connected ? 'plug-connected' : 'plug'" />
+                          {{ app.connected ? 'Ngắt kết nối' : 'Kết nối' }}
+                        </button>
+                      </div>
+                    </div>
+                    <p class="connect-card__desc">{{ app.desc }}</p>
+                  </div>
+                  <p v-if="!filteredConnectApps.length" class="connect-empty">Không có ứng dụng nào trong mục này.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </div>
+    </Transition>
+  </Teleport>
 
   <!-- ── Settings Dialog ── -->
   <Teleport to="body">
@@ -392,16 +535,180 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { COLORS, currentTheme, applyTheme, currentMode, applyMode, currentBgTint, applyBgTint, DENSITIES, currentDensity, applyDensity, WALLPAPERS, currentWallpaper, applyWallpaper, currentSidebarMode, applySidebarMode } from '../theme.js'
 import TIcon        from './TIcon.vue'
 import IconMisaAI   from './IconMisaAI.vue'
 import IconAmisChat from './IconAmisChat.vue'
 
-defineProps({
+const props = defineProps({
   appName: { type: String, default: 'Kế Toán' },
   appTag:  { type: String, default: '' },
   noMeta:  { type: Boolean, default: false },
+  hideTrialBanner: { type: Boolean, default: false },
+})
+
+/* ── Trial expiry banner ── */
+const showTrialBanner = ref(!props.hideTrialBanner)
+const trialDaysLeft   = ref(7)
+
+/* ── Tools & Settings popover ── */
+const toolsBtnRef       = ref(null)
+const toolsPopoverRef   = ref(null)
+const showToolsPopover  = ref(false)
+const toolsPopoverStyle = ref({})
+
+const toolColumns = [
+  {
+    title: 'Nghiệp vụ',
+    items: [
+      { label: 'Quản lý danh mục' },
+      { label: 'Nhập số dư ban đầu' },
+    ],
+  },
+  {
+    title: 'Tiện ích',
+    items: [
+      { label: 'Bảo trì dữ liệu' },
+      { label: 'Ghi sổ/bỏ ghi theo lô' },
+      { label: 'Đánh lại số chứng từ' },
+      { label: 'Phục hồi chứng từ đã xóa nhầm' },
+      { label: 'Lấy chứng từ từ dữ liệu khác' },
+      { label: 'Kiểm tra đối chiếu chứng từ, sổ sách' },
+      { label: 'Kiểm soát hồ sơ và hạch toán', tag: 'Mới' },
+      { label: 'Gợi ý, nhắc nhở thông minh' },
+      { label: 'Tra cứu thông tin doanh nghiệp' },
+      { label: 'Nhật ký truy cập' },
+      { label: 'Mã QR thanh toán' },
+    ],
+  },
+  {
+    title: 'Công cụ khác',
+    items: [
+      { label: 'Hướng dẫn chuyển đổi từ SME' },
+      { label: 'Chuyển đổi từ AMIS Kế toán bản cũ' },
+      { label: 'Danh sách lệnh tính giá, bảo trì,... đang thực hiện' },
+      { label: 'Xóa bộ nhớ đệm nâng cao' },
+      { label: 'Cập nhật số dư từ dữ liệu năm trước' },
+      { label: 'Danh sách người dùng đang truy cập', tag: 'Mới' },
+    ],
+  },
+]
+
+const toolSideSections = [
+  {
+    title: 'Công ty của bạn',
+    items: [
+      { label: 'Thông tin công ty' },
+      { label: 'Quản lý người dùng và phân quyền', tag: 'Mới' },
+      { label: 'Quản lý dữ liệu' },
+    ],
+  },
+  {
+    title: 'Thiết lập',
+    items: [
+      { label: 'Tùy chọn' },
+      { label: 'Ngày hạch toán' },
+      { label: 'Kết nối ứng dụng', action: 'connect-apps' },
+      { label: 'Ngôn ngữ' },
+      { label: 'Thiết lập cấu hình gửi email' },
+      { label: 'Thiết lập ký số' },
+      { label: 'Thiết lập màu sắc và hiển thị', action: 'color-settings' },
+    ],
+  },
+]
+
+function openToolsPopover() {
+  if (toolsBtnRef.value) {
+    const rect = toolsBtnRef.value.getBoundingClientRect()
+    toolsPopoverStyle.value = {
+      position: 'fixed',
+      top:   (rect.bottom + 8) + 'px',
+      right: (window.innerWidth - rect.right) + 'px',
+      zIndex: 9500,
+    }
+  }
+  showToolsPopover.value = true
+}
+function closeToolsPopover() { showToolsPopover.value = false }
+function onToolItemClick(item) {
+  closeToolsPopover()
+  if (item.action === 'color-settings') openSettings()
+  if (item.action === 'connect-apps')  openConnectApps()
+}
+
+/* ── Kết nối ứng dụng dialog ── */
+const showConnectApps = ref(false)
+const connectTab      = ref('all')
+const connectCategory = ref('all')
+const connectSearch   = ref('')
+
+const connectTabs = [
+  { id: 'all',      label: 'Tất cả' },
+  { id: 'misa',     label: 'Trong MISA' },
+  { id: 'external', label: 'Ngoài MISA' },
+]
+
+const connectCategories = [
+  { id: 'all',           label: 'Tất cả',                       icon: 'check' },
+  { id: 'amis',          label: 'Ứng dụng AMIS',                icon: 'apps' },
+  { id: 'sales-app',     label: 'Ứng dụng bán hàng',            icon: 'shopping-cart' },
+  { id: 'edoc',          label: 'Tài liệu điện tử',              icon: 'file-text' },
+  { id: 'ecommerce',     label: 'Sàn thương mại điện tử',        icon: 'building-community' },
+  { id: 'pharma-db',     label: 'Cơ sở DL Dược Quốc Gia',        icon: 'building-bank' },
+  { id: 'emis',          label: 'Kết nối EMIS',                  icon: 'link' },
+  { id: 'api',           label: 'API Kết Nối',                   icon: 'git-branch' },
+  { id: 'unified-data',  label: 'Kết nối dữ liệu hợp nhất',      icon: 'transfer' },
+]
+
+const connectApps = ref([
+  { id: 'crm',        name: 'CRM',                icon: 'users-group',     color: '#2f6fed', connected: true,  group: 'misa',     category: 'amis',       desc: 'Các dữ liệu sẽ được đồng bộ với AMIS CRM: Đơn đặt hàng/hợp đồng, Chính sách giá, Đề nghị xuất hóa đơn.' },
+  { id: 'payroll',    name: 'Tiền lương',          icon: 'cash',            color: '#17a34a', connected: false, group: 'misa',     category: 'amis',       desc: 'Kết nối với ứng dụng AMIS Tiền lương để tiếp nhận bảng tổng hợp phân bổ lương, bảng chi trả lương để hạch toá...' },
+  { id: 'timekeeping',name: 'Chấm công',           icon: 'fingerprint',     color: '#f97316', connected: true,  group: 'misa',     category: 'amis',       desc: 'Kết nối với ứng dụng AMIS Chấm công để tiếp nhận bảng chấm công tổng hợp vào dữ liệu kế toán đã được thiết l...' },
+  { id: 'pit',        name: 'Thuế TNCN',           icon: 'file-invoice',    color: '#2563eb', connected: false, group: 'misa',     category: 'amis',       desc: 'Kết nối ứng dụng AMIS Thuế TNCN để lập và gửi chứng từ khấu trừ Thuế TNCN cho người lao động ngay trên...' },
+  { id: 'workflow',   name: 'Quy trình',           icon: 'sitemap',         color: '#4f46e5', connected: true,  group: 'misa',     category: 'amis',       desc: 'Kết nối với ứng dụng AMIS Quy trình để tiếp nhận đề nghị thu chi, đề nghị thanh quyết toán tạm ứng về AMIS Kế...' },
+  { id: 'social',     name: 'Mạng xã hội',         icon: 'message-circle',  color: '#7c3aed', connected: true,  group: 'misa',     category: 'amis',       desc: 'Kết nối với ứng dụng AMIS Mạng xã hội để tự động đồng bộ số liệu kế toán về tình hình tài chính, kết quả hoạt...' },
+  { id: 'purchasing', name: 'Mua hàng',            icon: 'mail',            color: '#2563eb', connected: false, group: 'misa',     category: 'amis',       desc: 'Kết nối với ứng dụng AMIS Mua hàng để tiếp nhận đơn mua hàng về AMIS Kế toán và cập nhật tình trạng giao...' },
+  { id: 'asset',      name: 'Quản lý tài sản',     icon: 'package',         color: '#16a34a', connected: false, group: 'misa',     category: 'amis',       desc: 'Kết nối với ứng dụng AMIS Tài sản để đồng bộ ghi tăng, đánh giá lại, điều chuyển, ghi giảm, kiểm kê Tài sản cố...' },
+  { id: 'cukcuk',     name: 'CukCuk',              icon: 'device-desktop',  color: '#2563eb', connected: false, group: 'external', category: 'sales-app',  desc: 'Tích hợp với phần mềm MISA CUKCUK để tự động hạch toán chứng từ mua – bán hàng hóa, dịch vụ, thu –...' },
+  { id: 'eshop',      name: 'EShop',               icon: 'shopping-cart',   color: '#0d9488', connected: false, group: 'external', category: 'sales-app',  desc: 'Tích hợp với phần mềm MISA eShop để tự động hạch toán chứng từ mua – bán hàng hóa, dịch vụ, thu – chi,...' },
+  { id: 'eshopv2',    name: 'EShopV2',             icon: 'shopping-cart',   color: '#0d9488', connected: false, group: 'external', category: 'sales-app',  desc: 'Tích hợp với phần mềm MISA eShop V2 để tự động hạch toán chứng từ mua – bán hàng hóa, dịch vụ, thu – chi,...' },
+  { id: 'wesign',     name: 'Wesign',              icon: 'file-certificate',color: '#2563eb', connected: false, group: 'external', category: 'edoc',       desc: 'Kết nối với ứng dụng AMIS WeSign ký các loại chứng từ kế toán một cách đơn giản, tiện lợi.' },
+  { id: 'shopee',     name: 'Shopee',              icon: 'shopping-cart',   color: '#f97316', connected: false, group: 'external', category: 'ecommerce',  desc: 'Kết nối với sàn Shopee để đồng bộ đơn hàng, doanh thu bán hàng về AMIS Kế toán.' },
+  { id: 'tiktok',     name: 'Tiktok',              icon: 'message-circle',  color: '#111827', connected: false, group: 'external', category: 'ecommerce',  desc: 'Kết nối với sàn TikTok Shop để đồng bộ đơn hàng, doanh thu bán hàng về AMIS Kế toán.' },
+  { id: 'pharma',     name: 'Cơ sở DL Dược Quốc Gia', icon: 'building-bank',color: '#0d9488', connected: false, group: 'external', category: 'pharma-db',  desc: 'Kết nối với Cơ sở dữ liệu Dược Quốc gia để tra cứu, đối chiếu thông tin thuốc, dược phẩm.' },
+  { id: 'emis-kg',    name: 'EMIS Kindergarten',   icon: 'book',            color: '#16a34a', connected: false, group: 'misa',     category: 'emis',       desc: 'Kết nối với ứng dụng EMIS Kindergarten để đồng bộ dữ liệu học phí, thu chi trường mầm non.' },
+])
+
+const filteredConnectApps = computed(() => {
+  const q = connectSearch.value.trim().toLowerCase()
+  return connectApps.value.filter(app => {
+    if (connectTab.value !== 'all' && app.group !== connectTab.value) return false
+    if (connectCategory.value !== 'all' && app.category !== connectCategory.value) return false
+    if (q && !app.name.toLowerCase().includes(q)) return false
+    return true
+  })
+})
+
+function openConnectApps()  { showConnectApps.value = true }
+function closeConnectApps() { showConnectApps.value = false }
+function toggleConnect(app) { app.connected = !app.connected }
+
+function onDocMousedown(e) {
+  const inToolsBtn = toolsBtnRef.value?.contains(e.target)
+  const inToolsPop = toolsPopoverRef.value?.contains(e.target)
+  if (!inToolsBtn && !inToolsPop) closeToolsPopover()
+}
+function onDocKeydown(e) {
+  if (e.key === 'Escape') closeToolsPopover()
+}
+onMounted(() => {
+  document.addEventListener('mousedown', onDocMousedown)
+  document.addEventListener('keydown', onDocKeydown)
+})
+onUnmounted(() => {
+  document.removeEventListener('mousedown', onDocMousedown)
+  document.removeEventListener('keydown', onDocKeydown)
 })
 
 /* ── Dialog state ── */
@@ -491,6 +798,26 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 </script>
 
 <style scoped>
+/* ── Trial expiry banner ── */
+.trial-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; height: 44px; padding: 0 24px;
+  background: #3f3f46; color: var(--text-white);
+  flex-shrink: 0;
+}
+.trial-banner__text {
+  font-size: 13px; line-height: 20px; margin: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.trial-banner__text strong { font-weight: var(--fw-semibold); }
+.trial-banner__actions { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.trial-banner__dismiss {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-family); font-size: 13px;
+  color: rgba(255,255,255,0.72);
+}
+.trial-banner__dismiss:hover { color: var(--text-white); text-decoration: underline; }
+
 /* ── Settings Dialog ── */
 .dialog-overlay {
   position: fixed; inset: 0; z-index: 9000;
@@ -815,4 +1142,246 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 .overlay-enter-from,  .overlay-leave-to      { opacity: 0; }
 .dialog-enter-active, .dialog-leave-active   { transition: transform 0.22s ease, opacity 0.22s ease; }
 .dialog-enter-from,  .dialog-leave-to        { transform: translateY(-16px); opacity: 0; }
+
+/* ── Tools & Settings Popover ── */
+.tools-popover {
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  background: var(--bg-white);
+  border-radius: var(--radius-dialog);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--stroke-neutral-light);
+  font-family: var(--font-family);
+  padding: 20px 24px 24px;
+}
+.tools-popover__title {
+  font-size: 16px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin: 0 0 20px;
+}
+.tools-popover__body {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.tools-popover__columns {
+  display: flex;
+  gap: 24px;
+}
+.tools-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tools-popover__columns .tools-col:nth-child(1) { flex: 0 0 160px; }
+.tools-popover__columns .tools-col:nth-child(2) { flex: 0 0 300px; }
+.tools-popover__columns .tools-col:nth-child(3) { flex: 0 0 380px; }
+.tools-popover__side {
+  flex: 0 0 320px;
+  background: var(--bg-neutral-light);
+  border-radius: var(--radius-default);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.tools-col__title {
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+.tools-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
+  margin: 0 -8px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-default);
+  font-size: 13px;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  text-align: left;
+  line-height: 20px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.tools-item:hover { background: var(--bg-neutral-hover); }
+.tools-item__tag {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  background: var(--bg-warning);
+  color: var(--text-white);
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+.tools-pop-enter-active, .tools-pop-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.tools-pop-enter-from, .tools-pop-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* ── Kết nối ứng dụng Dialog — full-screen popup ── */
+.connect-overlay { padding: 0; align-items: stretch; justify-content: stretch; }
+.connect-dialog {
+  background: var(--bg-white);
+  border-radius: 0;
+  width: 100%; max-width: none;
+  display: flex; flex-direction: column;
+  height: 100%; max-height: none;
+  overflow: hidden; flex-shrink: 0;
+}
+.connect-dialog__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--dialog-py) var(--dialog-px);
+  border-bottom: 1px solid var(--stroke-neutral-light);
+  flex-shrink: 0;
+}
+.connect-dialog__title { font-size: 20px; font-weight: var(--fw-semibold); color: var(--text-primary); margin: 0; }
+.connect-dialog__header-actions { display: flex; align-items: center; gap: 8px; }
+
+.connect-syncbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 10px 24px;
+  border-bottom: 1px solid var(--stroke-neutral-light);
+  flex-shrink: 0; flex-wrap: wrap;
+}
+.connect-syncbar__left, .connect-syncbar__right {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-secondary);
+}
+.connect-syncbar__left .ti { font-size: 16px; color: var(--icon-neutral); }
+.connect-syncbar__label { color: var(--text-primary); font-weight: var(--fw-medium); }
+.connect-version-tag {
+  display: inline-flex; align-items: center;
+  height: 20px; padding: 0 8px;
+  background: var(--bg-brand-light); color: var(--text-brand);
+  font-size: 11px; font-weight: var(--fw-semibold);
+  border-radius: var(--radius-pill);
+}
+.connect-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 13px; color: var(--text-link); text-decoration: none; cursor: pointer;
+}
+.connect-link .ti { font-size: 14px; }
+.connect-link:hover { text-decoration: underline; }
+
+.connect-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 16px;
+}
+.connect-search {
+  display: flex; align-items: center; gap: 8px;
+  width: 260px; height: 32px; padding: 0 12px;
+  background: var(--bg-white);
+  border: 1px solid var(--stroke-neutral); border-radius: var(--radius-default);
+  flex-shrink: 0;
+}
+.connect-search .ti { font-size: 16px; color: var(--icon-neutral); flex-shrink: 0; }
+.connect-search input {
+  border: none; outline: none; background: transparent;
+  font-size: 13px; font-family: var(--font-family); color: var(--text-primary);
+  width: 100%;
+}
+
+.connect-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+.connect-sidebar {
+  width: 240px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 16px 12px; overflow-y: auto;
+  border-right: 1px solid var(--stroke-neutral-light);
+}
+.connect-sidebar__item {
+  display: flex; align-items: center; gap: 10px;
+  height: 36px; padding: 0 12px;
+  border: none; background: transparent; border-radius: var(--radius-default);
+  font-size: 13px; font-weight: var(--fw-medium); color: var(--text-primary);
+  text-align: left; cursor: pointer;
+  transition: background 0.12s;
+}
+.connect-sidebar__item .ti { font-size: 16px; color: var(--icon-neutral); flex-shrink: 0; }
+.connect-sidebar__item:hover { background: var(--bg-neutral-hover); }
+.connect-sidebar__item--active { background: var(--bg-brand-light); color: var(--text-brand); font-weight: var(--fw-semibold); }
+.connect-sidebar__item--active .ti { color: var(--text-brand); }
+
+.connect-grid-wrap { flex: 1; min-width: 0; overflow-y: auto; padding: 20px 24px; background: var(--bg-page); }
+.connect-segment {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 2px;
+  background: var(--bg-neutral-light);
+  border-radius: var(--radius-default);
+  flex-shrink: 0;
+}
+.connect-segment__item {
+  height: 28px; padding: 0 16px;
+  font-size: 13px; font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+  border: none; background: transparent; border-radius: calc(var(--radius-default) - 2px);
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.connect-segment__item:hover { color: var(--text-primary); }
+.connect-segment__item--active {
+  background: var(--bg-white); color: var(--text-brand); font-weight: var(--fw-semibold);
+  box-shadow: var(--shadow-sm);
+}
+.connect-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--card-col-gap);
+  align-items: stretch;
+}
+.connect-card {
+  background: var(--bg-white);
+  border-radius: 8px;
+  box-shadow: var(--shadow-card);
+  padding: var(--card-py) var(--card-px);
+  display: flex; flex-direction: column; gap: 12px;
+  min-height: 162px;
+  cursor: pointer; transition: box-shadow 0.15s;
+}
+.connect-card:hover { box-shadow: var(--shadow-md); }
+.connect-card__head { display: flex; align-items: flex-start; gap: 12px; }
+.connect-card__actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.connect-card__icon {
+  width: 28px; height: 28px; border-radius: var(--radius-default);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.connect-card__icon .ti { font-size: 16px; color: var(--text-white); }
+.connect-card__title {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.connect-card__name {
+  font-size: 14px; font-weight: var(--fw-semibold); color: var(--text-primary);
+  line-height: 18px;
+}
+.connect-card__status {
+  font-size: 12px; color: var(--text-hint);
+}
+.connect-card__status.is-connected { color: var(--text-success); }
+.connect-card__desc {
+  flex: 1;
+  font-size: 13px; line-height: 20px; color: var(--text-secondary);
+  margin: 0; margin-left: 40px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.connect-empty {
+  grid-column: 1 / -1;
+  text-align: center; color: var(--text-hint); font-size: 13px;
+  padding: 40px 0;
+}
+
+@media (max-width: 1280px) { .connect-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 960px)  { .connect-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>

@@ -4,7 +4,7 @@ title Figma Cookie Collector
 
 echo.
 echo  ================================================
-echo    Figma Auto Login + Cookie Sync to Google Docs
+echo    Figma Auto Login + Cookie Sync to GitHub
 echo  ================================================
 echo.
 
@@ -46,10 +46,6 @@ if not exist "config.enc" (
     echo [LOI] Khong tim thay file config.enc
     goto :DONE
 )
-if not exist "service-account.json" (
-    echo [LOI] Khong tim thay service-account.json
-    goto :DONE
-)
 
 REM -- Chay chinh --
 %NODE_CMD% bundle.js
@@ -58,7 +54,7 @@ set EXIT_CODE=%errorlevel%
 echo.
 if %EXIT_CODE% equ 0 (
     echo  ================================================
-    echo    HOAN THANH! Cookie da duoc luu vao Google Docs
+    echo    HOAN THANH! Cookie da duoc luu vao GitHub
     echo  ================================================
 ) else (
     echo  ================================================

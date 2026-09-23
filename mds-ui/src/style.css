@@ -122,15 +122,15 @@
   --radius-dialog:  12px;
   --radius-pill:    9999px;
 
-  --btn-height:     36px;
+  --btn-height:     32px;
   --btn-min-width:  80px;
   --btn-px:         12px;
   --btn-gap:        8px;
 
-  --input-height:   36px;
+  --input-height:   32px;
   --input-px:       12px;
   /* DataTable row heights — chỉ --dt-row-height bị ảnh hưởng bởi density setting */
-  --dt-row-height:  36px;   /* 1-line: thay đổi theo compact/comfortable */
+  --dt-row-height:  32px;   /* 1-line: thay đổi theo compact/comfortable */
   --dt-row-height-2: 56px;  /* 2-line (subtext, avatar+subtext): CỐ ĐỊNH, không đổi theo density */
   --dt-row-height-3: 72px;  /* 3-line: CỐ ĐỊNH */
   --input-py:       8px;
@@ -254,12 +254,12 @@
   --dt-row-height:  32px;
   --radius-default: 6px;
 }
-/* Comfortable: chiều cao control 40px */
+/* Comfortable: chiều cao control 36px */
 :root[data-density="comfortable"] {
-  --input-height:  40px;
-  --btn-height:    40px;
+  --input-height:  36px;
+  --btn-height:    36px;
   --btn-px:        14px;
-  --dt-row-height: 40px;
+  --dt-row-height: 36px;
 }
 
 /* ── Base ── */
@@ -451,7 +451,7 @@ body {
 }
 .sidebar.expanded,
 .sidebar:not(.expanded):hover   { width: var(--layout-sidebar-w); }
-.sidebar:not(.expanded):hover   { z-index: 100; box-shadow: 4px 0 20px rgba(16,24,40,0.12); }
+.sidebar:not(.expanded):hover   { z-index: 500; box-shadow: 4px 0 20px rgba(16,24,40,0.12); }
 
 /* Inner scrollable area */
 .sidebar-inner {
@@ -513,6 +513,25 @@ body {
 .sidebar-item .sidebar-item__label   { display: none; }
 .sidebar.expanded .sidebar-item .sidebar-item__label,
 .sidebar:not(.expanded):hover .sidebar-item .sidebar-item__label { display: block; }
+
+/* ── Sidebar: Dark mode (khi chọn "Tối" ở thiết lập màu sắc) ── */
+:root[data-sidebar="dark"] .sidebar {
+  background: #1c1e26;
+  border-right-color: rgba(255,255,255,0.07);
+}
+:root[data-sidebar="dark"] .sidebar-item { color: rgba(255,255,255,0.7); }
+:root[data-sidebar="dark"] .sidebar-item .ti { color: rgba(255,255,255,0.5); }
+:root[data-sidebar="dark"] .sidebar-item:hover { background: rgba(255,255,255,0.08); }
+:root[data-sidebar="dark"] .sidebar-item.active { background: var(--bg-brand); color: #fff; }
+:root[data-sidebar="dark"] .sidebar-item.active .ti { color: #fff; }
+:root[data-sidebar="dark"] .btn-add-quick {
+  background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14); color: rgba(255,255,255,0.85);
+}
+:root[data-sidebar="dark"] .btn-add-quick:hover { background: rgba(255,255,255,0.12); }
+:root[data-sidebar="dark"] .btn-collapse {
+  background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6);
+}
+:root[data-sidebar="dark"] .btn-collapse:hover { background: rgba(255,255,255,0.1); }
 
 /* Collapse/Expand button — absolute at bottom */
 .btn-collapse {
@@ -1536,11 +1555,15 @@ body {
 /* ── Sidebar — glass khi có wallpaper ── */
 :root[data-wallpaper] .sidebar-host { background: transparent !important; }
 :root[data-wallpaper] .sidebar {
-  background: rgba(255, 255, 255, 0.90) !important;
+  background: rgba(255, 255, 255, 0.97) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border-right: 1px solid rgba(255, 255, 255, 0.4) !important;
   box-shadow: none !important;
+}
+:root[data-wallpaper][data-sidebar="dark"] .sidebar {
+  background: rgba(28, 30, 38, 0.94) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 /* ── Page header + tab area — solid white ── */

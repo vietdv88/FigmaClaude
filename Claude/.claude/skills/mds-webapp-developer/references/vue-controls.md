@@ -1560,7 +1560,7 @@ Dùng cho `<input>` và `<select>` thuần HTML (ngoài ibox / AppTextbox compon
 6. **Layout Tab+KPI+Master/Detail** → copy đúng section 5, không tự điều chỉnh cấu trúc flex/position
 7. **`input--select`** → KHÔNG override `padding-top/bottom` hay `line-height` — xem section 8
 8. **Density modes** → ⛔ NGHIÊM CẤM hardcode `height: Npx` cho input/button/row — dùng `var(--input-height)` / `var(--btn-height)` — xem section 12
-9. **Khoảng cách giữa controls** → 2 control đặt cạnh nhau trong cùng 1 group: `gap: 8px`. Khác group (section/column riêng): `gap: 16px` trở lên. KHÔNG dùng giá trị nào khác trừ khi có lý do rõ ràng.
+9. **Khoảng cách giữa controls** (⛔ Tuyệt đối — không tái phạm) → 2 control đặt cạnh nhau trong cùng 1 group: LUÔN LUÔN `gap: 8px`, không có ngoại lệ (kể cả khi controls kích thước khác nhau, ví dụ icon-button cạnh button chữ). Khác group (section/column riêng): `gap: 16px` trở lên. KHÔNG dùng giá trị nào khác — nếu 2 control đứng cạnh nhau trong cùng 1 flex group đang có gap khác 8px (10px, 12px...), phải tách nhóm control đó ra 1 wrapper con riêng với `gap: 8px`, không sửa gap của group cha (group cha có thể đang gap 12px/16px hợp lệ cho khoảng cách icon/text/section khác).
 
 ### Quy tắc border cho controls (⛔ Tuyệt đối — không tái phạm)
 
@@ -1621,6 +1621,19 @@ NGHIÊM CẤM dùng --stroke-neutral-light cho border của control.
 .toolbar { gap: 10px; }   /* không phải token */
 .toolbar { gap: 12px; }   /* 12px chỉ dùng cho card gap, không phải control gap */
 .toolbar { gap: 6px; }    /* quá hẹp */
+```
+
+**Row hỗn hợp (icon/avatar + text + control):** nếu 1 row có cả phần trang trí (icon, avatar, tiêu đề) LẪN control (button, icon-button) — ví dụ header của 1 card: `[icon] [tên + trạng thái] [button Hướng dẫn] [button Kết nối]` — thì gap của row cha (giữa icon/text/control-group) được phép khác 8px (12px, 16px...), nhưng 2 control (2 button) đứng cạnh nhau ở cuối row PHẢI được bọc riêng trong 1 wrapper `gap: 8px`, không dùng chung gap của row cha.
+
+```css
+/* ❌ SAI — 1 gap dùng chung cho cả icon/text lẫn 2 button, button cách nhau 12px thay vì 8px */
+.card__head { display: flex; align-items: center; gap: 12px; }
+/* <icon /> <title /> <button>Hướng dẫn</button> <button>Kết nối</button> */
+
+/* ✅ ĐÚNG — tách 2 button vào wrapper riêng, gap 8px; row cha vẫn giữ 12px cho icon/text */
+.card__head    { display: flex; align-items: center; gap: 12px; }
+.card__actions { display: flex; align-items: center; gap: 8px; }
+/* <icon /> <title /> <div class="card__actions"><button>Hướng dẫn</button><button>Kết nối</button></div> */
 ```
 
 > **Nguồn:** CSS token `--btn-group-gap: 8px` (định nghĩa trong SKILL.md Section 1). Áp dụng cho mọi nơi: toolbar, page-header right, form inline group, filter bar, footer action bar.

@@ -72,6 +72,8 @@ import {
   IconFingerprint,
   IconWorld,
   IconHistory,
+  IconDatabase,
+  IconPlug, IconPlugConnected,
 } from '@tabler/icons-vue'
 
 const props = defineProps({
@@ -267,6 +269,9 @@ const MAP = {
   'table':                  IconTable,
   'world':                  IconWorld,
   'history':                IconHistory,
+  'database':               IconDatabase,
+  'plug':                   IconPlug,
+  'plug-connected':         IconPlugConnected,
 }
 
 const iconComp = computed(() => {

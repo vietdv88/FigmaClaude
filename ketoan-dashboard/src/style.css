@@ -525,14 +525,14 @@ body {
   display: flex; align-items: center; justify-content: center;
   gap: 0;
   width: 100%; height: var(--btn-height); padding: 0;
-  border: 1px solid var(--stroke-neutral);
+  border: 1px solid rgba(206,209,214,0.5);
   border-radius: var(--radius-default);
-  background: var(--bg-white); cursor: pointer;
+  background: rgba(255,255,255,0.55); cursor: pointer;
   color: var(--text-primary); font-size: 13px; font-weight: var(--fw-medium);
   white-space: nowrap; overflow: hidden; flex-shrink: 0;
   transition: background 0.15s, width 0.22s, gap 0.22s;
 }
-.btn-add-quick:hover { background: var(--bg-neutral-light); }
+.btn-add-quick:hover { background: rgba(255,255,255,0.8); }
 .btn-add-quick .ti { font-size: 16px; flex-shrink: 0; }
 .btn-add-quick .btn-add-text {
   opacity: 0; max-width: 0; overflow: hidden; white-space: nowrap;
@@ -631,6 +631,21 @@ body {
 :root[data-sidebar="dark"] .btn-collapse:hover {
   background: rgba(255,255,255,0.1);
   color: rgba(255,255,255,0.8);
+}
+
+/* Trang trí ảnh nền sidebar — hiện khi sidebar MỞ RỘNG (pin) hoặc đang hover-peek lúc
+   thu gọn, chỉ ẩn khi thu gọn và không hover. Lặp lại selector cho cả 2 trường hợp
+   sidebar sáng/tối để thắng specificity của rule "background" shorthand ở
+   :root[data-sidebar="dark"] .sidebar phía trên. */
+.sidebar.expanded,
+.sidebar:not(.expanded):hover,
+:root[data-sidebar="dark"] .sidebar.expanded,
+:root[data-sidebar="dark"] .sidebar:not(.expanded):hover {
+  background-image: url('/top.webp'), url('/bottom.webp');
+  background-repeat: no-repeat, no-repeat;
+  background-position: top right, bottom center;
+  background-size: 44px auto, 100% auto;
+  background-origin: border-box, border-box;
 }
 
 /* ── Sub-nav tabs ── */
@@ -748,6 +763,12 @@ body {
   background: var(--bg-white); border-color: var(--stroke-brand); color: var(--text-brand);
 }
 .btn--outline:hover { background: var(--bg-brand-light); }
+.btn--outline-danger  { background: var(--bg-white); border-color: var(--stroke-danger);  color: var(--text-danger);  }
+.btn--outline-danger:hover  { background: var(--bg-danger-light); }
+.btn--outline-success { background: var(--bg-white); border-color: var(--stroke-success); color: var(--text-success); }
+.btn--outline-success:hover { background: var(--bg-success-light,#ecfdf3); }
+.btn--outline-warning { background: var(--bg-white); border-color: var(--stroke-warning); color: var(--text-warning); }
+.btn--outline-warning:hover { background: var(--bg-warning-light,#fffaeb); }
 .btn--ghost {
   background: transparent; border-color: transparent; color: var(--text-secondary);
 }

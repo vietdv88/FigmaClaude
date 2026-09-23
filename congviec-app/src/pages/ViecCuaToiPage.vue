@@ -3,10 +3,55 @@
     <div class="vctt">
 
       <!-- ══ Header ══ -->
-      <div class="vctt-header">
+      <div class="vctt-header" :class="{ 'vctt-header--flat': currentProject.id !== 'all' }">
         <div class="vctt-bar">
           <!-- Tabs -->
-          <div class="vctt-tabs">
+          <div v-if="currentProject.id !== 'all'" class="vctt-tabs vctt-tabs--proj">
+            <div class="vctt-proj-title" @click.stop="projOpen = !projOpen">
+              <TIcon name="folder" />
+              <span>{{ currentProject.label }}</span>
+              <TIcon name="chevron-down" class="vctt-proj-title__arr" />
+
+              <div v-if="projOpen" class="proj-dd" @click.stop>
+                <div class="proj-dd__search">
+                  <TIcon name="search" class="proj-dd__search-ico" />
+                  <input class="proj-dd__search-input" v-model="projSearch"
+                    placeholder="Tìm dự án..." @click.stop />
+                </div>
+                <div class="proj-dd__body">
+                  <div class="proj-item proj-item--all"
+                    :class="{ active: false }"
+                    @click="projOpen = false; router.push('/viec-cua-toi')">
+                    Tất cả
+                  </div>
+                  <div v-if="filteredProjGroups.length > 0" class="proj-dd__section-hd">Dự án</div>
+                  <div v-for="grp in filteredProjGroups" :key="grp.id" class="proj-grp">
+                    <div class="proj-grp__hd" @click.stop="grp.expanded = !grp.expanded">
+                      <TIcon :name="grp.expanded ? 'chevron-down' : 'chevron-right'" class="proj-grp__arr" />
+                      <span class="proj-grp__name">{{ grp.label }}</span>
+                    </div>
+                    <template v-if="grp.expanded">
+                      <div v-for="p in grp.projects" :key="p.id"
+                        class="proj-item" :class="{ active: currentProject.id === p.id }"
+                        @click="projOpen = false; router.push('/du-an/' + p.id)">
+                        <span class="proj-item__dot" :style="{ background: p.color }"></span>
+                        {{ p.label }}
+                      </div>
+                    </template>
+                  </div>
+                  <div v-if="filteredProjGroups.length === 0" class="proj-dd__empty">Không tìm thấy</div>
+                </div>
+              </div>
+            </div>
+            <div class="vctt-proj-divider"></div>
+            <div class="vctt-proj-tabs">
+              <button v-for="pv in projectViewTabs" :key="pv.id" class="vctt-tab"
+                :class="{ active: view === pv.id }" @click="view = pv.id">
+                {{ pv.label }}
+              </button>
+            </div>
+          </div>
+          <div v-else class="vctt-tabs">
             <button class="vctt-tab" :class="{ active: tab === 'nhan' }" @click="onTabChange('nhan')">
               Giao cho tôi
               <span class="vctt-tab__badge">{{ tasksByTab.nhan.length }}</span>
@@ -26,8 +71,8 @@
           </div>
 
           <div class="vctt-bar__right">
-            <!-- Project selector (2-level) -->
-            <div class="vctt-proj" @click.stop="projOpen = !projOpen">
+            <!-- Project selector (2-level) — ẩn khi ở chế độ dự án vì đã có tên dự án bên trái -->
+            <div v-if="currentProject.id === 'all'" class="vctt-proj" @click.stop="projOpen = !projOpen">
               <span class="vctt-proj__lbl">Nhóm/Dự án:</span>
               <span class="vctt-proj__val">{{ currentProject.label }}</span>
               <TIcon name="chevron-down" class="vctt-proj__arr" />
@@ -66,8 +111,8 @@
             </div>
 
 
-            <!-- Gom nhóm dropdown -->
-            <div class="vctt-grp" :class="{ active: showGroupBy }" @click.stop="showGroupBy = !showGroupBy">
+            <!-- Gom nhóm dropdown — ẩn khi ở chế độ dự án (mặc định gom theo trạng thái riêng của dự án) -->
+            <div v-if="currentProject.id === 'all'" class="vctt-grp" :class="{ active: showGroupBy }" @click.stop="showGroupBy = !showGroupBy">
               <span class="vctt-grp__lbl">Gom nhóm:</span>
               <span class="vctt-grp__val">{{ groupByOptions.find(o => o.id === groupBy)?.label }}</span>
               <TIcon name="chevron-down" class="vctt-grp__arr" />
@@ -82,49 +127,24 @@
               </div>
             </div>
 
-            <!-- View switcher -->
-            <div class="vctt-views">
+            <!-- View switcher — ẩn khi ở chế độ dự án vì đã có tab Bảng/Danh sách/Lịch bên trái -->
+            <div v-if="currentProject.id === 'all'" class="vctt-views">
               <button class="vctt-view" :class="{ active: view === 'kanban' }"   @click="view = 'kanban'"   title="Kanban"><TIcon name="layout-kanban" /></button>
               <button class="vctt-view" :class="{ active: view === 'list' }"     @click="view = 'list'"     title="Danh sách"><TIcon name="list" /></button>
               <button class="vctt-view" :class="{ active: view === 'calendar' }" @click="view = 'calendar'" title="Lịch"><TIcon name="calendar" /></button>
             </div>
 
-            <button class="vctt-filter-btn" :class="{ active: showFilter, 'has-filter': hasActiveFilter }"
+            <button v-if="currentProject.id === 'all'" class="vctt-filter-btn"
+              :class="{ active: showFilter, 'has-filter': hasActiveFilter }"
               @click.stop="showFilter = !showFilter" title="Bộ lọc">
               <TIcon name="filter" />
             </button>
 
-            <button class="vctt-add-btn" @click="openAddTask()">
+            <button class="btn btn--primary" @click="openAddTask()">
               <TIcon name="plus" /><span>Thêm công việc</span>
             </button>
           </div>
         </div>
-
-        <!-- Filter bar -->
-        <transition name="slide-panel">
-          <div v-if="showFilter" class="filter-bar" @click.stop>
-            <div class="fb-search">
-              <TIcon name="search" class="fb-search-ico" />
-              <input class="fb-search-input" v-model="filterName" placeholder="Tìm tên công việc..." />
-              <button v-if="filterName" class="fb-search-clear" @click="filterName = ''"><TIcon name="x" /></button>
-            </div>
-            <div class="fb-group">
-              <span class="fb-lbl">Ưu tiên:</span>
-              <button v-for="p in PRIORITY_OPTS" :key="p.id"
-                class="fb-pill" :class="{ active: filterPris.includes(p.id) }"
-                @click="toggleFilterPri(p.id)">{{ p.label }}</button>
-            </div>
-            <div class="fb-group">
-              <span class="fb-lbl">Hạn:</span>
-              <button v-for="d in DUE_OPTS" :key="d.id"
-                class="fb-pill" :class="{ active: filterDue === d.id }"
-                @click="filterDue = d.id">{{ d.label }}</button>
-            </div>
-            <button v-if="hasActiveFilter" class="fb-clear" @click="clearFilters">
-              <TIcon name="x" />Xóa lọc
-            </button>
-          </div>
-        </transition>
 
       </div><!-- /vctt-header -->
 
@@ -133,6 +153,91 @@
 
         <!-- Main view area -->
         <div class="vctt-main">
+
+          <!-- Toolbar dự án: tìm kiếm + trạng thái + lọc + sắp xếp + tuỳ chỉnh hiển thị —
+               đặt trong vctt-main (không full-width) để khung Người giao bên phải cao full, không bị toolbar này chèn lên đầu -->
+          <div v-if="currentProject.id !== 'all'" class="proj-toolbar" @click.stop="closeDropdowns">
+            <div class="fb-search proj-toolbar__search" @click.stop>
+              <TIcon name="search" class="fb-search-ico" />
+              <input class="fb-search-input" v-model="filterName" placeholder="Tìm kiếm công việc" />
+              <button v-if="filterName" class="fb-search-clear" @click="filterName = ''"><TIcon name="x" /></button>
+            </div>
+
+            <div class="vctt-grp" :class="{ active: showStatusDd }" @click.stop="showStatusDd = !showStatusDd">
+              <TIcon name="circle-check" class="vctt-grp__ico" />
+              <span class="vctt-grp__val">{{ filterStatusId === 'all' ? 'Tất cả trạng thái' : (statuses.find(s => s.id === filterStatusId)?.label || 'Tất cả trạng thái') }}</span>
+              <TIcon name="chevron-down" class="vctt-grp__arr" />
+              <div v-if="showStatusDd" class="grp-dd" @click.stop>
+                <button class="grp-dd__item" :class="{ active: filterStatusId === 'all' }" @click="filterStatusId = 'all'; showStatusDd = false">
+                  <TIcon v-if="filterStatusId === 'all'" name="check" class="grp-dd__check" /><span v-else class="grp-dd__check-spacer"></span>
+                  Tất cả trạng thái
+                </button>
+                <button v-for="s in statuses" :key="s.id" class="grp-dd__item" :class="{ active: filterStatusId === s.id }" @click="filterStatusId = s.id; showStatusDd = false">
+                  <TIcon v-if="filterStatusId === s.id" name="check" class="grp-dd__check" /><span v-else class="grp-dd__check-spacer"></span>
+                  {{ s.label }}
+                </button>
+              </div>
+            </div>
+
+            <div class="vctt-grp" :class="{ active: showFilter, 'has-filter': hasActiveFilter }" @click.stop="showFilter = !showFilter">
+              <TIcon name="filter" class="vctt-grp__ico" />
+              <span class="vctt-grp__val">{{ hasActiveFilter ? 'Đã lọc' : 'Không lọc' }}</span>
+              <TIcon name="chevron-down" class="vctt-grp__arr" />
+            </div>
+
+            <div class="vctt-grp" :class="{ active: showSortDd }" @click.stop="showSortDd = !showSortDd">
+              <TIcon name="sort-ascending" class="vctt-grp__ico" />
+              <span class="vctt-grp__val">{{ SORT_OPTS.find(o => o.id === sortBy)?.label }}</span>
+              <TIcon name="chevron-down" class="vctt-grp__arr" />
+              <div v-if="showSortDd" class="grp-dd" @click.stop>
+                <button v-for="o in SORT_OPTS" :key="o.id" class="grp-dd__item" :class="{ active: sortBy === o.id }" @click="sortBy = o.id; showSortDd = false">
+                  <TIcon v-if="sortBy === o.id" name="check" class="grp-dd__check" /><span v-else class="grp-dd__check-spacer"></span>
+                  {{ o.label }}
+                </button>
+              </div>
+            </div>
+
+            <div class="vctt-grp" :class="{ active: showDisplayDd }" @click.stop="showDisplayDd = !showDisplayDd">
+              <TIcon name="eye" class="vctt-grp__ico" />
+              <span class="vctt-grp__val">Tùy chỉnh hiển thị</span>
+              <TIcon name="chevron-down" class="vctt-grp__arr" />
+              <div v-if="showDisplayDd" class="grp-dd" @click.stop>
+                <div class="grp-dd__soon">Đang phát triển</div>
+              </div>
+            </div>
+
+            <div class="proj-toolbar__right">
+              <button class="btn-icon btn-icon--outline" title="Làm mới" @click="resetProjToolbar"><TIcon name="refresh" /></button>
+              <button class="btn-icon btn-icon--outline" title="Xuất CSV" @click="exportTasksCsv"><TIcon name="file-export" /></button>
+              <button class="btn-icon btn-icon--outline" title="Biểu đồ"><TIcon name="chart-donut" /></button>
+            </div>
+          </div>
+
+          <!-- Filter bar -->
+          <transition name="slide-panel">
+            <div v-if="showFilter" class="filter-bar" @click.stop>
+              <div class="fb-search">
+                <TIcon name="search" class="fb-search-ico" />
+                <input class="fb-search-input" v-model="filterName" placeholder="Tìm tên công việc..." />
+                <button v-if="filterName" class="fb-search-clear" @click="filterName = ''"><TIcon name="x" /></button>
+              </div>
+              <div class="fb-group">
+                <span class="fb-lbl">Ưu tiên:</span>
+                <button v-for="p in PRIORITY_OPTS" :key="p.id"
+                  class="fb-pill" :class="{ active: filterPris.includes(p.id) }"
+                  @click="toggleFilterPri(p.id)">{{ p.label }}</button>
+              </div>
+              <div class="fb-group">
+                <span class="fb-lbl">Hạn:</span>
+                <button v-for="d in DUE_OPTS" :key="d.id"
+                  class="fb-pill" :class="{ active: filterDue === d.id }"
+                  @click="filterDue = d.id">{{ d.label }}</button>
+              </div>
+              <button v-if="hasActiveFilter" class="fb-clear" @click="clearFilters">
+                <TIcon name="x" />Xóa lọc
+              </button>
+            </div>
+          </transition>
 
           <!-- KANBAN -->
           <div v-if="view === 'kanban'" class="kanban-wrap">
@@ -314,9 +419,21 @@
                     <TIcon name="dots-vertical" />
                   </button>
                   <div v-if="colMenuId === col.id" class="kcol-dd" @click.stop>
-                    <button class="kcol-dd__item" @click="startRename(col)"><TIcon name="pencil" />Đổi tên</button>
-                    <button class="kcol-dd__item" @click="openColorPick(statusById(col.id)); colMenuId = null"><TIcon name="palette" />Đổi màu</button>
-                    <button class="kcol-dd__item kcol-dd__item--del" @click="deleteStatusByColId(col.id)"><TIcon name="trash" />Xóa nhóm</button>
+                    <template v-if="colorPickTarget?.id === col.id">
+                      <div class="kcol-color-grid">
+                        <button v-for="c in PALETTE" :key="c" class="kcol-color-swatch"
+                          :class="{ active: colorPickTarget.color === c }"
+                          :style="{ background: c }"
+                          @click="pickColor(colorPickTarget, c)">
+                          <TIcon v-if="colorPickTarget.color === c" name="check" />
+                        </button>
+                      </div>
+                    </template>
+                    <template v-else>
+                      <button class="kcol-dd__item" @click="startRename(col)"><TIcon name="pencil" />Đổi tên</button>
+                      <button class="kcol-dd__item" @click="openColorPick(statusById(col.id))"><TIcon name="palette" />Đổi màu</button>
+                      <button class="kcol-dd__item kcol-dd__item--del" @click="deleteStatusByColId(col.id)"><TIcon name="trash" />Xóa nhóm</button>
+                    </template>
                   </div>
                 </div>
                 <div class="kanban-col__body"
@@ -364,6 +481,10 @@
                   </button>
                 </div>
               </div>
+
+              <button class="kanban-addcol" @click="addStatusColumn">
+                <TIcon name="plus" />Thêm nhóm công việc
+              </button>
             </div>
 
           </div>
@@ -563,6 +684,12 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Các tab dự án chưa xây (Gantt/Tài liệu/Báo cáo/Biểu mẫu/Hoạt động) -->
+          <div v-else class="vctt-soon">
+            <TIcon name="tool" />
+            <span>Đang xây dựng — {{ projectViewTabs.find(t => t.id === view)?.label }}</span>
           </div>
 
         </div><!-- /vctt-main -->
@@ -1063,12 +1190,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import AppShell from '../components/AppShell.vue'
 import TIcon    from '@mds/components/TIcon.vue'
 import { departments } from '../store/departments.js'
 
-const PALETTE = ['#6b7280','#3b82f6','#8b5cf6','#f59e0b','#10b981','#ef4444','#ec4899','#14b8a6','#f97316']
+const route  = useRoute()
+const router = useRouter()
+
+const PALETTE = ['#6b7280','#3b82f6','#8b5cf6','#f59e0b','#10b981','#ef4444','#ec4899','#14b8a6','#f97316','#eab308','#06b6d4','#84cc16']
 const PRIORITY_LABEL = { none: '—', low: 'Thấp', medium: 'Trung bình', high: 'Cao' }
 const PRIORITY_OPTS  = [{ id:'high',label:'Cao' },{ id:'medium',label:'Trung bình' },{ id:'low',label:'Thấp' },{ id:'none',label:'Không' }]
 const DUE_OPTS       = [{ id:'all',label:'Tất cả' },{ id:'overdue',label:'Quá hạn' },{ id:'today',label:'Hôm nay' },{ id:'week',label:'Tuần này' }]
@@ -1078,6 +1209,16 @@ const CAL_MONTHS = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Thá
 /* ── UI ── */
 const tab             = ref('nhan')
 const view            = ref('kanban')
+const projectViewTabs = [
+  { id: 'kanban',   label: 'Bảng' },
+  { id: 'list',     label: 'Danh sách' },
+  { id: 'gantt',    label: 'Gantt' },
+  { id: 'calendar', label: 'Lịch' },
+  { id: 'docs',     label: 'Tài liệu & Liên kết' },
+  { id: 'reports',  label: 'Báo cáo' },
+  { id: 'forms',    label: 'Biểu mẫu' },
+  { id: 'activity', label: 'Hoạt động' },
+]
 const newTaskId       = ref(null)
 const groupBy         = ref('lifecycle')
 const showGroupBy     = ref(false)
@@ -1085,6 +1226,16 @@ const showFilter      = ref(false)
 const filterName      = ref('')
 const filterPris      = ref([])
 const filterDue       = ref('all')
+const filterStatusId  = ref('all')
+const showStatusDd    = ref(false)
+const sortBy          = ref('none')
+const showSortDd      = ref(false)
+const showDisplayDd   = ref(false)
+const SORT_OPTS = [
+  { id: 'none',     label: 'Không sắp xếp' },
+  { id: 'priority', label: 'Độ ưu tiên' },
+  { id: 'due',      label: 'Hạn chót' },
+]
 const projOpen        = ref(false)
 const projSearch      = ref('')
 const selectedPersonId = ref('all')
@@ -1187,7 +1338,11 @@ function onColDrop(targetColId) {
   dropBeforeTaskId.value = null
 }
 
-function closeDropdowns() { projOpen.value = false; showGroupBy.value = false; colMenuId.value = null }
+function closeDropdowns() {
+  projOpen.value = false; showGroupBy.value = false; colMenuId.value = null
+  showStatusDd.value = false; showSortDd.value = false; showDisplayDd.value = false
+  colorPickTarget.value = null
+}
 
 function applyPostAdd() {
   const raw = localStorage.getItem('cv-post-add')
@@ -1254,7 +1409,10 @@ function onColResizeEnd() {
   document.removeEventListener('mouseup',   onColResizeEnd)
 }
 
-function toggleColMenu(colId) { colMenuId.value = colMenuId.value === colId ? null : colId }
+function toggleColMenu(colId) {
+  colMenuId.value = colMenuId.value === colId ? null : colId
+  colorPickTarget.value = null
+}
 
 function startRename(col) {
   colEditId.value = col.id
@@ -1274,6 +1432,27 @@ function deleteStatusByColId(colId) {
   if (!arr) return
   const idx = arr.findIndex(s => s.id === colId)
   if (idx >= 0) arr.splice(idx, 1)
+  colMenuId.value = null
+}
+function addStatusColumn() {
+  const pid = currentProject.value.id
+  if (pid === 'all') return
+  if (!projectStatuses[pid]) projectStatuses[pid] = []
+  const list = projectStatuses[pid]
+  const newStatus = {
+    id: `${pid}-s${Date.now()}`,
+    label: 'Nhóm mới',
+    color: PALETTE[list.length % PALETTE.length],
+    statusType: 'doing',
+    lifecycleId: 'lc-doing',
+  }
+  list.push(newStatus)
+  startRename(newStatus)
+}
+function pickColor(status, color) {
+  if (!status) return
+  status.color = color
+  colorPickTarget.value = null
   colMenuId.value = null
 }
 const groupByOptions = computed(() => {
@@ -1315,6 +1494,31 @@ const projectOrder = computed(() => {
 })
 
 const currentProject = ref({ id: 'all', label: 'Tất cả' })
+
+/* Vào từ sidebar (route /du-an/:id) hoặc trực tiếp /viec-cua-toi → set/khôi phục bộ lọc dự án */
+function syncProjectFromRoute() {
+  const pid = route.params.id
+  if (!pid) { currentProject.value = { id: 'all', label: 'Tất cả' }; return }
+  for (const g of departments) {
+    const p = g.projects.find(pp => pp.id === pid)
+    if (p) {
+      currentProject.value = { id: p.id, label: p.label }
+      // Vào 1 dự án cụ thể → dùng bảng trạng thái riêng của dự án (có thể thêm/sửa/xoá cột),
+      // không dùng nhóm "vòng đời" dùng chung (cố định, không quản lý được).
+      groupBy.value = 'status'
+      return
+    }
+  }
+  currentProject.value = { id: 'all', label: 'Tất cả' }
+}
+syncProjectFromRoute()
+watch(() => route.params.id, syncProjectFromRoute)
+
+/* Rời chế độ dự án (về "Tất cả") mà đang xem tab riêng của dự án (Gantt/Tài liệu/...) → về lại Bảng */
+const PROJECT_ONLY_VIEWS = ['gantt', 'docs', 'reports', 'forms', 'activity']
+watch(() => currentProject.value.id, id => {
+  if (id === 'all' && PROJECT_ONLY_VIEWS.includes(view.value)) view.value = 'kanban'
+})
 
 /* ── Nhóm công việc — per-project ── */
 let _sid = 10
@@ -1549,6 +1753,35 @@ const hasActiveFilter = computed(() =>
 )
 function clearFilters() { filterName.value = ''; filterPris.value = []; filterDue.value = 'all' }
 
+/* ── Toolbar dự án (search/trạng thái/lọc/sắp xếp) ── */
+function resetProjToolbar() {
+  filterName.value = ''
+  filterStatusId.value = 'all'
+  filterPris.value = []
+  filterDue.value = 'all'
+  sortBy.value = 'none'
+}
+function exportTasksCsv() {
+  const rows = [['Tên công việc', 'Trạng thái', 'Người thực hiện', 'Hạn chót', 'Ưu tiên']]
+  filteredTasks.value.forEach(t => {
+    rows.push([
+      t.name,
+      statusById(t.statusId)?.label || '',
+      t.assignee?.name || '',
+      t.dueDate || '',
+      PRIORITY_LABEL[t.priority] || '',
+    ])
+  })
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${currentProject.value.label || 'cong-viec'}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 function taskCountForPerson(personId) {
   return currentTasks.value.filter(t => getPerson(t).id === personId).length
 }
@@ -1582,6 +1815,15 @@ const filteredTasks = computed(() => {
     if (filterDue.value === 'overdue') tasks = tasks.filter(t => t.dueDate && t.dueDate < todayStr)
     else if (filterDue.value === 'today')  tasks = tasks.filter(t => t.dueDate === todayStr)
     else if (filterDue.value === 'week')   tasks = tasks.filter(t => t.dueDate && t.dueDate >= todayStr && t.dueDate <= weekStr)
+  }
+  if (filterStatusId.value !== 'all') {
+    tasks = tasks.filter(t => t.statusId === filterStatusId.value)
+  }
+  if (sortBy.value === 'priority') {
+    const order = { high: 0, medium: 1, low: 2, none: 3 }
+    tasks = [...tasks].sort((a, b) => (order[a.priority] ?? 9) - (order[b.priority] ?? 9))
+  } else if (sortBy.value === 'due') {
+    tasks = [...tasks].sort((a, b) => (a.dueDate || '9999-99-99').localeCompare(b.dueDate || '9999-99-99'))
   }
   return tasks
 })
@@ -2164,15 +2406,18 @@ function openAddTask() {
 
 /* ══ Header ══ */
 .vctt-header {
-  flex-shrink:0; background:var(--bg-white);
+  flex-shrink:0; background:rgba(255,255,255,0.95);
   border-bottom:1px solid var(--stroke-neutral-light);
   box-shadow:0 1px 4px rgba(0,0,0,0.06);
 }
+.vctt-header--flat { box-shadow:none; background:rgba(255,255,255,0.9); }
 .vctt-bar {
   display:flex; align-items:center; justify-content:space-between;
-  gap:10px; padding:0 20px; height:48px;
+  gap:10px; padding:0 16px; height:48px;
 }
 .vctt-tabs { display:flex; align-items:stretch; height:100%; }
+.vctt-tabs--proj { flex:1; }
+.vctt-proj-tabs { display:flex; align-items:stretch; }
 .vctt-tab {
   display:inline-flex; align-items:center; gap:6px; padding:0 12px;
   border:none; background:transparent;
@@ -2180,7 +2425,7 @@ function openAddTask() {
   cursor:pointer; transition:color .15s; white-space:nowrap;
   position:relative;
 }
-.vctt-tab:hover { color:var(--text-primary); }
+.vctt-tab:hover { color:var(--text-primary); background:var(--bg-neutral-hover); border-radius:var(--radius-default); }
 .vctt-tab.active { color:var(--text-brand); font-weight:var(--fw-semibold); }
 /* Underline indicator — bottom:-1px overlaps the header border so it looks flush */
 .vctt-tab::after {
@@ -2195,11 +2440,28 @@ function openAddTask() {
   border-radius:9px; font-size:10px; font-weight:var(--fw-semibold);
 }
 .vctt-tab.active .vctt-tab__badge { background:var(--bg-brand-light); color:var(--text-brand); }
+/* Chế độ 1 dự án: tên dự án + tab xem theo chế độ (Bảng/Danh sách/Gantt/Lịch/...) */
+.vctt-proj-title {
+  display:flex; align-items:center; gap:6px; flex-shrink:0;
+  padding:0 8px; border-radius:var(--radius-default);
+  font-size:14px; font-weight:var(--fw-semibold); color:var(--text-primary);
+  cursor:pointer; position:relative; transition:background .1s;
+}
+.vctt-proj-title:hover { background:var(--bg-neutral-hover); }
+.vctt-proj-divider { width:1px; height:20px; background:var(--stroke-neutral-light); flex-shrink:0; align-self:center; margin:0 8px; }
+.vctt-proj-title .ti { font-size:16px; color:var(--icon-neutral); }
+.vctt-proj-title__arr { font-size:11px; color:var(--text-hint); }
+.vctt-proj-title .proj-dd { top:calc(100% + 4px); left:0; right:auto; }
+.vctt-soon {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px; color:var(--text-hint); font-size:13px;
+}
+.vctt-soon .ti { font-size:28px; color:var(--icon-neutral); }
 .vctt-bar__right { display:flex; align-items:center; gap:6px; }
 
 /* ── Project dropdown ── */
 .vctt-proj {
-  display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 10px;
+  display:inline-flex; align-items:center; gap:5px; height:var(--btn-height); padding:0 10px;
   border:1px solid var(--stroke-neutral); border-radius:var(--radius-default);
   background:var(--bg-white); font-size:12px; color:var(--text-primary);
   cursor:pointer; position:relative; user-select:none; white-space:nowrap;
@@ -2257,18 +2519,19 @@ function openAddTask() {
 .vctt-groupby__lbl { font-size:11px; color:var(--text-secondary); white-space:nowrap; }
 .vctt-segs { display:flex; }
 .vctt-seg {
-  height:28px; padding:0 10px; border:1px solid var(--stroke-neutral);
+  height:var(--btn-height); padding:0 10px; border:1px solid var(--stroke-neutral);
   background:var(--bg-white); font-size:12px; color:var(--text-secondary); cursor:pointer;
 }
 .vctt-seg:first-child { border-radius:var(--radius-default) 0 0 var(--radius-default); }
 .vctt-seg:last-child  { border-radius:0 var(--radius-default) var(--radius-default) 0; border-left:none; }
+.vctt-seg:hover { background:var(--bg-neutral-light); }
 .vctt-seg.active { background:var(--bg-brand-light); border-color:var(--stroke-brand); color:var(--text-brand); font-weight:var(--fw-semibold); }
 
 /* ── View switcher ── */
-.vctt-views { display:flex; flex-shrink:0; border:1px solid var(--stroke-neutral); border-radius:var(--radius-default); overflow:hidden; }
+.vctt-views { display:flex; flex-shrink:0; height:var(--btn-height); border:1px solid var(--stroke-neutral); border-radius:var(--radius-default); overflow:hidden; }
 .vctt-view {
   display:inline-flex; align-items:center; justify-content:center;
-  width:30px; height:30px; border:none; border-right:1px solid var(--stroke-neutral);
+  width:var(--btn-height); height:var(--btn-height); border:none; border-right:1px solid var(--stroke-neutral);
   background:var(--bg-white); cursor:pointer; color:var(--text-secondary); transition:background .1s,color .1s;
 }
 .vctt-view:last-child { border-right:none; }
@@ -2278,7 +2541,7 @@ function openAddTask() {
 
 /* ── Gom nhóm button + dropdown ── */
 .vctt-grp {
-  display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 8px;
+  display: inline-flex; align-items: center; gap: 4px; height: var(--btn-height); padding: 0 8px;
   border: 1px solid var(--stroke-neutral); border-radius: var(--radius-default);
   background: var(--bg-white); font-size: 12px;
   cursor: pointer; transition: all .1s; position: relative; white-space: nowrap;
@@ -2287,6 +2550,9 @@ function openAddTask() {
 .vctt-grp:hover .vctt-grp__lbl, .vctt-grp.active .vctt-grp__lbl { color: var(--text-brand); }
 .vctt-grp:hover .vctt-grp__val, .vctt-grp.active .vctt-grp__val { color: var(--text-brand); }
 .vctt-grp__lbl { color: var(--text-secondary); font-weight: var(--fw-medium); flex-shrink: 0; }
+.vctt-grp__ico { display:inline-flex; color: var(--text-secondary); flex-shrink: 0; }
+.vctt-grp__ico .ti { font-size: 13px; }
+.vctt-grp:hover .vctt-grp__ico, .vctt-grp.active .vctt-grp__ico { color: var(--text-brand); }
 .vctt-grp__val { color: var(--text-primary); font-weight: var(--fw-semibold); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vctt-grp__arr { margin-left: 1px; }
 .vctt-grp__arr .ti { font-size: 11px; color: var(--text-hint); }
@@ -2307,6 +2573,24 @@ function openAddTask() {
 .grp-dd__item.active .ti { color: var(--text-brand); }
 .grp-dd__check .ti { font-size: 14px; }
 .grp-dd__check-spacer { width: 14px; flex-shrink: 0; }
+.grp-dd__soon { padding: 10px 12px; font-size: 12px; color: var(--text-hint); white-space: nowrap; }
+
+/* ── Toolbar dự án (search / trạng thái / lọc / sắp xếp / hiển thị) ── */
+.proj-toolbar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--bg-page);
+}
+/* Chế độ ảnh nền: nền trắng siêu nhẹ để ảnh vẫn nhìn xuyên qua được, thay vì xám đặc */
+:root[data-wallpaper] .proj-toolbar { background: transparent; }
+/* Bỏ khoảng cách với board bên dưới — toolbar đã có padding-bottom riêng rồi */
+.proj-toolbar + .kanban-wrap { padding-top: 0; }
+.proj-toolbar__search { min-width: 220px; }
+.proj-toolbar__right { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.proj-toolbar__right .ti { font-size: 16px; }
+/* Đồng nhất chiều cao mọi control trong hàng này = var(--btn-height) (không dùng bậc "sm") */
+.proj-toolbar .fb-search,
+.proj-toolbar .vctt-grp { height: var(--btn-height); }
 
 /* ── Kanban person columns ── */
 .kanban-board--person { display: flex; gap: 12px; padding: 0; overflow-x: auto; align-items: flex-start; min-height: 0; flex: 1; }
@@ -2322,15 +2606,6 @@ function openAddTask() {
   display: inline-flex; align-items: center; height: 20px; padding: 0 8px;
   border-radius: 10px; font-size: 11px; font-weight: var(--fw-medium); white-space: nowrap;
 }
-
-
-.vctt-add-btn {
-  display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 14px;
-  border:none; border-radius:var(--radius-default); background:var(--bg-brand);
-  color:#fff; font-size:12px; font-weight:var(--fw-medium); cursor:pointer; transition:opacity .15s;
-}
-.vctt-add-btn:hover { opacity:.88; }
-.vctt-add-btn .ti { font-size:14px; }
 
 
 /* ══ Body layout ══ */
@@ -2430,7 +2705,7 @@ function openAddTask() {
 .pp-collapse-btn .ti { font-size:18px; }
 
 /* ══ KANBAN ══ */
-.kanban-wrap { flex:1; min-height:0; padding:16px 16px 16px 20px; overflow:hidden; display:flex; flex-direction:column; }
+.kanban-wrap { flex:1; min-height:0; padding:16px; overflow:hidden; display:flex; flex-direction:column; }
 .kanban-board {
   display:flex; gap:0; height:100%; overflow-x:auto; overflow-y:hidden;
   padding-bottom:4px; scrollbar-width:thin; scrollbar-color:rgba(0,0,0,.12) transparent;
@@ -2440,10 +2715,14 @@ function openAddTask() {
 .kanban-board::-webkit-scrollbar-thumb { background:rgba(0,0,0,.15); border-radius:3px; }
 .kanban-col {
   display:flex; flex-direction:column; width:260px; flex-shrink:0;
-  background: rgba(0,0,0,0.10);
+  background: rgba(0,0,0,0.14);
   backdrop-filter: blur(4px) saturate(1.1); -webkit-backdrop-filter: blur(4px) saturate(1.1);
   overflow: hidden;
 }
+/* Bo góc trên của cột đầu/cuối tự thân — không phụ thuộc clip của .kanban-board,
+   vì khi board cuộn ngang, cột "chạm mép" không phải lúc nào cũng là cột đầu/cuối thật. */
+.kanban-col:first-child { border-top-left-radius: 10px; }
+.kanban-col:last-of-type { border-top-right-radius: 10px; }
 .kanban-col__hd {
   display:flex; align-items:center; gap:7px; padding:9px 12px;
   flex-shrink:0; position:relative;
@@ -2484,6 +2763,28 @@ function openAddTask() {
 .kcol-dd__item--del { color:var(--text-danger); }
 .kcol-dd__item--del .ti { color:var(--text-danger); }
 .kcol-dd__item--del:hover { background:var(--bg-danger-light); }
+.kcol-color-grid {
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; padding:8px 10px;
+}
+.kcol-color-swatch {
+  width:24px; height:24px; border-radius:50%; border:2px solid transparent;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; color:#fff;
+  transition:transform .1s;
+}
+.kcol-color-swatch:hover { transform:scale(1.12); }
+.kcol-color-swatch.active { border-color:var(--stroke-neutral-light); box-shadow:0 0 0 1px currentColor; }
+.kcol-color-swatch .ti { font-size:13px; }
+.kanban-addcol {
+  flex-shrink:0; align-self:flex-start; margin-top:2px; margin-left:12px;
+  display:flex; align-items:center; gap:6px; height:36px; padding:0 12px;
+  border:1px dashed var(--stroke-neutral); border-radius:var(--radius-default);
+  background:transparent; color:var(--text-secondary); font-size:13px; font-weight:var(--fw-medium);
+  cursor:pointer; white-space:nowrap; transition:background .1s, color .1s, border-color .1s;
+}
+.kanban-addcol:hover { background:var(--bg-white); color:var(--text-brand); border-color:var(--stroke-brand); border-style:solid; }
+.kanban-addcol .ti { font-size:14px; }
+:root[data-wallpaper] .kanban-addcol { border-color:rgba(255,255,255,0.6); color:#fff; }
+:root[data-wallpaper] .kanban-addcol:hover { background:rgba(255,255,255,0.12); color:#fff; border-color:#fff; }
 .kcol-count {
   display:inline-flex; align-items:center; justify-content:center;
   min-width:18px; height:18px; padding:0 5px;
@@ -2491,8 +2792,17 @@ function openAddTask() {
   color: #fff;
   border-radius:9px; font-size:10px; font-weight:var(--fw-semibold);
 }
-.kanban-col__body { flex:1; min-height:0; overflow-y:auto; padding:8px 8px 8px; display:flex; flex-direction:column; gap:8px; scrollbar-width:none; }
-.kanban-col__body:hover { scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.2) transparent; }
+/* scrollbar-width: thin cố định (không đổi none↔thin theo hover) nên không giật layout;
+   track + thumb tô màu đen mờ sẵn, đồng bộ 2 mã màu track/track-piece. */
+.kanban-col__body {
+  flex:1; min-height:0; overflow-y:auto; padding:8px 8px 8px; display:flex; flex-direction:column; gap:8px;
+  scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.25) rgba(0,0,0,0.05);
+}
+.kanban-col__body::-webkit-scrollbar { width: 6px; }
+.kanban-col__body::-webkit-scrollbar-track,
+.kanban-col__body::-webkit-scrollbar-track-piece { background: rgba(0,0,0,0.05); box-shadow: none; border: none; }
+.kanban-col__body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.25); border-radius: 3px; box-shadow: none; border: none; }
+.kanban-col__body:hover::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
 .kcard { background:var(--bg-white); border-radius:8px; border:none; padding:10px 12px; cursor:grab; transition:transform .1s,opacity .15s; position:relative; }
 .kcard:hover { transform:translateY(-1px); }
 .kcard--dragging { opacity:0.22; cursor:grabbing; box-shadow:none; transform:none; }
@@ -2553,12 +2863,14 @@ function openAddTask() {
 .kcard__sub .ti,.kcard__cmt .ti { font-size:11px; }
 .kcol-add {
   display:flex; align-items:center; gap:5px; flex-shrink:0; height:28px; padding:0 8px;
-  border:none; background:transparent; border-radius:5px; font-size:11px;
-  color: rgba(255,255,255,0.82);
+  border:none; background:transparent; border-radius:5px; font-size:13px;
+  color: var(--text-brand);
   cursor:pointer; transition:background .1s, color .1s; font-weight:var(--fw-medium);
 }
-.kcol-add:hover { background:rgba(255,255,255,0.12); color:#fff; }
+.kcol-add:hover { background:rgba(255,255,255,0.12); color: var(--text-brand); }
 .kcol-add .ti { font-size:13px; }
+:root[data-wallpaper] .kcol-add,
+:root[data-wallpaper] .kcol-add:hover { color: #fff; }
 
 /* ══ LIST ══ */
 .list-wrap {
@@ -2658,6 +2970,7 @@ function openAddTask() {
   color: var(--icon-neutral); padding: 0;
   align-self: center;
 }
+.lr-sub-toggle:hover { background: var(--bg-neutral-hover); color: var(--text-primary); border-radius: 4px; }
 .lr-sub-toggle .ti { font-size: 13px; }
 .lr-sub-spacer { width: 16px; flex-shrink: 0; align-self: center; }
 
@@ -2722,11 +3035,11 @@ function openAddTask() {
 /* ══ CALENDAR ══ */
 .cal-wrap { flex:1; min-height:0; overflow-y:auto; padding:16px 16px 20px 20px; display:flex; flex-direction:column; gap:12px; }
 .cal-nav { display:flex; align-items:center; gap:8px; flex-shrink:0; }
-.cal-nav-btn { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border:1px solid var(--stroke-neutral); border-radius:var(--radius-default); background:var(--bg-white); cursor:pointer; color:var(--text-secondary); }
+.cal-nav-btn { display:inline-flex; align-items:center; justify-content:center; width:calc(var(--btn-height) - 4px); height:calc(var(--btn-height) - 4px); border:1px solid var(--stroke-neutral); border-radius:var(--radius-default); background:var(--bg-white); cursor:pointer; color:var(--text-secondary); }
 .cal-nav-btn:hover { background:var(--bg-neutral-hover); }
 .cal-nav-btn .ti { font-size:14px; }
 .cal-nav-title { font-size:14px; font-weight:var(--fw-semibold); color:var(--text-primary); min-width:130px; text-align:center; }
-.cal-today-btn { height:28px; padding:0 12px; border:1px solid var(--stroke-neutral); border-radius:var(--radius-default); background:var(--bg-white); font-size:12px; color:var(--text-secondary); cursor:pointer; }
+.cal-today-btn { height:calc(var(--btn-height) - 4px); padding:0 12px; border:1px solid var(--stroke-neutral); border-radius:var(--radius-default); background:var(--bg-white); font-size:12px; color:var(--text-secondary); cursor:pointer; }
 .cal-today-btn:hover { background:var(--bg-neutral-hover); }
 .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:var(--stroke-neutral-light); border:1px solid var(--stroke-neutral-light); border-radius:8px; overflow:hidden; }
 .cal-dow { background:var(--bg-neutral-light); height:32px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:var(--fw-semibold); color:var(--text-secondary); }
@@ -2745,7 +3058,7 @@ function openAddTask() {
 
 /* ══ Filter button ══ */
 .vctt-filter-btn {
-  display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 10px;
+  display:inline-flex; align-items:center; gap:5px; height:var(--btn-height); padding:0 10px;
   border:1px solid var(--stroke-neutral); border-radius:var(--radius-default);
   background:var(--bg-white); font-size:12px; color:var(--text-secondary);
   cursor:pointer; transition:all .1s; position:relative; white-space:nowrap;
@@ -2766,7 +3079,7 @@ function openAddTask() {
 }
 .fb-search {
   display:flex; align-items:center; gap:6px;
-  height:28px; padding:0 8px; border:1px solid var(--stroke-neutral);
+  height:calc(var(--btn-height) - 4px); padding:0 8px; border:1px solid var(--stroke-neutral);
   border-radius:var(--radius-default); background:var(--bg-white); min-width:200px;
   transition:border-color .15s;
 }
@@ -2827,9 +3140,13 @@ function openAddTask() {
   display:flex; overflow-x:auto; min-height:140px;
   background: rgba(0,0,0,0.22);
   padding: 12px;
-  scrollbar-width:none;
+  scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.25) rgba(0,0,0,0.05);
 }
-.kanban-lane__body:hover { scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.2) transparent; }
+.kanban-lane__body::-webkit-scrollbar { height: 6px; }
+.kanban-lane__body::-webkit-scrollbar-track,
+.kanban-lane__body::-webkit-scrollbar-track-piece { background: rgba(0,0,0,0.05); box-shadow: none; border: none; }
+.kanban-lane__body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.25); border-radius: 3px; box-shadow: none; border: none; }
+.kanban-lane__body:hover::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.4); }
 .kanban-lane .kanban-col { border-bottom:none; min-height:140px; }
 
 /* ══ TASK DETAIL DRAWER ══════════════════════════════════════════════════════ */
@@ -3314,6 +3631,7 @@ function openAddTask() {
   border: none; background: transparent; cursor: pointer;
   color: var(--text-brand); padding: 0; display: flex;
 }
+.td-cmt-send:hover { opacity: 0.7; }
 .td-cmt-send .ti { font-size: 16px; }
 
 /* Activity log */
