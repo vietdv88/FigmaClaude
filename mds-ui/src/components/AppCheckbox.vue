@@ -5,7 +5,7 @@
       'app-cb--checked':       isChecked,
       'app-cb--indeterminate': showIndeterminate,
       'app-cb--disabled':      disabled,
-      'app-cb--error':         error && !isChecked && !showIndeterminate,
+      'app-cb--error':         hasError,
     }"
   >
     <span class="app-cb__wrap">
@@ -35,6 +35,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useFieldError } from '../utils/fieldError.js'
 
 const props = defineProps({
   modelValue:    { default: false },      // Boolean | null | Array
@@ -42,11 +43,13 @@ const props = defineProps({
   label:         { type: String,  default: '' },
   disabled:      { type: Boolean, default: false },
   indeterminate: { type: Boolean, default: false },
-  /** Trạng thái lỗi — viền đỏ khi chưa tick (dùng khi validate required) */
+  /** Trạng thái lỗi trực tiếp — dùng khi không wrap trong AppInput; ưu tiên field error context từ AppInput */
   error:         { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:modelValue'])
+// Lấy error context từ AppInput cha (nếu có) — giống cách AppTextbox / AppCombobox làm
+const fe = useFieldError()
 
 const showIndeterminate = computed(() =>
   props.indeterminate || props.modelValue === null
@@ -57,6 +60,11 @@ const isChecked = computed(() => {
   if (Array.isArray(props.modelValue)) return props.modelValue.includes(props.value)
   return !!props.modelValue
 })
+
+/** Có lỗi khi: context AppInput báo lỗi HOẶC prop error=true, và chưa được chọn */
+const hasError = computed(() =>
+  (fe ? fe.hasError.value : props.error) && !isChecked.value && !showIndeterminate.value
+)
 
 function onChange(e) {
   if (props.disabled) return
