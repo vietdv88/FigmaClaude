@@ -5,6 +5,7 @@
       'app-cb--checked':       isChecked,
       'app-cb--indeterminate': showIndeterminate,
       'app-cb--disabled':      disabled,
+      'app-cb--error':         error && !isChecked && !showIndeterminate,
     }"
   >
     <span class="app-cb__wrap">
@@ -41,6 +42,8 @@ const props = defineProps({
   label:         { type: String,  default: '' },
   disabled:      { type: Boolean, default: false },
   indeterminate: { type: Boolean, default: false },
+  /** Trạng thái lỗi — viền đỏ khi chưa tick (dùng khi validate required) */
+  error:         { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -82,7 +85,7 @@ function onChange(e) {
   -webkit-user-select: none;
 }
 
-.app-cb--disabled { cursor: not-allowed; pointer-events: none; }
+.app-cb--disabled { cursor: not-allowed; }   /* giữ con trỏ cấm + tooltip (ô nhập native đã disabled nên không đổi được giá trị) */
 
 /* 20×20 hover-ring container */
 .app-cb__wrap {
@@ -98,7 +101,7 @@ function onChange(e) {
 }
 
 .app-cb:not(.app-cb--disabled):hover  .app-cb__wrap { background: var(--bg-brand-light); }
-.app-cb:not(.app-cb--disabled):active .app-cb__wrap { background: var(--bg-brand-hover); }
+.app-cb:not(.app-cb--disabled):active .app-cb__wrap { background: var(--bg-brand-light-hover); }
 
 /* Native input — visually hidden, stays focusable */
 .app-cb__native {
@@ -114,7 +117,7 @@ function onChange(e) {
 .app-cb__box {
   width: 16px;
   height: 16px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);   /* Figma: Radius/Small 4 */
   border: 1.5px solid var(--stroke-neutral);
   background: var(--bg-white);
   display: flex;
@@ -127,6 +130,9 @@ function onChange(e) {
 
 /* Hover: border → brand */
 .app-cb:not(.app-cb--disabled):hover .app-cb__box { border-color: var(--stroke-brand); }
+
+/* Error: viền đỏ khi chưa chọn + trường bắt buộc */
+.app-cb--error .app-cb__box { border-color: var(--stroke-danger); }
 
 /* Checked & indeterminate: fill brand */
 .app-cb--checked .app-cb__box,
@@ -141,10 +147,18 @@ function onChange(e) {
   outline-offset: 2px;
 }
 
-/* Disabled box */
+/* Disabled (Figma Checkbox 6019:33623):
+   · Unchecked  = nền BG/Neutral Light + viền Stroke/Neutral
+   · Checked / Indeterminate = nền BG/Brand/Brand Disable (tick / gạch trắng) — ⛔ không dùng nền xám cho ô đã tick (tick trắng sẽ biến mất)
+   · Chữ nhãn GIỮ màu Text/Primary Neutral (Figma không đổi màu chữ khi disabled) */
 .app-cb--disabled .app-cb__box {
   background: var(--bg-neutral-light);
   border-color: var(--stroke-neutral);
+}
+.app-cb--disabled.app-cb--checked .app-cb__box,
+.app-cb--disabled.app-cb--indeterminate .app-cb__box {
+  background: var(--bg-brand-disable);
+  border-color: var(--bg-brand-disable);
 }
 
 .app-cb__icon {
@@ -154,10 +168,9 @@ function onChange(e) {
 }
 
 .app-cb__label {
-  font-size: 14px;
-  line-height: 20px;
+  font-size: var(--text-body);   /* Figma Body Regular 13 / dòng 20 */
+  line-height: var(--text-body-lh);
   color: var(--text-primary);
 }
 
-.app-cb--disabled .app-cb__label { color: var(--text-disabled); }
 </style>
