@@ -31,10 +31,10 @@
         </button>
       </div>
 
-      <!-- Ô nhập nhanh -->
-      <div class="sn-add">
-        <input ref="inputEl" v-model="draft" type="text" class="sn-input" placeholder="Nhập ghi chú rồi Enter…" maxlength="200" @keydown.enter.prevent="addNote" @mousedown.stop />
-      </div>
+      <!-- Ô nhập nhanh — form để Enter submit đáng tin cậy nhất trên mọi trình duyệt -->
+      <form class="sn-add" @submit.prevent="addNote" @mousedown.stop>
+        <input ref="inputEl" v-model="draft" type="text" class="sn-input" placeholder="Nhập ghi chú rồi Enter…" maxlength="200" />
+      </form>
 
       <!-- Danh sách -->
       <div class="sn-list" @mousedown.stop>
@@ -185,12 +185,18 @@ async function load() {
 
 async function addNote() {
   const text = draft.value.trim(); if (!text) return; draft.value = ''
+  // Thêm ngay vào danh sách (optimistic update — hiện ngay dù chưa sync server)
+  const localId = Date.now().toString(36) + Math.random().toString(36).slice(2)
+  const n = { id: localId, text, done: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+  notes.value = [n, ...notes.value]
   if (props.user) {
     syncing.value = true
-    try { const n = await apiPost(text); notes.value = [n, ...notes.value] } catch {} finally { syncing.value = false }
+    try {
+      const saved = await apiPost(text)
+      // Cập nhật ID server cho note vừa thêm
+      notes.value = notes.value.map(x => x.id === localId ? saved : x)
+    } catch { /* giữ bản local nếu API lỗi */ } finally { syncing.value = false }
   } else {
-    const n = { id: Date.now().toString(36) + Math.random().toString(36).slice(2), text, done: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-    notes.value = [n, ...notes.value]
     lsSave(notes.value)
   }
 }
@@ -282,15 +288,15 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); stopDrag()
 .sn-sync-dot   { font-size: 13px; opacity: .7; cursor: default; }
 .sn-close {
   width: 20px; height: 20px; border-radius: 50%;
-  border: none; background: rgba(0,0,0,.12); cursor: pointer;
+  border: none; background: transparent; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   color: #5a4000; transition: background .12s; flex-shrink: 0;
 }
-.sn-close:hover { background: rgba(0,0,0,.22); }
+.sn-close:hover { background: rgba(0,0,0,.18); }
 .sn-close svg   { width: 12px; height: 12px; display: block; }
 
 /* ── Add ── */
-.sn-add { padding: 6px 8px; border-bottom: 1px solid rgba(0,0,0,.08); flex-shrink: 0; cursor: default; user-select: text; }
+.sn-add { padding: 6px 8px; border-bottom: 1px solid rgba(0,0,0,.08); flex-shrink: 0; cursor: default; user-select: text; margin: 0; }
 .sn-input {
   width: 100%; border: none; outline: none; background: transparent;
   font-size: 12px; line-height: 18px; color: #3a2a00; font-family: inherit;
