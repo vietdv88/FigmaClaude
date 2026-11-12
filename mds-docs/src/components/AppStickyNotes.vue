@@ -24,8 +24,6 @@
           <line x1="4" y1="8.5" x2="8" y2="8.5"/>
         </svg>
         <span class="sn-title">Ghi chú</span>
-        <span v-if="user" class="sn-sync-dot" title="Đã đồng bộ tài khoản">☁</span>
-        <span v-else class="sn-sync-dot sn-sync-dot--local" :title="'Chưa đăng nhập — lưu trình duyệt\nĐăng nhập để đồng bộ'">💾</span>
         <button type="button" class="sn-close" aria-label="Đóng" @click="open = false">
           <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
         </button>
@@ -80,7 +78,6 @@ const API = '/api/ds/notes'
 const open    = ref(false)
 const notes   = ref([])
 const draft   = ref('')
-const syncing = ref(false)
 const editId  = ref(null)
 const editText = ref('')
 const inputEl = ref(null)
@@ -179,7 +176,7 @@ async function apiPut(id, body) { await fetch(`${API}/${id}`, { method: 'PUT',  
 async function apiDel(id)       { await fetch(`${API}/${id}`, { method: 'DELETE' }) }
 
 async function load() {
-  if (props.user) { syncing.value = true; try { notes.value = await apiGet() } catch {} finally { syncing.value = false } }
+  if (props.user) { try { notes.value = await apiGet() } catch {} }
   else notes.value = lsLoad()
 }
 
@@ -190,12 +187,10 @@ async function addNote() {
   const n = { id: localId, text, done: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
   notes.value = [n, ...notes.value]
   if (props.user) {
-    syncing.value = true
     try {
       const saved = await apiPost(text)
-      // Cập nhật ID server cho note vừa thêm
       notes.value = notes.value.map(x => x.id === localId ? saved : x)
-    } catch { /* giữ bản local nếu API lỗi */ } finally { syncing.value = false }
+    } catch { /* giữ bản local nếu API lỗi */ }
   } else {
     lsSave(notes.value)
   }
@@ -203,7 +198,7 @@ async function addNote() {
 
 async function toggle2(n) {
   n.done = !n.done; n.updatedAt = new Date().toISOString()
-  if (props.user) { syncing.value = true; try { await apiPut(n.id, { done: n.done }) } catch {} finally { syncing.value = false } }
+  if (props.user) { try { await apiPut(n.id, { done: n.done }) } catch {} }
   else lsSave(notes.value)
 }
 
@@ -285,7 +280,6 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); stopDrag()
 .sn-header:active { cursor: grabbing; }
 .sn-title-icon { width: 14px; height: 14px; display: block; flex-shrink: 0; }
 .sn-title      { font-size: 12px; font-weight: 700; color: #5a4000; flex: 1; }
-.sn-sync-dot   { font-size: 13px; opacity: .7; cursor: default; }
 .sn-close {
   width: 20px; height: 20px; border-radius: 50%;
   border: none; background: transparent; cursor: pointer;
