@@ -118,6 +118,21 @@ export function createAva({ knowledgeDir, pages, ai, notes = () => [] }) {
     return `#### Giá trị token CSS\n| Token | Giá trị trong code (mds-ui) |\n|---|---|\n${rows.join('\n')}\n\nXem biến gốc trong Figma: [MDS Web Components v2.0 › Local variables](${FIGMA_VARS})`
   }
 
+  /** Bảng token màu (hex / rgba) trích từ đoạn tri thức đã tìm — gắn vào câu hỏi về màu dù AI không tự ghi tên token */
+  function buildColorBlock(src) {
+    const map = tokenMap(); if (!map.size) return ''
+    const colorRe = /#[0-9a-fA-F]{3,8}|rgba?\(/
+    const names = [...new Set([...String(src).matchAll(/--[a-z][a-z0-9-]*[a-z0-9]/g)].map(m => m[0]))]
+      .filter(n => map.has(n) && colorRe.test(resolve(map.get(n).v, map))).slice(0, 12)
+    if (!names.length) return ''
+    const cell = s => String(s).replace(/\|/g, '\\|')
+    const rows = names.map(n => {
+      const tk = map.get(n), fin = resolve(tk.v, map)
+      return `| \`${n}\` | \`${cell(fin !== tk.v ? fin : tk.v)}\` |`
+    })
+    return `#### Giá trị token CSS\n| Token | Mã màu |\n|---|---|\n${rows.join('\n')}\n\nXem biến gốc trong Figma: [MDS Web Components v2.0 › Local variables](${FIGMA_VARS})`
+  }
+
   /** Dòng “--token: giá trị (→ giá trị cuối) [Nhỏ … · Rộng …]” cho tối đa 40 token có trong văn bản — đưa vào lời nhắc */
   function tokenValuesFor(text, max = 40) {
     const map = tokenMap(); if (!map.size) return ''
@@ -322,7 +337,7 @@ NGUYÊN TẮC CHUNG:
 - Số đo nêu gọn trong câu: "cao 32px (Nhỏ 28px, Rộng 36px)". Có nhiều thông số → danh sách ngắn hoặc bảng nhỏ, mỗi dòng là 1 ý dễ hiểu.
 - Có quy tắc Nên / Không nên → nêu rõ thành 2 ý ngắn.
 - Phần lời thường KHÔNG chen tên biến / class / mã màu trong ngoặc (để dành cho mục lập trình viên). Gọn: hỏi 1 thông số → 1–2 câu; câu hỏi chung → tối đa ~120 từ; không lặp ý, không thêm phần “tóm tắt” nhắc lại.
-- KHÔNG viết code, tên class, tên biến / token, mục "Cho lập trình viên" hay bảng token — dưới câu trả lời đã có nút **Chi tiết cách thi công** để lập trình viên bấm xem riêng phần đó.`,
+- KHÔNG viết code, tên class, tên biến / token, mục "Cho lập trình viên" hay bảng token — dưới câu trả lời đã có nút **Chi tiết cách thi công** để lập trình viên bấm xem riêng phần đó. **Ngoại lệ duy nhất**: câu hỏi về **màu sắc** (mã màu, token màu) → ghi tên token trong \`code\` (VD \`--text-neutral\`, \`--bg-brand\`), không ghi giá trị — hệ thống tự gắn mã màu bên dưới.`,
     dev: `CÁCH TRÌNH BÀY — KỸ THUẬT (người hỏi là lập trình viên):
 - CHỈ thuộc tính được hỏi: số đo + token CSS (VD \`--btn-height\`), nếu giá trị đổi theo mật độ thì nêu đủ 3 mức: Trung bình (mặc định) · Nhỏ · Rộng.
 - Chỉ rõ class / component / prop mds-ui cần dùng và ví dụ code ngắn (Vue / HTML / CSS) — dùng token, không gõ số tay.
@@ -544,6 +559,12 @@ NGUYÊN TẮC CHUNG:
     const fu = splitFollowups(tidy(text).trim())
     text = withTokens(finishStatic(fu.text), mode)
     if (mode === 'plain') text = text.replace(/\n*#### (Cho lập trình viên|Giá trị token CSS)[^\n]*\n[\s\S]*?(?=\n#### |\n+\s*Nguồn\s*:|$)/g, '').trim()
+    // Hỏi về màu: luôn kèm bảng token màu từ knowledge — AI plain mode không tự ghi tên token, inject từ đoạn tìm được
+    const colorQ = /màu|color/i.test(users.at(-1) ?? '')
+    if (colorQ && !text.includes('#### Giá trị token CSS') && !text.includes('[NGOAI_PHAM_VI]')) {
+      const cb = buildColorBlock(knowledge)
+      if (cb) text = beforeSrc(text, cb)
+    }
     if (!text) { const e = new Error('AVA chưa trả lời được, thử hỏi lại nhé'); e.status = 502; throw e }
     // Nguồn: các trang tài liệu nằm trong nhóm đoạn dùng (để hiện nút mở nhanh)
     // Nguồn hiện nút mở nhanh: chỉ các trang tài liệu AVA thật sự dẫn trong câu trả lời
