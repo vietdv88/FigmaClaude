@@ -1,0 +1,8 @@
+{
+ "slug": "error-page",
+ "title": "Error pages",
+ "group": "Communication",
+ "order": 307,
+ "summary": "Hiển thị trang báo lỗi có hình hoạ và title cho mỗi lỗi tương ứng. Chi tiết components: **[Tại đây](https://www.figma.com/design/1DP5RJM3MsZJ8SnUWgTavS/MDS-Web-Components---v2.0?node-id=21016-92023&m=dev&t=0qzrTP2Z7AgaiPxZ-1)**",
+ "body": "### 403 Error\n\nLỗi 403 xảy ra khi người dùng không có quyền truy cập vào tài nguyên hoặc chức năng mà họ đang cố gắng truy cập.\n\n![](img/6d85319d90ccd83e376700048e99c8b6564087ee.png)\n\n### 404 Error\n\nLỗi 404 xảy ra khi trang hoặc tài nguyên bạn yêu cầu không tồn tại trên máy chủ.\n\n![](img/1ba2be07720bff5436bcfd65f88601879578871d.png)\n\n### Không thể truy cập\n\nLỗi bị chặn truy cập do chính sách bảo mật của công ty. Nhằm đảm bảo an toàn hệ thống, quyền truy cập của bạn tới trang này hoặc tài nguyên này đã bị hạn chế.\n\n![](img/18e261eb0ac6a9933937acc1e809bb0d6b9c0508.png)\n\n### Error\n\nĐã xảy ra lỗi hệ thống hoặc lỗi không xác định. Bạn không thể tiếp tục thao tác trên trang này.\n\n![](img/05467342a0e24395be79e7baa6a5b179bf1cee0c.png)\n\n### Tính năng đang được xây dựng\n\nChức năng này chưa hoàn thiện hoặc đang được phát triển, hiện chưa thể sử dụng trên hệ thống.\n\n![](img/b74ccbdc8c5c4c8ab415ca7c86e57a8c2773f0fd.png)\n"
+}

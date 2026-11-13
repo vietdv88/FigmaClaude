@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>Kích hoạt tài khoản MISA AMIS</title>
+  <style>
+    body { margin:0; padding:0; background-color:#ecedef; -webkit-text-size-adjust:100%; }
+    table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
+    img { border:0; -ms-interpolation-mode:bicubic; }
+    a { color:#1570ef; }
+    :root { color-scheme: light dark; supported-color-schemes: light dark; }
+    /* Chữ TRẮNG trên nền màu (nút, banner): dùng #fffffe (không phải #ffffff) + text-fill. Gmail / Apple Mail dark mode tự đảo #ffffff thành chữ ĐEN khi nền màu không đủ sáng;
+       #fffffe không bị thuật toán đảo màu nhận ra. Outlook.com đọc qua [data-ogsc]. */
+    /* Nền màu của nút / banner đặt thêm bằng background-image: linear-gradient(màu, màu): Gmail dark mode KHÔNG đảo màu phần tử có ảnh nền (nền không ngả tím, chữ không bị đổi đen). !important không thắng được vì Gmail sửa màu SAU khi áp CSS. */
+    .email-on-color { color:#fffffe !important; -webkit-text-fill-color:#fffffe !important; }
+    [data-ogsc] .email-on-color { color:#fffffe !important; }
+    /* Nút hành động: màu Hover = Brand 700 (--bg-brand-hover) — chỉ hiện ở ứng dụng mail đọc <style> (Apple Mail, Gmail, Outlook Mac / iOS); Outlook Windows bỏ qua → nút vẫn dùng được */
+    .email-btn:hover { background-color:#2753ce !important; background-image:linear-gradient(#2753ce,#2753ce) !important; }
+    /* Link văn bản: bình thường KHÔNG gạch chân, rê chuột → gạch chân + màu Info 800 (--text-link-default-hover) — quy chuẩn link chung */
+    .email-link:hover { text-decoration:underline !important; color:#175cd3 !important; }
+    /* Mobile (≤ 620px): thẻ trắng vẫn bo góc 8px, cách mép màn hình 8px; lề nội dung trái / phải 16px (máy tính 40px) để tối ưu chỗ */
+    @media (max-width:620px) {
+      .email-outer { padding:16px 8px 0 !important; }   /* chừa 8px hai bên để thấy thẻ trắng bo góc */
+      .email-wrap { width:100% !important; }
+      .email-pad { padding-left:16px !important; padding-right:16px !important; }
+      .email-box { padding:16px !important; }
+      .email-foot { padding:24px 16px 24px !important; }
+      /* Màn rất hẹp: email / link dài được xuống dòng, không đẩy tràn khung */
+      .email-pad a, .email-box a, .email-foot a { word-break:break-word; overflow-wrap:anywhere; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#ecedef;font-family:Inter,Arial,sans-serif;">
+
+<!-- Nền xám đặt ở BẢNG NGOÀI CÙNG (bgcolor + style), không chỉ ở <body>: Gmail bỏ toàn bộ style của <body> → nền xám mất, thẻ trắng lọt thỏm trên nền trắng -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ecedef" style="background-color:#ecedef;"><tr>
+<td class="email-outer" align="center" bgcolor="#ecedef" style="padding:60px 10px 0;background-color:#ecedef;">
+  <table class="email-wrap" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+         style="width:600px;max-width:600px;"><tr>
+  <td class="email-card" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 0 2px rgba(0,0,0,0.10);">
+
+<!-- HEADER: MISA AMIS -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td class="email-pad" bgcolor="#ffffff" align="center" style="background-color:#ffffff;padding:24px 40px 0;">
+    <!-- Logo + tên ứng dụng gộp thành 1 ẢNH PNG (@2x): người đọc tăng cỡ chữ trên điện thoại thì phần này giữ nguyên, chỉ chữ nội dung bên dưới to lên.
+         Ảnh có NỀN TRẮNG + đệm 8px hai bên, khối logo cao 48px (đúng Figma) ngay trong ảnh, KHÔNG để nền trong suốt: Gmail dark mode điện thoại không làm chữ đen logo chìm vào nền tối. Dùng PNG (không SVG) vì Gmail / Outlook không hiển thị ảnh SVG. Màn hẹp: ảnh tự thu theo bề ngang (max-width:100%). -->
+    <img src="images/amis-lockup.png" alt="MISA AMIS" width="190" height="48"
+         style="display:block;margin:0 auto;width:190px;max-width:100%;height:auto;border:0;border-radius:8px;outline:none;text-decoration:none;">
+  </td>
+</tr></table>
+<table class="email-body" role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background-color:#ffffff;">
+<tr><td class="email-pad" bgcolor="#ffffff" style="background-color:#ffffff;padding:24px 40px 8px;">
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     ║  ✏️  NỘI DUNG EMAIL — CHỈNH SỬA PHẦN NÀY KHI DÙNG MẪU   ║
+     ╚══════════════════════════════════════════════════════════════╝ -->
+
+
+<p style="margin:0 0 16px;font-size:14px;line-height:20px;color:#10141b;">
+  Kính gửi Quý khách: <strong style="font-weight:700;">Nguyễn Thị Lan Anh,</strong>
+</p>
+<p style="margin:0 0 16px;font-size:14px;line-height:20px;color:#10141b;">
+  <strong style="font-weight:700;">Công ty TNHH Thủ Đô</strong>
+  trân trọng mời Quý khách tham gia sử dụng
+  <strong style="font-weight:700;">Nền tảng quản trị doanh nghiệp hợp nhất MISA AMIS</strong>
+</p>
+<p style="margin:0 0 12px;font-size:14px;line-height:20px;color:#10141b;">
+  Thông tin tài khoản của Quý khách:
+</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+       style="margin-bottom:16px;border-collapse:separate;border-spacing:0;"><tr>
+  <td class="email-box" align="center" style="border:1px dashed #99c5f7;border-radius:12px;padding:12px 24px;">
+    <p style="margin:0;font-size:14px;line-height:20px;color:#10141b;">
+      Tài khoản đăng nhập:&nbsp;
+      <a href="mailto:ntlanh@software.misa.com.vn" class="email-link" style="color:#1570ef;text-decoration:none;font-weight:500;">
+        ntlanh@software.misa.com.vn
+      </a>
+    </p>
+  </td>
+</tr></table>
+
+<p style="margin:0 0 12px;font-size:14px;line-height:20px;color:#10141b;">
+  Mời Quý khách nhấn vào nút bên dưới để hoàn tất kích hoạt tài khoản:
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;"><tr>
+  <td>
+    <a href="{{ACTIVATION_URL}}" class="email-btn email-on-color"
+       style="display:block;background:#245fdf;background-image:linear-gradient(#245fdf,#245fdf);color:#fffffe;-webkit-text-fill-color:#fffffe;text-align:center;
+              text-decoration:none;padding:10px 24px;border-radius:8px;
+              font-family:Inter,Arial,sans-serif;font-size:13px;font-weight:500;
+              line-height:20px;-webkit-text-size-adjust:none;">
+      Kích hoạt ngay &nbsp;&#128072;
+    </a>
+  </td>
+</tr></table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+       style="background:#eff4ff;border-radius:8px;margin-bottom:16px;"><tr>
+  <td class="email-box" style="padding:32px;text-align:center;">
+    <p style="margin:0 0 8px;font-size:20px;font-weight:700;line-height:28px;color:#10141b;text-align:center;">
+      Quản lý công việc mọi lúc, mọi nơi trên di động
+    </p>
+    <p style="margin:0 0 20px;font-size:14px;line-height:20px;color:#10141b;text-align:center;">
+      Quý khách vui lòng quét mã QR bên dưới để cài đặt
+      <strong style="font-weight:700;">MISA AMIS trên điện thoại</strong>,
+      giúp quản lý công việc mọi lúc, mọi nơi.
+    </p>
+    <img src="https://common.misacdn.net/static/images/qr/AMISMobile.png" alt="QR Code tải MISA AMIS" width="155" height="155"
+         style="display:block;margin:0 auto;border:0;border-radius:8px;">
+  </td>
+</tr></table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr>
+  <td>
+    <p style="margin:0 0 8px;font-size:16px;font-weight:600;line-height:22px;color:#dc6803;">Lưu ý:</p>
+    <ul style="margin:0;padding-left:20px;font-size:14px;line-height:20px;color:#10141b;">
+      <li style="margin-bottom:4px;">Email kích hoạt này chỉ có hiệu lực trong vòng 24 giờ.</li>
+      <li>Nếu cần hỗ trợ thêm, Quý khách vui lòng liên hệ với MISA theo thông tin
+        <a href="{{SUPPORT_URL}}" class="email-link" style="color:#1570ef;text-decoration:none;">Tại đây</a>.
+      </li>
+    </ul>
+  </td>
+</tr></table>
+
+<p style="margin:0 0 4px;font-size:14px;line-height:20px;color:#10141b;">Trân trọng,</p>
+<p style="margin:0;font-size:14px;font-weight:700;line-height:20px;color:#10141b;">Công ty Cổ phần MISA</p>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+</td></tr>
+
+<tr><td class="email-pad" bgcolor="#ffffff" style="background-color:#ffffff;padding:16px 40px 24px;">
+  <p style="margin:0;font-size:13px;font-style:italic;line-height:20px;color:#6b707a;">
+    * Đây là email tự động từ hệ thống, Quý khách vui lòng không phản hồi.
+  </p>
+</td></tr>
+</table>
+</td></tr>
+
+<tr><td class="email-foot" align="center" style="padding:24px 10px 32px;">
+  <p style="margin:0 0 4px;font-size:12px;line-height:16px;color:#6b707a;text-align:center;">
+    &copy; 1994 - 2026 MISA JSC. All rights reserved.<!-- năm hiện tại: hệ thống gửi mail điền (email không chạy JavaScript) -->
+  </p>
+  <p style="margin:0 0 4px;font-size:12px;line-height:16px;color:#6b707a;text-align:center;">
+    Tầng 9, tòa nhà Technosoft, phố Duy Tân, phường Cầu Giấy, TP.Hà Nội
+  </p>
+  <p style="margin:0;font-size:12px;line-height:16px;color:#6b707a;text-align:center;">
+    Website:&nbsp;<a href="https://www.misa.vn" class="email-link" style="color:#1570ef;text-decoration:none;">www.misa.vn</a>
+    &nbsp;|&nbsp; Email:&nbsp;<a href="mailto:support@misa.com.vn" class="email-link" style="color:#1570ef;text-decoration:none;">support@misa.com.vn</a>
+  </p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>

@@ -42,7 +42,8 @@
     </div>
   </div>
   <AppToaster />
-  <AppStickyNotes :user="state.me.user" :login-url="loginUrl(route.fullPath === '/' ? '/ds/' : '/ds' + route.fullPath)" />
+  <AppNotifier />
+  <StickyNotes :user="state.me.user" :login-url="loginUrl(route.fullPath === '/' ? '/ds/' : '/ds' + route.fullPath)" />
 </template>
 
 <script setup>
@@ -54,6 +55,7 @@ import AccessLinkCopy from './components/AccessLinkCopy.vue'
 import OnlineUsersBadge from './components/OnlineUsersBadge.vue'
 import { startPresence } from './presence.js'
 import AppToaster from '@mds/components/AppToaster.vue'
+import AppNotifier from '@mds/components/AppNotifier.vue'
 import TIcon from '@mds/components/TIcon.vue'
 import { DEMO_APP_URL, APPS } from './demoApp.js'
 import { vTip } from '@mds/utils/tooltip.js'
@@ -65,7 +67,7 @@ import logoWhite from './assets/logo-ds-white.svg'
 import AdminNav from './components/AdminNav.vue'
 import DocSearch from './components/DocSearch.vue'
 import DocAva from './components/DocAva.vue'
-import AppStickyNotes from './components/AppStickyNotes.vue'
+import StickyNotes from '@mds/components/StickyNotes.vue'
 import { state, loadPages, loadMe, loginUrl } from './store.js'
 
 const route = useRoute(), router = useRouter()

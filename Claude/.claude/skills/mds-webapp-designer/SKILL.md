@@ -62,3 +62,4 @@ mds-webapp-designer/
 - **Figma**: Chỉ dùng MDS Web Components v2.0 (`1DP5RJM3MsZJ8SnUWgTavS`) — không import từ thư viện khác.
 - **Cả hai**: Không tự bịa đặt nội dung. Không để placeholder. Hỏi user khi không chắc.
 - **Khi xong**: Code → `npm run build`. Figma → screenshot + so sánh ảnh gốc.
+- **Shadow hay Stroke (viền) — chọn một**: đã có border thì không thêm shadow (và ngược lại). Khối trắng đặt trên nền trắng khác → không shadow, tách bằng nền màu (BG/Page, BG/Neutral Light, BG/Brand Light…) hoặc viền Stroke/Neutral Light. Shadow chỉ cho khối nổi trên nền khác màu: card trên nền trang (Neutral/All 2), menu / popover (Bottom 12), popup / dialog / drawer.

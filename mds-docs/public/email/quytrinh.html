@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>Thông báo hoàn thành quy trình - MISA AMIS</title>
+  <style>
+    body { margin:0; padding:0; background-color:#ecedef; -webkit-text-size-adjust:100%; }
+    table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
+    img { border:0; -ms-interpolation-mode:bicubic; }
+    a { color:#1570ef; }
+    :root { color-scheme: light dark; supported-color-schemes: light dark; }
+    /* Chữ TRẮNG trên nền màu (nút, banner): dùng #fffffe (không phải #ffffff) + text-fill. Gmail / Apple Mail dark mode tự đảo #ffffff thành chữ ĐEN khi nền màu không đủ sáng;
+       #fffffe không bị thuật toán đảo màu nhận ra. Outlook.com đọc qua [data-ogsc]. */
+    /* Nền màu của nút / banner đặt thêm bằng background-image: linear-gradient(màu, màu): Gmail dark mode KHÔNG đảo màu phần tử có ảnh nền (nền không ngả tím, chữ không bị đổi đen). !important không thắng được vì Gmail sửa màu SAU khi áp CSS. */
+    .email-on-color { color:#fffffe !important; -webkit-text-fill-color:#fffffe !important; }
+    [data-ogsc] .email-on-color { color:#fffffe !important; }
+    /* Nút hành động: màu Hover = --bg-brand-hover (theme Cyan: Brand 800 #066986) — chỉ hiện ở ứng dụng mail đọc <style> (Apple Mail, Gmail, Outlook Mac / iOS); Outlook Windows bỏ qua → nút vẫn dùng được */
+    .email-btn:hover { background-color:#066986 !important; background-image:linear-gradient(#066986,#066986) !important; }
+    /* Link văn bản: bình thường KHÔNG gạch chân, rê chuột → gạch chân + màu Info 800 (--text-link-default-hover) — quy chuẩn link chung */
+    .email-link:hover { text-decoration:underline !important; color:#175cd3 !important; }
+    /* Mobile (≤ 620px): thẻ trắng vẫn bo góc 8px, cách mép màn hình 8px; lề nội dung trái / phải 16px (máy tính 40px) để tối ưu chỗ */
+    @media (max-width:620px) {
+      .email-outer { padding:16px 8px 0 !important; }   /* chừa 8px hai bên để thấy thẻ trắng bo góc */
+      .email-wrap { width:100% !important; }
+      .email-pad { padding-left:16px !important; padding-right:16px !important; }
+      .email-box { padding:16px !important; }
+      .email-foot { padding:24px 16px 24px !important; }
+      /* Màn rất hẹp: email / link dài được xuống dòng, không đẩy tràn khung */
+      .email-pad a, .email-box a, .email-foot a { word-break:break-word; overflow-wrap:anywhere; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#ecedef;font-family:Inter,Arial,sans-serif;">
+
+<!-- Nền xám đặt ở BẢNG NGOÀI CÙNG (bgcolor + style), không chỉ ở <body>: Gmail bỏ toàn bộ style của <body> → nền xám mất, thẻ trắng lọt thỏm trên nền trắng -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ecedef" style="background-color:#ecedef;"><tr>
+<td class="email-outer" align="center" bgcolor="#ecedef" style="padding:60px 10px 0;background-color:#ecedef;">
+  <table class="email-wrap" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+         style="width:600px;max-width:600px;"><tr>
+  <td class="email-card" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 0 2px rgba(0,0,0,0.10);">
+
+<!-- HEADER: MISA AMIS + Quy trình -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td class="email-pad" bgcolor="#ffffff" align="center" style="background-color:#ffffff;padding:24px 40px 0;">
+    <!-- Logo + tên ứng dụng gộp thành 1 ẢNH PNG (@2x): người đọc tăng cỡ chữ trên điện thoại thì phần này giữ nguyên, chỉ chữ nội dung bên dưới to lên.
+         Ảnh có NỀN TRẮNG + đệm 8px hai bên, khối logo cao 48px (đúng Figma) ngay trong ảnh, KHÔNG để nền trong suốt: Gmail dark mode điện thoại không làm chữ đen logo chìm vào nền tối. Dùng PNG (không SVG) vì Gmail / Outlook không hiển thị ảnh SVG. Màn hẹp: ảnh tự thu theo bề ngang (max-width:100%). -->
+    <img src="images/quytrinh-lockup.png" alt="MISA AMIS – Quy trình" width="357" height="48"
+         style="display:block;margin:0 auto;width:357px;max-width:100%;height:auto;border:0;border-radius:8px;outline:none;text-decoration:none;">
+  </td>
+</tr></table>
+
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     ║  ✏️  NỘI DUNG EMAIL — CHỈNH SỬA PHẦN NÀY KHI DÙNG MẪU   ║
+     ╚══════════════════════════════════════════════════════════════╝ -->
+
+<!-- BANNER: Teal — chỉnh tiêu đề thông báo ở đây -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;"><tr>
+  <td class="email-box" bgcolor="#00a2cf" style="background-color:#00a2cf;background-image:linear-gradient(#00a2cf,#00a2cf);padding:24px 40px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="vertical-align:top;width:28px;padding-right:12px;">
+        <img src="images/icon-speakerphone-white.png" alt="" width="24" height="24" style="display:block;margin:2px 0 0;width:24px;height:24px;border:0;outline:none;">
+      </td>
+      <td style="vertical-align:middle;">
+        <p class="email-on-color" style="margin:0;font-size:20px;font-weight:700;line-height:28px;color:#fffffe;-webkit-text-fill-color:#fffffe;">
+          Phòng QHTT Thông báo đã hoàn thành việc thay đổi hệ thống/máy chủ ngày 23/04/2026 08:42
+        </p>
+      </td>
+    </tr></table>
+  </td>
+</tr></table>
+<table class="email-body" role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background-color:#ffffff;">
+<tr><td class="email-pad" bgcolor="#ffffff" style="background-color:#ffffff;padding:24px 40px 8px;">
+
+
+
+<p style="margin:0 0 16px;font-size:14px;line-height:20px;color:#10141b;">
+  Ngày hôm nay 28/04/2026 10:20, Phòng QHTT đã hoàn thành việc thay đổi hệ thống/máy chủ.
+</p>
+<p style="margin:0 0 12px;font-size:14px;line-height:21px;color:#10141b;">
+  Setup VLAN và máy tính phục vụ phát hành sản phẩm mobile cho dự án tại TSB
+</p>
+<p style="margin:0 0 4px;font-size:14px;line-height:21px;color:#10141b;">
+  <strong style="font-weight:700;">1. Mục đích:</strong><br>Tối ưu công tác phát hành sản phẩm MOBILE
+</p><br>
+<p style="margin:0 0 4px;font-size:14px;line-height:21px;color:#10141b;">
+  <strong style="font-weight:700;">2. Phạm vi:</strong><br>VP/TT
+</p><br>
+<p style="margin:0 0 8px;font-size:14px;line-height:21px;color:#10141b;">
+  <strong style="font-weight:700;">3. Báo cáo triển khai:</strong>
+</p>
+<ol style="margin:0 0 12px;padding-left:20px;font-size:14px;line-height:21px;color:#10141b;">
+  <li style="margin-bottom:4px;">Thực hiện thay đổi hệ thống theo kế hoạch được phê duyệt.</li>
+  <li style="margin-bottom:4px;">Cập nhật các tài khoản quản trị, hệ thống, người dùng phát sinh (nếu có) vào HQO-IT-FM-03.</li>
+  <li style="margin-bottom:4px;">Đã cung cấp thông tin chi tiết hình thay đổi của hệ thống/mạng máy chủ cho VP/TT.</li>
+  <li style="margin-bottom:4px;">Tổng hợp và ghi nhận các bài học kinh nghiệm được rút ra sau khi thực hiện (nếu có).</li>
+  <li>Thực hiện rà soát, cập nhật các danh sách máy chủ, dữ liệu quan trọng vào HQO-IT-01-AP-02 và gửi lại email cho phòng QHTT.</li>
+</ol>
+<p style="margin:0 0 8px;font-size:14px;line-height:21px;color:#10141b;">
+  <strong style="font-weight:700;">4. Báo cáo nghiệm thu hệ thống:</strong>
+</p>
+<ol style="margin:0 0 16px;padding-left:20px;font-size:14px;line-height:21px;color:#10141b;">
+  <li style="margin-bottom:4px;">Đã nghiệm thu các hạng mục theo kế hoạch được phê duyệt.</li>
+  <li>Đã đưa các hệ thống triển khai lên hệ thống giám sát để theo dõi.</li>
+</ol>
+<p style="margin:0 0 12px;font-size:14px;line-height:20px;color:#10141b;">
+  Mọi ý kiến thắc mắc vui lòng liên hệ phòng QHTT để được giải đáp.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td>
+    <a href="{{DETAIL_URL}}" class="email-btn email-on-color"
+       style="display:block;background:#00a2cf;background-image:linear-gradient(#00a2cf,#00a2cf);color:#fffffe;-webkit-text-fill-color:#fffffe;text-align:center;
+              text-decoration:none;padding:10px 24px;border-radius:8px;
+              font-family:Inter,Arial,sans-serif;font-size:13px;font-weight:500;
+              line-height:20px;-webkit-text-size-adjust:none;">
+      Xem chi tiết<img src="images/icon-arrow-right-white.png" alt="" width="16" height="16" style="display:inline-block;vertical-align:middle;width:16px;height:16px;border:0;outline:none;margin:-2px 0 0 8px;">
+    </a>
+  </td>
+</tr></table>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+</td></tr>
+
+<tr><td class="email-pad" bgcolor="#ffffff" style="background-color:#ffffff;padding:16px 40px 24px;">
+  <p style="margin:0;font-size:13px;font-style:italic;line-height:20px;color:#6b707a;">
+    * Đây là email tự động từ hệ thống, Quý khách vui lòng không phản hồi.
+  </p>
+</td></tr>
+</table>
+</td></tr>
+
+<tr><td class="email-foot" align="center" style="padding:24px 10px 32px;">
+  <p style="margin:0 0 4px;font-size:12px;line-height:16px;color:#6b707a;text-align:center;">
+    &copy; 1994 - 2026 MISA JSC. All rights reserved.<!-- năm hiện tại: hệ thống gửi mail điền (email không chạy JavaScript) -->
+  </p>
+  <p style="margin:0 0 4px;font-size:12px;line-height:16px;color:#6b707a;text-align:center;">
+    Tầng 9, tòa nhà Technosoft, phố Duy Tân, phường Cầu Giấy, TP.Hà Nội
+  </p>
+  <p style="margin:0;font-size:12px;line-height:16px;color:#6b707a;text-align:center;">
+    Website:&nbsp;<a href="https://www.misa.vn" class="email-link" style="color:#1570ef;text-decoration:none;">www.misa.vn</a>
+    &nbsp;|&nbsp; Email:&nbsp;<a href="mailto:support@misa.com.vn" class="email-link" style="color:#1570ef;text-decoration:none;">support@misa.com.vn</a>
+  </p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>

@@ -1,0 +1,8 @@
+{
+ "slug": "copyright",
+ "title": "Thông tin bản quyền",
+ "group": "Others",
+ "order": 608,
+ "summary": "Tại mọi vị trí trên sản phẩm, nếu có thông tin Copyright thì thông tin này phải được sử dụng thống nhất theo quy tắc sau:",
+ "body": "### Bản quyền chung của MISA\n\nSử dụng ở website, form login chung...\n\n#### Copyright © + (Năm thành lập công ty - Năm hiện tại) + Tên công ty\n\nVí dụ: Copyright © 1994  - 2025 MISA JSC\n\n- 1994 là năm thành lập công ty\n- 2025 là năm hiện tại\n\n### Bản quyền riêng của từng sản phẩm\n\n#### Copyright © + (Năm đăng ký nhãn hiệu sản phẩm - Năm hiện tại) + Tên công ty\n\nLưu ý:\n- Trong trường hợp Năm đăng ký nhãn hiệu trùng với Năm hiện tại thì chỉ hiển thị một\n- Năm hiện tại nên được config để tự động cập nhật\n\nVí dụ 1:\n\nPhần mềm MISA SME.NET 2015\n- Có năm đăng ký nhãn hiệu \"MISA SME.NET\" là năm 2009\n- Năm hiện tại là năm 2016\nThì thông tin Copyright tại mọi vị trí trên sản phẩm sẽ là: Copyright © 2009 - 2016 MISA JSC\n\nVí dụ 2:\n\nPhần mềm CukCuk.vn\n- Có năm đăng ký nhãn hiệu \"CukCuk.vn\" là năm 2016\n- Năm hiện tại là năm 2016\nThì thông tin Copyright tại mọi vị trí trên sản phẩm sẽ là: Copyright © 2016 MISA JSC\n"
+}

@@ -1,0 +1,8 @@
+{
+ "slug": "color",
+ "title": "Màu sắc",
+ "group": "Styles",
+ "order": 200,
+ "summary": "Mô tả quy chuẩn về các màu sắc sử dụng thường xuyên, phân chia theo từng loại màu, từng thành phần sử dụng",
+ "body": "## Ví dụ trực quan\n\nVí dụ chạy thật bằng bộ control **mds-ui** — thao tác thử, đổi mật độ hiển thị, bấm **Xem code** để lấy mã.\n\n::: demo color\n:::\n\n![](img/b86fe835582c4ad1a66dde5805e3a0c4f837f171.png)\n\n### Mô tả chi tiết\n\nDanh sách các bộ sưu tập màu\n\n![](img/shot-color-12-752.png)\n\n**Nhóm Base - Nhóm màu cấp 1**<br>\n- Brand: Là màu chính của app\n- Accent: Là màu nhấn mạnh (ít sử dụng_\n- Info: Màu dành cho các thông tin mang tính hướng dẫn\n- Warning: Màu dành cho các thông báo cảnh báo\n- Danger: Màu dành cho các hành động nguy hiểm như: Xóa, hủy dữ liệu...\n- Success: Màu dành cho các thông báo thành công\n- Neutral: Màu trung tính dùng cho: Text, border, background...\n- Alpha White: Màu trắng có opacity dành cho: Text, border, background nằm trên 1 nền màu đậm\n- Alpha Black: Màu đen có opacity dành cho: Text, border, background nằm trên 1 nền màu trắng\n\n![](img/shot-color-12-754.png)\n\nCác ứng dụng có thể tùy chỉnh màu của nhóm Base theo ứng dụng của mình\n\nCông cụ sinh màu dựa vào mã màu chính: https://uicolors.app/generate/1f1f1f\n\n**Nhóm Text (Màu chữ), Icon (Màu icon), Stroke (Màu viền), Bg (Màu nền) - Nhóm màu cấp 2**<br>\n- Đây là nhóm màu không khai báo trực tiếp biến màu mà gọi link tới màu đã khai báo tại nhóm Base cấp 1\n\n![](img/shot-color-12-756.png)\n\nDự án không cần chỉnh màu ở đây, khi màu ở nhóm Base được chỉnh sẽ tự ăn màu của nhóm này\n"
+}

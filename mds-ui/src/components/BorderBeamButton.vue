@@ -21,26 +21,10 @@
 
 <script setup>
 import { onMounted } from 'vue'
+import { ensureAiGradient } from '../utils/aiGradient.js'
 
 defineOptions({ inheritAttrs: false })
 
-// Tự inject 1 lần definition <linearGradient id="ai-icon-gradient"> vào document —
-// app dùng component này không cần khai báo gì thêm ở App.vue.
-onMounted(() => {
-  if (document.getElementById('ai-icon-gradient')) return
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  svg.setAttribute('width', '0')
-  svg.setAttribute('height', '0')
-  svg.setAttribute('style', 'position:absolute')
-  svg.setAttribute('aria-hidden', 'true')
-  svg.innerHTML = `
-    <defs>
-      <linearGradient id="ai-icon-gradient" x1="0%" y1="0%" x2="100%" y2="35%">
-        <stop offset="8.87%" stop-color="#1482ff" />
-        <stop offset="100%" stop-color="#cf11ff" />
-      </linearGradient>
-    </defs>
-  `
-  document.body.appendChild(svg)
-})
+// Gradient AI cho icon: inject 1 lần (dùng chung với mục menu AI)
+onMounted(ensureAiGradient)
 </script>

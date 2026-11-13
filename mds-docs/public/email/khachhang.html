@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>Thông báo gửi biên bản thay thế hóa đơn</title>
+  <style>
+    body { margin:0; padding:0; background-color:#ecedef; -webkit-text-size-adjust:100%; }
+    table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
+    img { border:0; -ms-interpolation-mode:bicubic; }
+    a { color:#1570ef; }
+    :root { color-scheme: light dark; supported-color-schemes: light dark; }
+    /* Chữ TRẮNG trên nền màu (nút, banner): dùng #fffffe (không phải #ffffff) + text-fill. Gmail / Apple Mail dark mode tự đảo #ffffff thành chữ ĐEN khi nền màu không đủ sáng;
+       #fffffe không bị thuật toán đảo màu nhận ra. Outlook.com đọc qua [data-ogsc]. */
+    /* Nền màu của nút / banner đặt thêm bằng background-image: linear-gradient(màu, màu): Gmail dark mode KHÔNG đảo màu phần tử có ảnh nền (nền không ngả tím, chữ không bị đổi đen). !important không thắng được vì Gmail sửa màu SAU khi áp CSS. */
+    .email-on-color { color:#fffffe !important; -webkit-text-fill-color:#fffffe !important; }
+    [data-ogsc] .email-on-color { color:#fffffe !important; }
+    /* Nút hành động: màu Hover = Brand 700 (--bg-brand-hover) — chỉ hiện ở ứng dụng mail đọc <style> (Apple Mail, Gmail, Outlook Mac / iOS); Outlook Windows bỏ qua → nút vẫn dùng được */
+    .email-btn:hover { background-color:#2753ce !important; background-image:linear-gradient(#2753ce,#2753ce) !important; }
+    /* Link văn bản: bình thường KHÔNG gạch chân, rê chuột → gạch chân + màu Info 800 (--text-link-default-hover) — quy chuẩn link chung */
+    .email-link:hover { text-decoration:underline !important; color:#175cd3 !important; }
+    /* Mobile (≤ 620px): thẻ trắng vẫn bo góc 8px, cách mép màn hình 8px; lề nội dung trái / phải 16px (máy tính 40px) */
+    @media (max-width:620px) {
+      .email-outer { padding:16px 8px 0 !important; }
+      .email-wrap { width:100% !important; }
+      .email-pad { padding-left:16px !important; padding-right:16px !important; }
+      .email-title { padding:24px 16px !important; font-size:18px !important; line-height:26px !important; }
+      .email-box { padding:16px !important; }
+      .email-indent { padding-left:12px !important; }
+      .email-foot { padding:24px 16px 24px !important; }
+      .email-pad a, .email-box a, .email-foot a { word-break:break-word; overflow-wrap:anywhere; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#ecedef;font-family:Inter,Arial,sans-serif;">
+<!-- MẪU EMAIL KHÁCH HÀNG CỦA MISA GỬI CHO KHÁCH HÀNG CỦA HỌ (hóa đơn, biên bản, phiếu…):
+     · KHÔNG có header logo MISA / logo ứng dụng — đây là email của đơn vị khách hàng.
+     · Đơn vị đã tự cấu hình mẫu (logo, banner riêng) → dùng phần đầu của họ thay cho khối TIÊU ĐỀ bên dưới.
+     · Chưa cấu hình → ứng dụng tự dùng khối TIÊU ĐỀ này: banner nền xanh + tiêu đề “[Tên đơn vị] thông báo …”, không logo công ty, không logo ứng dụng.
+     · Footer: “Thông báo được gửi qua [Tên sản phẩm] - Một sản phẩm của MISA.” (thay cho bản quyền / địa chỉ MISA). -->
+
+<!-- Nền xám đặt ở BẢNG NGOÀI CÙNG (bgcolor + style), không chỉ ở <body>: Gmail bỏ toàn bộ style của <body> → nền xám mất, thẻ trắng lọt thỏm trên nền trắng -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ecedef" style="background-color:#ecedef;"><tr>
+<td class="email-outer" align="center" bgcolor="#ecedef" style="padding:60px 10px 0;background-color:#ecedef;">
+  <table class="email-wrap" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+         style="width:600px;max-width:600px;"><tr>
+  <td class="email-card" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 0 2px rgba(0,0,0,0.10);">
+
+<!-- TIÊU ĐỀ (ứng dụng tự điền khi đơn vị chưa cấu hình mẫu riêng): ảnh nền sóng + màu nền dự phòng #116add (Outlook không hiện ảnh nền / gradient) -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td class="email-title email-on-color" bgcolor="#116add" background="images/banner-bg.jpg"
+      style="padding:32px 40px;background-color:#116add;background-image:url('images/banner-bg.jpg');background-size:cover;background-position:center;
+             font-family:Inter,Arial,sans-serif;font-size:20px;font-weight:700;line-height:28px;color:#fffffe;-webkit-text-fill-color:#fffffe;">
+    HỘ KINH DOANH TOKI RETREAT VÂN LONG thông báo gửi biên bản thay thế Hóa đơn giá trị gia tăng điện tử cho Quý khách
+  </td>
+</tr></table>
+
+<table class="email-body" role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background-color:#ffffff;">
+<tr><td class="email-pad" bgcolor="#ffffff" style="background-color:#ffffff;padding:24px 40px 24px;">
+
+<!-- ╔══════════════════════════════════════════════════════════════╗
+     ║  ✏️  NỘI DUNG EMAIL — CHỈNH SỬA PHẦN NÀY KHI DÙNG MẪU   ║
+     ╚══════════════════════════════════════════════════════════════╝ -->
+
+<p style="margin:0 0 16px;font-size:14px;line-height:20px;color:#10141b;">
+  <strong style="font-weight:700;">Kính gửi: Quý khách Nguyễn Việt Hoàng</strong>
+</p>
+<p style="margin:0 0 12px;font-size:14px;line-height:20px;color:#10141b;">
+  HỘ KINH DOANH TOKI RETREAT VÂN LONG xin gửi cho Quý khách Biên bản thay thế điện tử của Hóa đơn giá trị gia tăng sau:
+</p>
+
+<!-- Khối thông tin: nền Brand Light + viền Stroke Brand Light (không bóng đổ — khối trắng/nhạt nằm trong thẻ trắng) -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+       style="margin-bottom:24px;border-collapse:separate;border-spacing:0;"><tr>
+  <td class="email-box" style="background:#eff4ff;border:1px solid #99c5f7;border-radius:12px;padding:16px 24px;">
+    <p style="margin:0 0 8px;font-size:14px;line-height:20px;color:#10141b;"><strong style="font-weight:700;">Thông tin hóa đơn bị thay thế:</strong></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td class="email-indent" style="padding-left:24px;font-size:14px;line-height:20px;color:#10141b;">
+        <p style="margin:0 0 8px;">Số: <strong style="font-weight:700;">00000213</strong></p>
+        <p style="margin:0 0 8px;">Ngày: <strong style="font-weight:700;">04/08/2026</strong></p>
+        <p style="margin:0 0 8px;">Ký hiệu: <strong style="font-weight:700;">1C26THH</strong></p>
+        <p style="margin:0 0 8px;">Mã của cơ quan thuế:<br><strong style="font-weight:700;word-break:break-all;">21FEC6A7E1C3D04CF49BF3C61AE8DE3F85</strong></p>
+        <p style="margin:0 0 8px;">Giá trị: <strong style="font-weight:700;">200.000</strong></p>
+      </td>
+    </tr></table>
+    <p style="margin:0 0 8px;font-size:14px;line-height:20px;color:#10141b;"><strong style="font-weight:700;">Lý do thay thế:</strong></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td class="email-indent" style="padding-left:24px;font-size:14px;line-height:20px;color:#10141b;">Bổ sung thông tin</td>
+    </tr></table>
+  </td>
+</tr></table>
+
+<p style="margin:0 0 12px;font-size:14px;line-height:20px;color:#10141b;">Quý khách vui lòng nhấn nút:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;"><tr>
+  <td>
+    <a href="{{DETAIL_URL}}" class="email-btn email-on-color"
+       style="display:block;background:#245fdf;background-image:linear-gradient(#245fdf,#245fdf);color:#fffffe;-webkit-text-fill-color:#fffffe;text-align:center;
+              text-decoration:none;padding:10px 24px;border-radius:8px;
+              font-family:Inter,Arial,sans-serif;font-size:13px;font-weight:500;
+              line-height:20px;-webkit-text-size-adjust:none;">
+      Xem chi tiết biên bản
+    </a>
+  </td>
+</tr></table>
+<p style="margin:0 0 24px;font-size:14px;line-height:20px;color:#10141b;word-break:break-word;overflow-wrap:anywhere;">
+  Hoặc truy cập vào đường dẫn:
+  <a href="{{DETAIL_URL}}" class="email-link" style="color:#1570ef;text-decoration:none;">https://app3.meinvoice.vn/v3/Other/ConfirmMinutesInvoice?transactionid=EPF1F4WP7E41&amp;minutesInvoiceType=3&amp;companyID=1712</a>
+</p>
+
+<p style="margin:0 0 4px;font-size:14px;line-height:20px;color:#10141b;">Trân trọng kính chào!</p>
+<p style="margin:0;font-size:14px;font-weight:700;line-height:20px;color:#10141b;">HỘ KINH DOANH TOKI RETREAT VÂN LONG</p>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+</td></tr>
+</table>
+</td></tr>
+
+<!-- FOOTER: [Tên sản phẩm] → website sản phẩm · MISA → www.misa.vn -->
+<tr><td class="email-foot" align="center" style="padding:24px 10px 32px;">
+  <p style="margin:0;font-size:12px;line-height:16px;color:#6b707a;text-align:center;">
+    Thông báo được gửi qua
+    <a href="https://www.meinvoice.vn" class="email-link" style="color:#1570ef;text-decoration:none;font-weight:700;">MISA meInvoice</a>
+    - Một sản phẩm của
+    <a href="https://www.misa.vn" class="email-link" style="color:#1570ef;text-decoration:none;">MISA</a>.
+  </p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>

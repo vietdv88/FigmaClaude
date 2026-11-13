@@ -7,6 +7,7 @@ import { createAva, cleanImages, qSig, qSim, norm, splitFollowups } from './ava.
 import { createAvaLogs } from './avaLogs.js'
 import { createAvaImages } from './avaImages.js'
 import { precompressed } from './precompressed.js'
+import { createMailer, emailFromTemplate } from './mail.js'
 
 /* ═══════════════════════════════════════════════════════════════════════════
    MISA Design System — tài liệu tra cứu (/ds) + CMS
@@ -122,7 +123,8 @@ export function mountDocs(app, { express, loadUser, compress, users = () => [], 
   const admin = (req, _res, next) => (isAdmin(req.user) ? next() : next(new HttpError(403, 'Chỉ Quản trị được thực hiện')))
   const h = fn => (req, res, next) => { try { const v = fn(req, res); if (v !== undefined) res.json(v) } catch (e) { next(e) } }
 
-  r.get('/me', h(req => ({ user: req.user ? who(req.user) : null, canEdit: canEdit(req.user), isAdmin: isAdmin(req.user), aiEnabled: !!ai?.()?.apiKey, standalone })))
+  const mailer = createMailer()   // gửi thử mẫu email — null khi máy chủ chưa cấu hình SMTP
+  r.get('/me', h(req => ({ user: req.user ? who(req.user) : null, canEdit: canEdit(req.user), isAdmin: isAdmin(req.user), aiEnabled: !!ai?.()?.apiKey, mailEnabled: !!mailer, standalone })))
 
   /* AVA — hỏi đáp quy chuẩn Design System (ai cũng hỏi được như đọc tài liệu) · giới hạn 40 lượt / giờ / người (chưa đăng nhập: theo IP) */
   /* ── Tri thức AVA: ban biên tập tự nhập quy tắc / lưu ý → AVA luôn đọc (không cần sửa code, build lại) ──
@@ -165,7 +167,7 @@ export function mountDocs(app, { express, loadUser, compress, users = () => [], 
   // Gợi ý hỏi tiếp lưu CHUNG trong câu trả lời (dòng “[GOI_Y] a | b”) → dùng lại / gửi lại vẫn có nút gợi ý; lúc gửi xuống trình duyệt thì tách ra
   const withFu = d => (d.followups?.length ? `${d.text}\n\n[GOI_Y] ${d.followups.join(' | ')}` : d.text)
   /* Từ 2026-11-10 AVA trả lời ĐÚNG ý được hỏi + gợi ý hỏi tiếp — câu trả lời Dễ hiểu / Kỹ thuật cũ hơn (dài, kể hết thông số) không dùng lại nữa */
-  const FOCUS_FROM = Date.parse('2026-11-10T07:43:00Z')
+  const FOCUS_FROM = Date.parse('2026-11-13T01:30:00Z')   // 2026-11-13: trả lời thường kèm SỐ LIỆU (px, hex, shadow) + bỏ tab Kỹ thuật — câu cũ không có số liệu đầy đủ → không dùng lại
   const REUSE_DAYS = 60, LEGACY_DAYS = 14, sigMemo = new Map()
   const sigOf = c => { let v = sigMemo.get(c.id); if (!v) { v = qSig(c.question); sigMemo.set(c.id, v) } return v }
   const reusePool = mode => avaLogs.candidates(REUSE_DAYS).filter(c => c.mode === mode && c.answer && (mode === 'build' || Date.parse(c.at) >= FOCUS_FROM))
@@ -202,7 +204,7 @@ export function mountDocs(app, { express, loadUser, compress, users = () => [], 
     const key = req.user?.id || req.ip || '?', now = Date.now()
     const page = SLUG.test(String(req.body?.page || '')) ? req.body.page : ''
     // build = “Chi tiết cách thi công” (bấm dưới câu trả lời Dễ hiểu) — hỏi lại đúng câu đó, chỉ trả phần cho lập trình viên
-    const mode = ['dev', 'build'].includes(req.body?.mode) ? req.body.mode : 'plain', build = mode === 'build'
+    const mode = req.body?.mode === 'build' ? 'build' : 'plain', build = mode === 'build'
     const msgs = Array.isArray(req.body?.messages) ? req.body.messages : []
     const nImg = cleanImages(msgs.at(-1)?.images).length
     const lastQ = String([...msgs].reverse().find(m => m?.role === 'user')?.text ?? '').trim()
@@ -286,11 +288,11 @@ export function mountDocs(app, { express, loadUser, compress, users = () => [], 
   /* Đang gõ câu hỏi → các câu ĐÃ CÓ câu trả lời gần giống (“Có phải bạn định hỏi…”) — tính trên máy chủ, không gọi AI */
   r.get('/ava/similar', h((req, res) => {
     res.set('Cache-Control', 'no-store')
-    return { items: similarAsked(String(req.query.q || '').slice(0, 500), req.query.mode === 'dev' ? 'dev' : 'plain') }
+    return { items: similarAsked(String(req.query.q || '').slice(0, 500), 'plain') }
   }))
   /* Người hỏi bấm chọn 1 câu gợi ý → lấy câu trả lời đã có. Câu đã cũ (tri thức đổi / bị tắt) → 410, trình duyệt hỏi AVA như thường */
   r.post('/ava/reuse', h(req => {
-    const mode = ['dev', 'build'].includes(req.body?.mode) ? req.body.mode : 'plain', page = SLUG.test(String(req.body?.page || '')) ? req.body.page : ''
+    const mode = req.body?.mode === 'build' ? 'build' : 'plain', page = SLUG.test(String(req.body?.page || '')) ? req.body.page : ''
     const c = reusePool(mode).find(x => x.id === String(req.body?.id || ''))
     if (!c || !usable(c, mode, false)) fail(410, 'Câu trả lời này đã cũ — AVA sẽ trả lời lại')
     return reuseAnswer(req, c, { page, mode })
@@ -596,7 +598,10 @@ export function mountDocs(app, { express, loadUser, compress, users = () => [], 
 
   /* ── Sticky notes — ghi chú nhanh theo tài khoản (cần đăng nhập) ──
      data/notes-{userId}.json { notes: [{ id, text, done, createdAt, updatedAt }] }
-     Chưa đăng nhập → client lưu localStorage (không qua API này) */
+     Chưa đăng nhập → client lưu localStorage (không qua API này).
+     Client lưu trên trình duyệt trước rồi mới gửi, lỗi thì gửi lại → POST nhận id do client đặt và GHI ĐÈ nếu đã có (gửi lại không sinh ghi chú trùng). */
+  const NOTE_ID = /^[\w-]{8,64}$/
+  const noteText = v => String(v ?? '').trim().slice(0, 200)
   const notesOf = uid => dir(`notes-${uid}.json`)
   const readNotes = uid => { try { return JSON.parse(fs.readFileSync(notesOf(uid), 'utf8')).notes || [] } catch { return [] } }
   const saveUserNotes = (uid, list) => writeJson(notesOf(uid), { notes: list })
@@ -604,11 +609,13 @@ export function mountDocs(app, { express, loadUser, compress, users = () => [], 
 
   r.get('/notes', authUser, h(req => ({ notes: readNotes(req.user.id) })))
   r.post('/notes', authUser, h(req => {
-    const { text } = req.body || {}
-    if (!String(text || '').trim()) fail(400, 'Nội dung ghi chú không được trống')
-    const list = readNotes(req.user.id)
-    const note = { id: crypto.randomUUID(), text: String(text).trim(), done: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-    list.unshift(note)
+    const b = req.body || {}, text = noteText(b.text), id = b.id == null ? crypto.randomUUID() : String(b.id)
+    if (!text) fail(400, 'Nội dung ghi chú không được trống')
+    if (!NOTE_ID.test(id)) fail(400, 'Mã ghi chú không hợp lệ')
+    const list = readNotes(req.user.id), now = new Date().toISOString()
+    let note = list.find(n => n.id === id)
+    if (note) Object.assign(note, { text, done: !!b.done, updatedAt: now })
+    else list.unshift(note = { id, text, done: !!b.done, createdAt: now, updatedAt: now })
     saveUserNotes(req.user.id, list)
     return { note }
   }))
@@ -617,7 +624,7 @@ export function mountDocs(app, { express, loadUser, compress, users = () => [], 
     const idx = list.findIndex(n => n.id === req.params.id)
     if (idx < 0) fail(404, 'Không tìm thấy ghi chú')
     const { text, done } = req.body || {}
-    if (text !== undefined) list[idx].text = String(text).trim() || list[idx].text
+    if (text !== undefined) list[idx].text = noteText(text) || list[idx].text
     if (done !== undefined) list[idx].done = !!done
     list[idx].updatedAt = new Date().toISOString()
     saveUserNotes(req.user.id, list)
@@ -630,6 +637,48 @@ export function mountDocs(app, { express, loadUser, compress, users = () => [], 
     saveUserNotes(req.user.id, next2)
     return { ok: true }
   }))
+
+  /* ── Gửi thử mẫu email (/ds/email) — gửi đúng mẫu đang chọn vào hộp thư người đọc nhập, qua hộp thư gửi của app Chấm điểm (mail.js) ──
+     Ai đọc tài liệu cũng gửi được → CHỈ gửi mẫu có sẵn trong dist/email (không nhận nội dung từ người gọi), tiêu đề luôn có “[Gửi thử]”,
+     và giới hạn lượt — hộp thư gửi dùng chung với lời mời của app Chấm điểm, gửi thử không được chiếm hết hạn mức ngày của nó.
+     Hộp thư nhận + toàn hệ thống có giới hạn riêng vì req.ip đi qua X-Forwarded-For, người gọi tự đặt được. */
+  const MIN10 = 10 * 60e3, DAY = 24 * 3600e3
+  const mailLog = new Map()   // khóa → các thời điểm đã gửi
+  function takeMailQuota(limits) {
+    const now = Date.now()
+    for (const [k, times] of mailLog) if (!times.some(t => now - t < DAY)) mailLog.delete(k)
+    const rows = limits.map(([key, max, ms, msg]) => ({ key, max, msg, times: (mailLog.get(key) || []).filter(t => now - t < ms) }))
+    const over = rows.find(x => x.times.length >= x.max)
+    if (over) fail(429, over.msg)
+    for (const x of rows) mailLog.set(x.key, [...x.times, now])
+  }
+  r.post('/email-test', async (req, res, next) => {
+    try {
+      if (!mailer) fail(503, 'Máy chủ chưa cấu hình gửi email (SMTP)')
+      const id = String(req.body?.template || ''), file = path.join(DIST, 'email', `${id}.html`)
+      if (!SLUG.test(id) || !fs.existsSync(file)) fail(400, 'Không tìm thấy mẫu email')
+      const to = String(req.body?.to || '').trim().toLowerCase()
+      if (to.length > 254 || !/^[^\s@<>"',;:()\\]+@[^\s@<>"',;:()\\]+\.[^\s@<>"',;:()\\]+$/.test(to)) fail(400, 'Email nhận không hợp lệ')
+      takeMailQuota([
+        [`from:${req.user?.id || req.ip || '?'}`, 5, MIN10, 'Bạn vừa gửi thử nhiều lần — thử lại sau ít phút'],
+        [`to:${to}`, 3, MIN10, 'Hộp thư này vừa nhận nhiều thư thử — thử lại sau ít phút'],
+        ['all', 100, DAY, 'Hôm nay đã hết lượt gửi thử — thử lại vào ngày mai'],
+      ])
+      const { title, html, attachments } = emailFromTemplate(file)
+      const subject = `[Gửi thử] ${title || id}`
+      try {
+        await mailer.send({
+          from: { name: 'MISA Design System', address: mailer.address }, to, subject, html, attachments,
+          text: `Thư gửi thử mẫu email “${title || id}” từ tài liệu MISA Design System. Mở bằng ứng dụng đọc thư hỗ trợ HTML để xem đúng mẫu.`,
+        })
+      } catch (e) {
+        console.error('[ds] gửi thử mẫu email lỗi:', e.message)
+        fail(502, 'Không gửi được thư — kiểm tra lại địa chỉ email hoặc thử lại sau')
+      }
+      console.log(`[ds] gửi thử mẫu email ${id} → ${to} (${req.user ? who(req.user).name : req.ip || '?'})`)
+      res.json({ ok: true, to, subject })
+    } catch (e) { next(e) }
+  })
 
   r.use((err, _req, res, _next) => {
     if (!(err instanceof HttpError) && err.type !== 'entity.too.large') console.error('[ds]', err)

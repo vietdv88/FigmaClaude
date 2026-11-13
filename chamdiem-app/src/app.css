@@ -1,0 +1,111 @@
+/* Token spacing form theo SKILL mds-webapp-developer §1 — chưa có trong mds-ui/style.css */
+:root {
+  --input-row-gap:   16px;
+  --input-group-gap: 24px;
+  --form-row-gap:    16px;
+  --form-col-gap:    32px;
+  --form-col-gap-sm: 16px;
+  --footer-py:       12px;
+  /* Màu nhận biết vai trò (cột của BA / của PD trên danh sách công việc) — tách khỏi màu chủ đề & màu trạng thái */
+  --role-ba: #7a5af8;
+  --role-pd: #0e9384;
+}
+
+
+/* ═══ KHUNG TRANG DÙNG CHUNG — mọi màn dùng đúng các class này, KHÔNG định nghĩa lại trong <style scoped> của từng màn ═══
+   page-header → (sub-nav: tab cấp trang) → content-wrapper → (kpi-row) → list-split > table-panel [+ AdvancedFilterPanel] */
+.content-wrapper--fill { overflow: hidden; }   /* màn danh sách: bảng full chiều cao, phân trang sát đáy, trang không cuộn */
+
+/* Thẻ số liệu (KPI) trên bảng */
+/* ═══ LƯỚI 24 CỘT DÙNG CHUNG cho các hàng card (Tổng quan…) — khe đều = --card-col-gap, mỗi card chiếm số ô chẵn
+   để mép card các hàng thẳng nhau: KPI = 6 ô (4 card) · biểu đồ chính = 12 ô (= 2 KPI) · card phụ = 6 ô (= 1 KPI).
+   minmax(0, 1fr): nội dung dài / biểu đồ không đẩy cột rộng ra làm lệch lưới. ═══ */
+.kpi-row, .charts-row { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: var(--card-col-gap); flex-shrink: 0; }
+.kpi-row > * { grid-column: span 6; }
+.kpi-row--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }   /* 5 thẻ KPI chia đều */
+.kpi-row--5 > * { grid-column: auto; }
+.charts-row > * { grid-column: span 6; min-width: 0; }
+.charts-row > :first-child { grid-column: span 12; }
+.kpi-card {
+  position: relative;
+  background: var(--bg-white); border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  padding: var(--box-padding);   /* card có padding → 16px đều 4 phía (quy chuẩn chung) */
+  display: flex; flex-direction: column; gap: 2px;
+}
+.kpi-card__head { padding-right: 44px; }  /* chừa chỗ cho icon absolute */
+.kpi-title { font-size: var(--text-body); font-weight: var(--fw-semibold); color: var(--text-secondary); }
+.kpi-num   { font-size: var(--text-h2); line-height: var(--text-h2-lh); font-weight: var(--fw-bold); color: var(--text-primary); font-feature-settings: 'tnum' 1; }
+.kpi-sub   { font-size: var(--text-body); line-height: var(--text-body-lh); color: var(--text-secondary); }
+.kpi-icon  { position: absolute; top: 12px; right: var(--card-px); width: 36px; height: 36px; border-radius: var(--radius-default); display: flex; align-items: center; justify-content: center; }
+
+/* Bảng danh sách: panel bảng (+ panel lọc nâng cao đẩy sang trái) */
+.list-split { flex: 1; min-height: 0; display: flex; gap: var(--card-col-gap); }
+.list-split > .table-panel { min-width: 0; }
+.table-panel {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  background: var(--bg-white); border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card); overflow: hidden;
+}
+.table-scroll { flex: 1; min-height: 0; overflow: auto; }
+.filter-box { width: 180px; }
+.empty-state { padding: var(--card-py) var(--card-px); font-size: var(--text-body); color: var(--text-secondary); }
+@media (max-width: 1100px) { .kpi-row--5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kpi-row > * { grid-column: span 12; } .charts-row > *, .charts-row > :first-child { grid-column: span 24; } }   /* hẹp: KPI 2 cột · biểu đồ 1 cột (vẫn theo lưới 24) */
+
+/* Nút dạng liên kết (<router-link class="btn">, <a class="btn">) — không gạch chân như link thường */
+a.btn, a.btn:hover { text-decoration: none; }
+
+
+/* ── Trang trí sự kiện 20/10 (Ngày Phụ nữ Việt Nam) — ảnh nền sidebar, giống ketoan-dashboard ──
+   Bật bởi <html data-event="2010"> (store/seasonalEvents.js, 19–21/10 hằng năm).
+   Hiện khi sidebar MỞ RỘNG hoặc đang hover-peek lúc thu gọn; ẩn khi thu gọn và không hover.
+   Lặp selector cho sidebar sáng / tối để thắng rule “background” shorthand của :root[data-sidebar="dark"] .sidebar */
+:root[data-event="2010"] .sidebar.expanded,
+:root[data-event="2010"] .sidebar:not(.expanded):hover,
+:root[data-event="2010"][data-sidebar="dark"] .sidebar.expanded,
+:root[data-event="2010"][data-sidebar="dark"] .sidebar:not(.expanded):hover {
+  background-image: url('/events/2010-bottom-v7.webp');
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  background-size: 100% auto;
+  background-origin: border-box;
+}
+/* Nút thu gọn sidebar (góc dưới) trong suốt kiểu kính khi có trang trí — không che mất chữ ở đáy ảnh. Chỉ đổi màu nền, giữ nguyên kích thước
+   Sidebar sáng: kính trắng · sidebar tối: kính tối + icon trắng rõ (nền ảnh sáng → icon trắng mờ sẽ bị chìm) */
+:root[data-event="2010"]:not([data-sidebar="dark"]) .sidebar.expanded .btn-collapse,
+:root[data-event="2010"]:not([data-sidebar="dark"]) .sidebar:not(.expanded):hover .btn-collapse {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+:root[data-event="2010"]:not([data-sidebar="dark"]) .sidebar .btn-collapse:hover { background: rgba(255, 255, 255, 0.75); }
+:root[data-event="2010"][data-sidebar="dark"] .sidebar.expanded .btn-collapse,
+:root[data-event="2010"][data-sidebar="dark"] .sidebar:not(.expanded):hover .btn-collapse {
+  background: rgba(16, 24, 40, 0.35); border-color: rgba(255, 255, 255, 0.12); color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+:root[data-event="2010"][data-sidebar="dark"] .sidebar .btn-collapse:hover { background: rgba(16, 24, 40, 0.55); }
+
+
+/* Nút “+ Thêm việc” ở sidebar sáng: viền, chữ và icon “+” đều màu trung tính (neutral) */
+:root:not([data-sidebar="dark"]) .sidebar .btn-add-quick .ti { color: var(--icon-neutral); }   /* icon “+” màu neutral như các icon khác */
+
+/* ── Cánh hoa rơi chào mừng 20/10 (store/seasonalEvents.js · welcomePetals) — bắt đầu từ dải header, rơi chậm, lắc nhẹ, mờ dần ── */
+.petal-layer { position: fixed; inset: 0; z-index: 9000; pointer-events: none; overflow: hidden; }
+.petal {
+  position: absolute; top: 16px; opacity: 0;
+  border-radius: 150% 0 150% 0;                     /* dáng cánh hoa đào */
+  box-shadow: 0 1px 2px rgba(247, 143, 179, 0.25);
+  animation-name: petal-fall, petal-sway; animation-timing-function: cubic-bezier(.35, .1, .45, 1), ease-in-out;
+  animation-iteration-count: 1, infinite; animation-fill-mode: forwards, none;
+}
+@keyframes petal-fall {
+  0%   { opacity: 0;   transform: translate3d(0, 0, 0) rotate(0deg); }
+  8%   { opacity: .95; }
+  75%  { opacity: .85; }
+  100% { opacity: 0;   transform: translate3d(var(--drift), 92vh, 0) rotate(var(--spin)); }
+}
+.petal--flower { border-radius: 0; box-shadow: none; background: none; line-height: 1; filter: drop-shadow(0 1px 1px rgba(217, 79, 112, 0.18)); }   /* hoa nguyên bông (emoji) */
+@keyframes petal-sway { 0%, 100% { margin-left: 0; } 50% { margin-left: 18px; } }
+@media (prefers-reduced-motion: reduce) { .petal-layer { display: none; } }

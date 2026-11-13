@@ -82,7 +82,9 @@ function chunkMarkdown(md, source, href = '') {
 
 export function createAva({ knowledgeDir, pages, ai, notes = () => [] }) {
   let index = null, kStamp = '', pStamp = ''
-  const kFiles = () => (fs.existsSync(knowledgeDir) ? fs.readdirSync(knowledgeDir).filter(f => f.endsWith('.md') && f !== 'facts.md').sort() : [])
+  const kFiles = () => (fs.existsSync(knowledgeDir) ? fs.readdirSync(knowledgeDir).filter(f => f.endsWith('.md') && !/^facts(-controls)?\.md$/.test(f)).sort() : [])
+  // Số đo + trạng thái từng control (facts-controls.md — sinh tự động từ CSS thật của mds-ui): chỉ gửi mục có tên control trùng câu hỏi
+  const factsCtl = () => { try { return fs.readFileSync(path.join(knowledgeDir, 'facts-controls.md'), 'utf8').replace(/^<!--.*?-->\n/, '') } catch { return '' } }
   // Số đo đang chạy trong code (facts.md) — luôn gửi kèm mọi câu hỏi, đặt đầu tri thức
   const facts = () => { try { return fs.readFileSync(path.join(knowledgeDir, 'facts.md'), 'utf8').replace(/^<!--.*?-->\n/, '') } catch { return '' } }
   /* Giá trị thật của token CSS (knowledge/tokens.md — sinh từ mds-ui/src/style.css): name → { v, compact?, comfy? }
@@ -315,7 +317,7 @@ NGUYÊN TẮC CHUNG:
 - SỐ ĐO (chiều cao, rộng, đệm, bo góc, cỡ chữ…): LẤY TỪ mục "SỐ ĐO ĐANG CHẠY TRONG CODE" trước tiên — đó là giá trị thật. Chép đúng số, đúng mật độ; không tự suy ra, không cộng trừ.
 - Mật độ hiển thị gọi là Trung bình (mặc định) · Nhỏ · Rộng — tên mode gốc trong Figma là Standard · Compact · Comfortable; LUÔN gọi bằng tên tiếng Việt (không viết “Compact”). Cột Mobile trong bảng Figma KHÔNG dùng cho web, đừng lẫn cột.
 - Ưu tiên khi các nguồn khác nhau: mục “Tri thức AVA” (ban biên tập Design System nhập trực tiếp — quy tắc mới nhất) > code mds-ui > skill quy chuẩn > trang tài liệu (chuyển từ Figma Site). Lệch nhau → nêu số đang chạy trong code, kèm 1 câu ghi chú tài liệu ghi khác.
-- Nhắc tới token CSS thì ghi đúng tên trong \`code\` (VD \`--shadow-dialog\`). Hệ thống TỰ GẮN bảng giá trị thật (lấy từ code mds-ui) của mọi token có trong câu trả lời → ⛔ Giá trị của token (px, mã màu, rgba, bóng đổ, gradient) CHỈ được chép từ mục “GIÁ TRỊ TOKEN ĐANG CHẠY”; token không có trong mục đó thì chỉ ghi tên, không tự viết giá trị.
+- Khi được phép nhắc token CSS (chế độ thi công / người hỏi hỏi code) thì ghi đúng tên trong \`code\` (VD \`--shadow-dialog\`); hệ thống TỰ GẮN bảng giá trị thật (lấy từ code mds-ui). Giá trị shadow / màu / số đo ở phần trả lời thường thì GHI SỐ lấy từ "SỐ ĐO ĐANG CHẠY". ⛔ Giá trị của token (px, mã màu, rgba, bóng đổ, gradient) CHỈ được chép từ mục “GIÁ TRỊ TOKEN ĐANG CHẠY”; token không có trong mục đó thì chỉ ghi tên, không tự viết giá trị.
 - Nguồn chỉ ghi những nguồn CÓ THẬT trong phần tri thức (đúng tiêu đề “Nguồn: …” của đoạn đã dùng); không tự đặt tên nguồn.
 - CHỈ dùng tên component, class, token, prop xuất hiện NGUYÊN VĂN trong tri thức (VD AppButton, .btn--primary, --btn-height). Không tự đặt tên (không có "MButton"…).
 - Markdown được dùng: **in đậm**, danh sách, bảng nhỏ, \`code\`, khối \`\`\`code\`\`\`. Không dùng tiêu đề lớn (#, ##) — tiêu đề nhỏ dùng ####. Bảng: dòng phân cách viết đúng |---|---|---| (3 gạch mỗi cột, không căn lề, không kéo dài).
@@ -330,15 +332,17 @@ NGUYÊN TẮC CHUNG:
 
   /* Cách trả lời theo người đọc — chọn ở khung AVA (mặc định Dễ hiểu) */
   const MODES = {
-    plain: `CÁCH TRÌNH BÀY — DỄ HIỂU (người hỏi có thể KHÔNG phải lập trình viên):
-- Câu đầu tiên trả lời thẳng bằng LỜI THƯỜNG. Câu hỏi chung về 1 thành phần → mô tả điều người dùng NHÌN THẤY: trông như thế nào, đặt ở đâu, dùng khi nào. VD hỏi "card trên nền xám" → "Card là khối nền trắng đặt trên nền trang màu xám nhạt; card có bóng đổ nhẹ quanh viền để nổi lên, không kẻ viền, bo góc 8px, bên trong đệm đều 16px, các card cách nhau 16px."
-- Chỉ khi hỏi “vì sao / khi nào dùng” hoặc câu hỏi chung mới thêm 1 câu VÌ SAO (VD "bóng đổ giúp khối trắng tách khỏi nền mà không cần kẻ viền, nhìn nhẹ hơn").
-- Thuộc tính CSS cơ bản GIỮ TÊN CHUẨN (Padding, Margin, Gap, Border, Border radius, Box shadow, Font size, Line height, Font weight), lần đầu nhắc thì kèm giải thích ngắn trong ngoặc — VD “Padding (khoảng đệm bên trong viền)”, “Gap (khoảng cách giữa các phần tử cạnh nhau)”. Các từ khác dịch sang lời thường: token → giá trị dùng chung của hệ thống · density → mật độ hiển thị · hover → khi rê chuột · disabled → trạng thái không bấm được.
-- Số đo nêu gọn trong câu: "cao 32px (Nhỏ 28px, Rộng 36px)". Có nhiều thông số → danh sách ngắn hoặc bảng nhỏ, mỗi dòng là 1 ý dễ hiểu.
-- Có quy tắc Nên / Không nên → nêu rõ thành 2 ý ngắn.
-- Phần lời thường KHÔNG chen tên biến / class / mã màu trong ngoặc (để dành cho mục lập trình viên). Gọn: hỏi 1 thông số → 1–2 câu; câu hỏi chung → tối đa ~120 từ; không lặp ý, không thêm phần “tóm tắt” nhắc lại.
-- KHÔNG viết code, tên class, tên biến / token, mục "Cho lập trình viên" hay bảng token — dưới câu trả lời đã có nút **Chi tiết cách thi công** để lập trình viên bấm xem riêng phần đó. **Ngoại lệ duy nhất**: câu hỏi về **màu sắc** (mã màu, token màu) → ghi tên token trong \`code\` (VD \`--text-neutral\`, \`--bg-brand\`), không ghi giá trị — hệ thống tự gắn mã màu bên dưới.`,
-    dev: `CÁCH TRÌNH BÀY — KỸ THUẬT (người hỏi là lập trình viên):
+    plain: `CÁCH TRÌNH BÀY (người hỏi chủ yếu là designer / BA / PO — cần SỐ LIỆU RÕ RÀNG để đối chiếu bản vẽ có đúng chuẩn chưa):
+- Hỏi chung về 1 thành phần: mở bằng 1–2 câu lời thường (trông thế nào, đặt ở đâu, dùng khi nào) rồi tới bảng / danh sách thông số. Hỏi 1 thuộc tính: vào thẳng con số, không mở bài.
+- MỌI thông số nêu ra phải có SỐ CỤ THỂ, chép từ mục "SỐ ĐO ĐANG CHẠY" (đã quy sẵn ra px / mã màu): Cao, Rộng, Padding (trái / phải / trên / dưới), Gap, Font size + Font weight (+ Line height), Border radius, Border (độ dày + mã màu), Box shadow, mã màu hex của nền / chữ / viền / icon. Không viết "bo góc nhỏ", "đệm vừa" mà không kèm số.
+- Box shadow ghi đủ: offset-x offset-y blur spread + màu + độ mờ, VD “0 4px 12px, màu đen độ mờ 10%”, và LUÔN mở ngoặc ghi tên Effect style trong Figma để designer chọn đúng, VD “0 4px 12px, đen độ mờ 10% (Figma Effect style: Neutral / Bottom 12)”. Tên style chép đúng từ SỐ ĐO / bảng Bóng đổ, không tự đặt; có nhiều giá trị shadow thì mỗi giá trị 1 tên.
+- Thông số đổi theo mật độ: ghi “Trung bình 32px · Nhỏ 28px · Rộng 36px”; giống nhau mọi mật độ thì chỉ ghi 1 số.
+- Màu theo trạng thái (mặc định / hover / nhấn / focus / disabled / lỗi / được chọn): chỉ nêu khi được hỏi hoặc câu hỏi chung về control; ghi mã hex, mỗi trạng thái 1 dòng.
+- Trình bày: câu hỏi chung → bảng gọn 2 cột Thành phần | Thông số (tối đa ~14 hàng, mỗi hàng 1 phần tử hoặc 1 trạng thái); câu hỏi 1–2 thuộc tính → 1–3 dòng.
+- Thuộc tính CSS cơ bản GIỮ TÊN CHUẨN (Padding, Margin, Gap, Border, Border radius, Box shadow, Font size, Line height, Font weight); lần đầu nhắc có thể kèm giải thích ngắn trong ngoặc. Các từ khác dịch sang lời thường: density → mật độ hiển thị · hover → khi rê chuột · disabled → không bấm được.
+- Có quy tắc Nên / Không nên → nêu thành 2 ý ngắn. Chỉ khi hỏi "vì sao / khi nào dùng" mới thêm 1 câu giải thích. Không lặp ý, không thêm phần "tóm tắt".
+- KHÔNG viết code, tên class, tên biến / token, var(--…), mục "Cho lập trình viên" hay bảng token — dưới câu trả lời đã có nút **Chi tiết cách thi công** để lập trình viên bấm xem riêng phần đó (token, class, code mẫu). **Ngoại lệ**: người hỏi chủ động hỏi về code / CSS / token / class → trả lời thẳng phần đó.`,
+    devLegacy: `CÁCH TRÌNH BÀY — KỸ THUẬT (người hỏi là lập trình viên):
 - CHỈ thuộc tính được hỏi: số đo + token CSS (VD \`--btn-height\`), nếu giá trị đổi theo mật độ thì nêu đủ 3 mức: Trung bình (mặc định) · Nhỏ · Rộng.
 - Chỉ rõ class / component / prop mds-ui cần dùng và ví dụ code ngắn (Vue / HTML / CSS) — dùng token, không gõ số tay.
 - Nêu quy tắc ⛔ liên quan (điều cấm, lỗi hay gặp) nếu tri thức có.`,
@@ -407,19 +411,30 @@ NGUYÊN TẮC CHUNG:
      · f = dấu các MỤC số đo code (facts.md, theo tiêu đề ##) LIÊN QUAN câu hỏi (VD hỏi button → mục Button…) — sửa CSS chỗ khác không ảnh hưởng
      · p = dấu đoạn tài liệu / tri thức đã gửi, theo thứ tự liên quan → 3 đoạn đầu phải còn nguyên + ≥ 70% còn nguyên */
   const knowSig = () => hash((alwaysNotes() || '') + '\n' + pinned())
-  const factSections = () => facts().split(/\n(?=## )/).filter(x => x.startsWith('## ')).map(x => ({ head: x.slice(3, x.indexOf('\n') > 0 ? x.indexOf('\n') : undefined), sig: hash(x) }))
-  function factSigsFor(question) {
-    const q = new Set(qSig(question)); if (!q.size) return []
-    return factSections().filter(sec => qSig(sec.head).some(t => q.has(t))).map(sec => sec.sig)
+  const allFactSecs = () => [...facts().split(/\n(?=## )/), ...factsCtl().split(/\n(?=## )/)].filter(x => x.startsWith('## '))
+  const headOf = x => x.slice(3, x.indexOf('\n') > 0 ? x.indexOf('\n') : undefined)
+  const factSections = () => allFactSecs().map(x => ({ head: headOf(x), sig: hash(x) }))
+  // Mục “trạng thái” (hover, focus, disabled, lỗi, màu…) chỉ gửi khi câu hỏi nhắc tới trạng thái / màu
+  const STATE_Q = /hover|focus|disabled|active|pressed|error|\bloi\b|checked|selected|trang thai|state|vo hieu|re chuot|nhan|bam|mau|color|nen|vien/
+  const SEC_MAX = 6500, SEC_PICK = 5
+  /** Các mục số đo có tiêu đề trùng từ với câu hỏi (nhiều từ trùng nhất lên trước); không trùng mục nào → “Token chung” */
+  function pickFactSecs(text) {
+    const q = new Set(qSig(text)); if (!q.size) return []
+    const wantState = STATE_Q.test(norm(text))
+    const scored = allFactSecs().map((x, i) => {
+      const h = headOf(x), n = qSig(h.split(' — trạng thái')[0]).filter(t => q.has(t)).length   // mục trạng thái: chỉ tính từ trong TÊN control (không tính chữ “hover, focus…” ở tiêu đề)
+      return { x, n, i, state: /— trạng thái/.test(h) }
+    }).filter(r => r.n > 0 && (!r.state || wantState)).sort((a, b) => b.n - a.n || a.i - b.i).slice(0, SEC_PICK)
+    return scored.map(r => r.x)
   }
-  /** Phần đầu facts.md (mật độ, cách tự đo) + tối đa 4 mục ## có tiêu đề trùng từ với câu hỏi; không mục nào khớp → mục “Token chung” */
+  const factSigsFor = question => pickFactSecs(question).map(hash)
+  /** Phần đầu facts.md (mật độ, cách tự đo) + các mục số đo khớp câu hỏi; không mục nào khớp → mục “Token chung” */
   function factsFor(text) {
     const all = facts(), cut = all.search(/\n## /), head = cut > 0 ? all.slice(0, cut) : all
-    const secs = all.split(/\n(?=## )/).filter(x => x.startsWith('## '))
-    const q = new Set(qSig(text))
-    let pick = secs.filter(x => qSig(x.slice(3, x.indexOf('\n'))).some(t => q.has(t))).slice(0, 4)
-    if (!pick.length) pick = secs.filter(x => x.startsWith('## Token chung'))
-    return [head.replace(/\n\*\*Tự đo thông số[^\n]*/, '').trim(), ...pick.map(x => x.trim())].join('\n\n')
+    let pick = pickFactSecs(text)
+    if (!pick.length) pick = allFactSecs().filter(x => x.startsWith('## Token chung'))
+    const cap = x => (x.length > SEC_MAX ? x.slice(0, x.lastIndexOf('\n', SEC_MAX)) : x).trim()
+    return [head.replace(/\n\*\*Tự đo thông số[^\n]*/, '').trim(), ...pick.map(cap)].join('\n\n')
   }
   let validMemo = { key: '', set: null }
   function validSet() {
@@ -442,7 +457,8 @@ NGUYÊN TẮC CHUNG:
   }
 
   /** onDelta(text): nhận từng đoạn chữ ngay khi model sinh ra (trả lời dạng dòng chảy) — không truyền thì chờ trả lời đủ */
-  async function ask({ messages, page, asker, mode = 'plain', onDelta }) {
+  async function ask({ messages, page, asker, mode: mode0 = 'plain', onDelta }) {
+    const mode = mode0 === 'build' ? 'build' : 'plain'   // chỉ còn 2 cách: trả lời thường (kèm số liệu) · chi tiết thi công
     const a = ai?.() ?? {}
     if (!a.apiKey) { const e = new Error('Quản trị chưa cấu hình khóa AI (Cài đặt hệ thống của Solution Point)'); e.status = 503; throw e }
     // Lịch sử: 10 lượt gần nhất; câu trả lời cũ của AVA giữ ~1.500 ký tự đầu (đủ ngữ cảnh hỏi nối tiếp, đỡ token)
@@ -461,7 +477,7 @@ NGUYÊN TẮC CHUNG:
     const devAsked = /\b(css|code|token|class|prop|html|vue)\b|--[a-z]/i.test(lastText.text)
     if (mode === 'build') lastText.text = `CHI TIẾT CÁCH THI CÔNG cho câu hỏi: “${lastText.text}”.\nYêu cầu: không chào, không giải thích lại bằng lời thường, không mục “Tự đo”. Chỉ các mục #### Component / class mds-ui · Token CSS · Code mẫu (≤ 15 dòng, dùng var(--token)) · Lưu ý ⛔ (nếu có). Token CHỈ ghi TÊN trong \`code\` — KHÔNG ghi mã màu / px / giá trị của token (hệ thống tự gắn bảng giá trị thật).`
     if (images.length) lastText.text += '\n\n(Ảnh chụp chỉ TƯƠNG ĐỐI, không đo chính xác được: KHÔNG kết luận “Đạt quy chuẩn”, KHÔNG liệt kê điểm đã đạt / đã đúng — chỉ nêu điểm cần sửa và quy chuẩn để tự kiểm lại.)'
-    else if (mode === 'plain' && !devAsked) lastText.text += '\n\n(Trả lời bằng lời thường cho người không phải lập trình viên: KHÔNG viết code, tên class, tên biến / token, var(--…) — phần đó nằm ở nút “Chi tiết cách thi công”.)'
+    else if (mode === 'plain' && !devAsked) lastText.text += '\n\n(Trả lời cho người thiết kế: lời thường + SỐ LIỆU CỤ THỂ (px, mã màu hex, giá trị Box shadow kèm tên Effect style Figma trong ngoặc) lấy từ SỐ ĐO ĐANG CHẠY; KHÔNG viết code, tên class, tên biến / token, var(--…) — phần đó nằm ở nút “Chi tiết cách thi công”.)'
     // Tìm theo 3 lượt hỏi gần nhất (hỏi nối tiếp kiểu “còn Nhỏ thì sao?” → câu ngắn không đủ từ, cần câu trước)
     // Soát ảnh thiết kế: tìm thêm các quy tắc bố cục hay bị vi phạm (khoảng cách, card, form, nút, header, sidebar, bảng…)
     const review = images.length > 0
@@ -477,7 +493,7 @@ NGUYÊN TẮC CHUNG:
     const stable = `${SYSTEM}\n\n` + (enAlways ? `════ TRI THỨC AVA — LUÔN ÁP DỤNG (ban biên tập nhập — ưu tiên cao nhất) ════\n${enAlways}\n\n---\n\n` : '') + factTxt + (review ? `\n\n---\n\n${pinned()}` : '')
     const knowledge = found.map(c => `Nguồn: ${c.title}${c.href ? ` (${c.href})` : ''}\n${c.text}`).join('\n\n---\n\n')
     // Giá trị THẬT của các token có trong câu hỏi + đoạn tìm được → AI chép đúng số, không tự bịa (đã gặp: bịa bóng đổ popup)
-    const tokVals = tokenValuesFor(users.slice(-3).join('\n') + '\n' + knowledge, mode === 'plain' ? 15 : 40)
+    const tokVals = tokenValuesFor(users.slice(-3).join('\n') + '\n' + knowledge, mode === 'plain' ? 30 : 40)
     // Không gửi tên người hỏi: câu trả lời quy chuẩn không cần, và câu trả lời nhớ sẵn dùng chung được cho mọi người
     const ctx = page ? `\nNgười hỏi đang xem trang tài liệu: /ds/${page}.` : ''
     // Dấu tri thức đã dùng → ghi vào lịch sử để câu hỏi giống sau này dùng lại câu trả lời (khi tri thức chưa đổi)
@@ -581,5 +597,5 @@ NGUYÊN TẮC CHUNG:
       tokens: usage ? { in: usage.promptTokenCount || 0, cached: usage.cachedContentTokenCount || 0, out: usage.candidatesTokenCount || 0 } : null }
     return result
   }
-  return { ask, search, build, withTokens, linkPages, stillValid }
+  return { ask, search, build, withTokens, linkPages, stillValid, factsFor }
 }

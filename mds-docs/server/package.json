@@ -1,0 +1,18 @@
+{
+  "name": "mds-docs-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Máy chủ chạy riêng của Tài liệu MISA Design System (node server/standalone.js) — khi gắn vào PD Point thì không cần cài thư viện ở đây",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node standalone.js"
+  },
+  "dependencies": {
+    "compression": "^1.8.2",
+    "express": "^4.21.2",
+    "nodemailer": "^6.10.1"
+  }
+}

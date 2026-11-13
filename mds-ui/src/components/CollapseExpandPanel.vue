@@ -2,7 +2,7 @@
   <button
     class="cep"
     :class="[`cep--${pos}`, bgColor === 'White' && 'cep--white']"
-    :title="type === 'Collapse' ? 'Thu gọn' : 'Mở rộng'"
+    v-tip="type === 'Collapse' ? 'Thu gọn' : 'Mở rộng'" :aria-label="type === 'Collapse' ? 'Thu gọn' : 'Mở rộng'"
     @click="$emit('click')"
   >
     <TIcon :name="iconName" class="cep__icon" />
@@ -10,6 +10,7 @@
 </template>
 
 <script setup>
+import { vTip } from '../utils/tooltip.js'
 import { computed } from 'vue'
 import TIcon from './TIcon.vue'
 
@@ -46,10 +47,10 @@ const iconName = computed(() => {
   position: relative;
   z-index: 1;
 }
-.cep:hover { background: var(--bg-neutral-hover); }
+.cep:hover { background: var(--bg-brand-light); }
 
 .cep--white       { background: var(--bg-white); }
-.cep--white:hover { background: var(--bg-neutral-light); }
+.cep--white:hover { background: var(--bg-brand-light); }
 
 /* Bottom: hangs from top divider line, rounded top corners */
 .cep--bottom {
@@ -76,5 +77,5 @@ const iconName = computed(() => {
   border-right: none;
 }
 
-.cep__icon { font-size: 13px; }
+.cep__icon { font-size: var(--text-body); }
 </style>

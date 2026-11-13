@@ -2448,6 +2448,14 @@ button.app-tag:disabled { cursor: not-allowed; }
 .inline-alert--success .inline-alert__icon { color: var(--icon-success); }
 .inline-alert--danger  { background: var(--bg-danger-light);  border-color: var(--stroke-danger-light); }
 .inline-alert--danger  .inline-alert__icon { color: var(--icon-danger); }
+/* Tiêu đề tô màu theo loại (Figma) · stacked: tiêu đề 1 dòng, nội dung xuống dưới, icon / nút × căn đỉnh */
+.inline-alert--info    .inline-alert__title { color: var(--text-info); }
+.inline-alert--warning .inline-alert__title { color: var(--text-warning); }
+.inline-alert--success .inline-alert__title { color: var(--text-success); }
+.inline-alert--danger  .inline-alert__title { color: var(--text-danger); }
+.inline-alert--stacked { align-items: flex-start; padding: 12px 12px 12px 16px; gap: 12px; }
+.inline-alert--stacked .inline-alert__icon { font-size: 20px; margin-top: 1px; }
+.inline-alert--stacked .inline-alert__title { display: block; margin: 0 0 4px; }
 
 /* ── Input Box (shared base for Textbox, Searchbox, Combobox, Datebox, Numberbox) ── */
 .ibox {

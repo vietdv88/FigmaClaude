@@ -15,13 +15,13 @@ Frame: [Tên Form] (1440×900, HORIZONTAL)
         ├── Page Header (HORIZONTAL, SPACE_BETWEEN)
         │   ├── Back button + Title
         │   └── Status chip
-        └── Form Container (bg white, radius 12, VERTICAL, padding 32, gap 24)
+        └── Form Container (bg white, radius 8 + shadow Neutral All 2, VERTICAL, padding 32, gap 24)
             ├── Form Header (title + description)
             ├── Field Group 1 (VERTICAL, gap 16, border-bottom)
             │   ├── Group Title (Semi Bold 14, Brand color)
             │   └── Fields Grid (2-col, gap 16)
             ├── Field Group 2
-            └── Form Actions (border-top, padding-top 24, HORIZONTAL, gap 8, flex-end)
+            └── Form Actions (LUÔN ghim ĐÁY form, border-top, padding-top 24, HORIZONTAL, gap 8, flex-end)
                 ├── Cancel (Button Medium Gray/Outline)
                 └── Save (Button Medium Brand/Solid)
 ```
@@ -211,4 +211,4 @@ actions.appendChild(saveBtn);
 - [ ] Labels có đánh dấu required (*) nếu cần
 - [ ] TextField components (hoặc custom fallback)
 - [ ] Dropdown cho các select field (search_design_system("Dropdown") nếu có)
-- [ ] Form actions: Cancel (Gray/Outline) + Save (Brand/Solid)
+- [ ] Form actions: Cancel (Gray/Outline) + Save (Brand/Solid) — ghim ở ĐÁY form; ⛔ KHÔNG đặt Lưu / Hủy ở đầu form (cạnh tiêu đề)

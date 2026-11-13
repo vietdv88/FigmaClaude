@@ -11,10 +11,18 @@
   </div>
 
   <!-- ── Global Header ── -->
-  <header class="global-header" :class="{ 'global-header--white': currentMode === 'light' }">
+  <header class="global-header" :class="{ 'global-header--white': (mode || currentMode) === 'light' }">
     <!-- Left -->
     <div class="header-left">
-      <button class="btn-icon-white"><TIcon name="grid-dots" /></button>
+      <!-- Chỗ đặt nút trước logo (VD nút ☰ mở menu trái ở màn hẹp) -->
+      <slot name="header-start" />
+      <!-- Nút 9 chấm (chuyển ứng dụng) — ẩn bằng hide-tools="['apps']" -->
+      <!-- Có prop apps → bấm xổ danh sách ứng dụng (logo + tên), app đang dùng được đánh dấu; chọn app khác → chuyển sang app đó -->
+      <button v-if="!hidden('apps') && apps.length" :ref="el => (panelBtn.apps = el)" type="button" class="btn-icon-white" :class="{ 'btn-icon-white--active': panel === 'apps' }"
+        v-tip="'Tất cả ứng dụng'" aria-label="Tất cả ứng dụng" aria-haspopup="menu" :aria-expanded="String(panel === 'apps')" @click.stop="togglePanel('apps')"><TIcon name="grid-dots" /></button>
+      <button v-else-if="!hidden('apps')" class="btn-icon-white" v-tip="'Tất cả ứng dụng'" aria-label="Tất cả ứng dụng"><TIcon name="grid-dots" /></button>
+      <!-- Logo + tên app = link về trang chủ (quy chuẩn): app có router bắt @home; không bắt → đi tới home-href -->
+      <a class="header-brand" :href="homeHref" v-tip="'Về trang chủ'" aria-label="Về trang chủ" @click="onHome">
       <slot name="logo-icon">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
           <path d="M0 16C0 3.2 3.2 0 16 0C28.8 0 32 3.2 32 16C32 28.8 28.8 32 16 32C3.2 32 0 28.8 0 16Z" fill="url(#paint0_linear_4480_1201)"/>
@@ -40,6 +48,7 @@
         </svg>
       </slot>
       <span class="app-name-header">{{ appName }}</span>
+      </a>
       <template v-if="!noMeta">
         <div class="divider-v-header"></div>
         <slot name="header-meta">
@@ -54,38 +63,155 @@
       </template>
     </div>
 
-    <!-- Right — search + actions — thứ tự chuẩn: Search → MISA AI → AMIS Chat → Bell → Help → More → Settings → Avatar -->
+    <!-- Right — search + actions — thứ tự chuẩn: Search → MISA AI → Bell → Help → More → Settings → Avatar (KHÔNG còn icon AMIS Chat) -->
     <div class="header-right">
-      <slot name="header-search">
-        <div class="search-box-header">
-          <TIcon name="search" />
-          <input type="text" placeholder="Tìm kiếm..." />
-        </div>
+      <slot v-if="!hidden('search')" name="header-search">
+        <!-- Ô tìm kiếm toàn cục: app bắt @search → gõ là tự tìm, kết quả xổ ra theo nhóm phân hệ (:search-results); không bắt thì chỉ là ô nhập -->
+        <AppGlobalSearch :placeholder="searchPlaceholder" :results="searchResults" :loading="searchLoading" :panel-width="searchPanelWidth"
+          v-bind="hasSearch ? { onSearch: q => emit('search', q) } : {}"
+          @select="(it, g) => emit('search-select', it, g)" @more="openMore" />
+        <!-- “Xem thêm” của 1 phân hệ → popup chỉ chứa kết quả của phân hệ đó (app nạp :search-more-items theo @search-more) -->
+        <AppSearchResultsDialog v-if="more" :group-title="more.group.title" :keyword="more.q" :items="searchMoreItems || []" :total="searchMoreTotal" :loading="searchMoreLoading || searchMoreItems === null"
+          @search="q => emit('search-more', more.group, q)" @select="it => { emit('search-select', it, more.group); more = null }" @close="more = null" />
       </slot>
+      <!-- Cụm icon + avatar (Figma Global Header › Toolbar Header): các nút icon cách nhau 8 · cách ô tìm kiếm 16 (gap của .header-right) -->
+      <div class="header-tools">
       <slot name="header-actions" />
       <div class="header-toolbar">
-        <button class="btn-icon-white" title="MISA AI">
+        <button v-if="!hidden('ai')" class="btn-icon-white" v-tip="'MISA AI'" aria-label="MISA AI">
           <slot name="ai-icon"><IconMisaAI /></slot>
         </button>
-        <button class="btn-icon-white" title="AMIS Chat">
-          <IconAmisChat />
-          <span class="header-badge">20</span>
-        </button>
-        <button class="btn-icon-white" title="Thông báo">
+        <!-- Thông báo / Trợ giúp / Thêm: có dữ liệu (notifications / help-menu / more-menu) → bấm xổ popover theo Figma Global Header (Header_Notification · Header_Help · Header_More) -->
+        <button v-if="!hidden('notify')" :ref="el => (panelBtn.notify = el)" class="btn-icon-white" :class="{ 'btn-icon-white--active': panel === 'notify' }" v-tip="'Thông báo'" aria-label="Thông báo"
+          :aria-expanded="notifications ? String(panel === 'notify') : undefined" @click.stop="notifications && togglePanel('notify')">
           <TIcon name="bell" />
-          <span class="header-badge">9</span>
+          <span v-if="notifyBadge" class="header-badge">{{ notifyBadge }}</span>
         </button>
-        <button class="btn-icon-white" title="Trợ giúp">
+        <button v-if="!hidden('help')" :ref="el => (panelBtn.help = el)" class="btn-icon-white" :class="{ 'btn-icon-white--active': panel === 'help' }" v-tip="'Trợ giúp'" aria-label="Trợ giúp"
+          :aria-expanded="helpMenu.length ? String(panel === 'help') : undefined" @click.stop="helpMenu.length && togglePanel('help')">
           <TIcon name="help-circle" />
         </button>
-        <button class="btn-icon-white" title="Thêm tùy chọn">
+        <button v-if="!hidden('more')" :ref="el => (panelBtn.more = el)" class="btn-icon-white" :class="{ 'btn-icon-white--active': panel === 'more' }" v-tip="'Thêm tùy chọn'" aria-label="Thêm tùy chọn"
+          :aria-expanded="moreMenu.length ? String(panel === 'more') : undefined" @click.stop="moreMenu.length && togglePanel('more')">
           <TIcon name="dots-circle-horizontal" />
         </button>
-        <button ref="toolsBtnRef" class="btn-icon-white" title="Các tiện ích và thiết lập" @click="openToolsPopover">
+        <!-- settingsMenu: bánh răng xổ menu “Thiết lập hiển thị” + các mục của app (VD Cài đặt hệ thống) -->
+        <!-- Cùng kiểu popover header (khung + mũi nhọn chỉ vào icon) như Thông báo / Trợ giúp / Thêm -->
+        <button v-if="settingsMenu.length" :ref="el => (panelBtn.settings = el)" class="btn-icon-white" :class="{ 'btn-icon-white--active': panel === 'settings' }" v-tip="'Thiết lập'" aria-label="Thiết lập"
+          aria-haspopup="menu" :aria-expanded="String(panel === 'settings')" @click.stop="togglePanel('settings')"><TIcon name="settings" /></button>
+        <button v-else ref="toolsBtnRef" class="btn-icon-white"
+          v-tip="settingsOnly ? 'Thiết lập màu sắc và hiển thị' : 'Các tiện ích và thiết lập'" :aria-label="settingsOnly ? 'Thiết lập màu sắc và hiển thị' : 'Các tiện ích và thiết lập'"
+          @click="settingsOnly ? openSettings() : openToolsPopover()">
           <TIcon name="settings" />
         </button>
       </div>
-      <div class="header-avatar">VT</div>
+      <!-- avatarName: avatar chữ cái đầu theo bảng màu avatar (giống DataTable), viền stroke-neutral-light -->
+      <!-- Avatar góc phải = nút tài khoản: bấm → thông tin cá nhân + Đăng xuất (quy chuẩn) -->
+      <slot name="header-end" />
+      <button v-if="!hideAvatar" ref="avatarBtnRef" type="button" class="header-avatar-btn" :class="{ 'header-avatar-btn--open': profileOpen }" v-tip="'Tài khoản'" aria-label="Tài khoản" @click.stop="toggleProfile">
+        <img v-if="userPicture && !picBroken" class="header-avatar" :src="userPicture" alt="" referrerpolicy="no-referrer" @error="picBroken = true" />
+        <div v-else-if="avatarName" class="header-avatar header-avatar--initials" :style="avatarStyle">{{ avatarInitials }}</div>
+        <div v-else class="header-avatar">VT</div>
+      </button>
+      <Teleport to="body">
+        <!-- Menu tài khoản — Figma Header_UserProfile (49869:3245): avatar 64 giữa · tên H3 · email · khung công ty / dữ liệu (profile-context, có ›) · danh sách mục · ngôn ngữ -->
+        <div v-if="profileOpen" ref="profileRef" class="hdr-profile hdr-pop" :style="profileStyle" @click.stop>
+          <span class="hdr-pop__arrow" :style="{ right: profileArrow + 'px' }" />
+          <div class="hdr-profile__head">
+            <img v-if="userPicture && !picBroken" class="hdr-profile__avatar" :src="userPicture" alt="" referrerpolicy="no-referrer" @error="picBroken = true" />
+            <span v-else class="hdr-profile__avatar hdr-profile__avatar--initials" :style="avatarStyle">{{ avatarInitials || 'VT' }}</span>
+            <span class="hdr-profile__info">
+              <span class="hdr-profile__name">{{ avatarName || 'Người dùng' }}</span>
+              <span v-if="userEmail" class="hdr-profile__sub">{{ userEmail }}</span>
+              <span v-if="userRole" class="hdr-profile__role">{{ userRole }}</span>
+            </span>
+          </div>
+          <div v-if="profileContext.length" class="hdr-profile__ctx">
+            <template v-for="(it, i) in profileContext" :key="it.id || i">
+              <div v-if="i" class="hdr-profile__ctx-sep" role="separator" />
+              <button type="button" class="hdr-pop__item" @click="onProfileItem(it)">
+                <TIcon v-if="it.icon" :name="it.icon" /><span class="hdr-pop__label">{{ it.label }}</span><TIcon name="chevron-right" class="hdr-pop__chev" />
+              </button>
+            </template>
+          </div>
+          <!-- Phần menu: chuẩn Menu List (đệm khung 8 · item bo góc, hover không chạm 2 mép) -->
+          <div v-if="profileMenu.length || hasLogout || language" class="hdr-profile__menu">
+            <template v-for="(it, i) in profileMenu" :key="it.id || 'sep' + i">
+              <div v-if="it.separator" class="hdr-profile__sep" role="separator" />
+              <button v-else type="button" class="hdr-pop__item" @click="onProfileItem(it)">
+                <img v-if="it.img" :src="it.img" alt="" class="hdr-pop__img" /><TIcon v-else-if="it.icon" :name="it.icon" /><span class="hdr-pop__label">{{ it.label }}</span><TIcon v-if="it.chevron" :name="it.chevron === true ? 'chevron-right' : it.chevron" class="hdr-pop__chev" />
+              </button>
+            </template>
+            <button v-if="language" type="button" class="hdr-pop__item" @click="onProfileItem({ id: '__language', label: language.label })">
+              <img v-if="language.flag" :src="language.flag" alt="" class="hdr-pop__img" /><TIcon v-else name="language" /><span class="hdr-pop__label">Ngôn ngữ: {{ language.label }}</span><TIcon name="chevron-down" class="hdr-pop__chev" />
+            </button>
+            <div v-if="(profileMenu.length || language) && hasLogout" class="hdr-profile__sep" role="separator" />
+            <button v-if="hasLogout" type="button" class="btn btn--text-neutral hdr-profile__logout" @click="onLogout"><TIcon name="logout" />Đăng xuất</button>
+          </div>
+        </div>
+
+        <!-- Thông báo — Figma Header_Notification (49850:3240): tiêu đề H3 + 3 nút icon nhỏ (đánh dấu đã đọc · lọc · thiết lập) · nhóm Hôm nay / Trước đó · dòng bo góc, chưa đọc nền Brand Light -->
+        <!-- Chuyển ứng dụng: lưới ô to (logo trong ô bo tròn + tên + mô tả), app đang dùng có viền + dấu ✓; hiện ra có hiệu ứng nhẹ -->
+        <div v-if="panel === 'apps'" ref="panelEl" class="hdr-pop hdr-apps" :style="[panelStyle, { '--apps-cols': appCols }]" role="menu" aria-label="Tất cả ứng dụng" @click.stop>
+          <span class="hdr-pop__arrow" :style="{ right: panelArrow + 'px' }" />
+          <div class="hdr-apps__title">Ứng dụng của bạn</div>
+          <div class="hdr-apps__grid">
+            <button v-for="(a, i) in appItems" :key="a.id" type="button" role="menuitem" class="hdr-apps__tile" :class="{ 'hdr-apps__tile--on': a.checked }" :style="{ '--i': i }"
+              :aria-current="a.checked ? 'true' : undefined" @click="panel = null; onAppSelect(a)">
+              <span class="hdr-apps__logo"><img v-if="a.img" :src="a.img" alt="" /><TIcon v-else :name="a.icon || 'apps'" /></span>
+              <span class="hdr-apps__name">{{ a.label }}</span>
+              <span v-if="a.desc" class="hdr-apps__desc">{{ a.desc }}</span>
+              <span v-if="a.checked" class="hdr-apps__check" aria-hidden="true"><TIcon name="check" /></span>
+            </button>
+          </div>
+        </div>
+        <div v-if="panel === 'notify' && notifications" ref="panelEl" class="hdr-pop hdr-notify" :style="panelStyle" role="dialog" aria-label="Thông báo" @click.stop>
+          <span class="hdr-pop__arrow" :style="{ right: panelArrow + 'px' }" />
+          <div class="hdr-notify__head">
+            <h3 class="hdr-notify__title">Thông báo</h3>
+            <button type="button" class="btn-icon btn-icon--sm" v-tip="'Đánh dấu tất cả là đã đọc'" aria-label="Đánh dấu tất cả là đã đọc" @click="$emit('notify-action', 'read-all')"><TIcon name="checks" /></button>
+            <button type="button" class="btn-icon btn-icon--sm" v-tip="'Lọc thông báo'" aria-label="Lọc thông báo" @click="$emit('notify-action', 'filter')"><TIcon name="adjustments-horizontal" /></button>
+            <button type="button" class="btn-icon btn-icon--sm" v-tip="'Thiết lập thông báo'" aria-label="Thiết lập thông báo" @click="$emit('notify-action', 'settings')"><TIcon name="settings" /></button>
+          </div>
+          <div class="hdr-notify__body">
+            <p v-if="!notifications.length" class="hdr-notify__empty">Chưa có thông báo nào.</p>
+            <section v-for="g in notifyGroups" :key="g.name" class="hdr-notify__group">
+              <h4 class="hdr-notify__group-title">{{ g.name }}</h4>
+              <button v-for="n in g.items" :key="n.id" type="button" class="hdr-notify__item" :class="{ 'hdr-notify__item--unread': n.unread }" @click="panel = null; $emit('notify-select', n)">
+                <span class="hdr-notify__avatar">
+                  <img v-if="n.avatar" :src="n.avatar" alt="" />
+                  <span v-else-if="n.icon" class="hdr-notify__avatar-icon" :class="`hdr-notify__avatar-icon--${n.tone || 'brand'}`"><TIcon :name="n.icon" /></span>
+                  <span v-else class="hdr-notify__avatar-initials" :style="initialsStyle(n.name)">{{ initialsOf(n.name) }}</span>
+                  <img v-if="n.badgeImg" :src="n.badgeImg" alt="" class="hdr-notify__badge-img" />
+                  <span v-else-if="n.badgeIcon" class="hdr-notify__badge"><TIcon :name="n.badgeIcon" /></span>
+                </span>
+                <span class="hdr-notify__text">
+                  <span class="hdr-notify__msg"><template v-for="(part, k) in msgParts(n.text)" :key="k"><b v-if="part.b">{{ part.t }}</b><template v-else>{{ part.t }}</template></template></span>
+                  <span class="hdr-notify__time">{{ n.time }}</span>
+                </span>
+              </button>
+            </section>
+          </div>
+        </div>
+
+        <!-- Trợ giúp — Figma Header_Help (49869:3243) · Thêm — Header_More (49869:3244): nhóm có tiêu đề H3 · Menu List Item 32 · icon 20 -->
+        <div v-if="(panel === 'help' && helpMenu.length) || (panel === 'more' && moreMenu.length) || (panel === 'settings' && settingsMenu.length)" ref="panelEl" class="hdr-pop hdr-menu" :class="`hdr-menu--${panel}`" :style="panelStyle" role="menu" @click.stop>
+          <span class="hdr-pop__arrow" :style="{ right: panelArrow + 'px' }" />
+          <template v-for="(sec, si) in (panel === 'help' ? helpMenu : [{ items: panel === 'settings' ? settingsItems : moreMenu }])" :key="si">
+            <section class="hdr-menu__sec">
+              <h4 v-if="sec.title" class="hdr-menu__title">{{ sec.title }}</h4>
+              <template v-for="(it, i) in sec.items" :key="it.id || 'sep' + i">
+                <div v-if="it.separator" class="hdr-menu__sep" role="separator" />
+                <button v-else type="button" class="hdr-pop__item" role="menuitem" @click="onMenuSelect(it)">
+                  <img v-if="it.img" :src="it.img" alt="" class="hdr-pop__img" /><TIcon v-else-if="it.icon" :name="it.icon" :style="it.color ? { color: it.color } : null" /><span class="hdr-pop__label">{{ it.label }}</span>
+                </button>
+              </template>
+            </section>
+          </template>
+          <div v-if="panel === 'more' && $slots['more-footer']" class="hdr-menu__footer"><slot name="more-footer" /></div>
+        </div>
+      </Teleport>
+      </div>
     </div>
   </header>
 
@@ -136,8 +262,8 @@
             <div class="connect-dialog__header">
               <h2 class="connect-dialog__title">Kết nối</h2>
               <div class="connect-dialog__header-actions">
-                <button class="btn-icon" title="Trợ giúp"><TIcon name="help-circle" /></button>
-                <button class="btn-icon" @click="closeConnectApps"><TIcon name="x" /></button>
+                <button class="btn-icon" v-tip="'Trợ giúp'" aria-label="Trợ giúp"><TIcon name="help-circle" /></button>
+                <button class="btn-icon" aria-label="Đóng" @click="closeConnectApps"><TIcon name="x" /></button>
               </div>
             </div>
 
@@ -180,7 +306,7 @@
                   </div>
                   <div class="connect-search">
                     <TIcon name="search" />
-                    <input v-model="connectSearch" type="text" placeholder="Tìm kiếm ứng dụng..." />
+                    <input :value="connectSearch" type="text" @input="connectSearch = $event.target.value" placeholder="Tìm kiếm ứng dụng..." />
                   </div>
                 </div>
                 <div class="connect-grid">
@@ -196,7 +322,7 @@
                         </span>
                       </div>
                       <div class="connect-card__actions">
-                        <button class="btn-icon btn-icon--sm" title="Hướng dẫn" @click.stop>
+                        <button class="btn-icon btn-icon--sm" v-tip="'Hướng dẫn'" aria-label="Hướng dẫn" @click.stop>
                           <TIcon name="help-circle" />
                         </button>
                         <button
@@ -230,7 +356,7 @@
             <!-- Header -->
             <div class="settings-dialog__header">
               <span class="h2">Thiết lập màu sắc và hiển thị</span>
-              <button class="btn-icon" @click="cancelSettings"><TIcon name="x" /></button>
+              <button class="btn-icon" aria-label="Đóng" @click="cancelSettings"><TIcon name="x" /></button>
             </div>
 
             <!-- Tabs -->
@@ -274,9 +400,12 @@
                   <div class="srow">
                     <span class="srow__label">Sidebar</span>
                     <div class="srow__btns">
-                      <button v-for="s in sidebarModes" :key="s.value" class="sopt"
-                        :class="{ 'sopt--active': draftSidebarMode === s.value }" type="button"
-                        @click="draftSidebarMode = s.value">
+                      <!-- Sidebar nền tối chỉ đi với Tiêu đề màu trắng (Tiêu đề màu → sidebar luôn nền trắng) -->
+                      <button v-for="s in sidebarModes" :key="s.value" class="sopt" type="button"
+                        :class="{ 'sopt--active': draftSidebarMode === s.value, 'sopt--disabled': s.value === 'dark' && !sidebarDarkAllowed(draftMode) }"
+                        :aria-disabled="s.value === 'dark' && !sidebarDarkAllowed(draftMode) ? 'true' : null"
+                        v-tip="s.value === 'dark' && !sidebarDarkAllowed(draftMode) ? 'Chỉ dùng được khi Tiêu đề màu trắng' : ''"
+                        @click="(s.value !== 'dark' || sidebarDarkAllowed(draftMode)) && (draftSidebarMode = s.value)">
                         <span class="sopt__dot" />{{ s.label }}
                       </button>
                     </div>
@@ -385,7 +514,7 @@
                           <div style="flex:1;overflow:hidden;padding:8px;display:flex;flex-direction:column;gap:8px">
                             <!-- Row 1: 3 stat cards -->
                             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-                              <div v-for="i in 3" :key="i" style="background:white;border-radius:5px;padding:8px;box-shadow:0 0 2px rgba(0,0,0,0.1)">
+                              <div v-for="i in 3" :key="i" style="background:white;border-radius:5px;padding:8px;box-shadow:var(--shadow-card)">
                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
                                   <div style="height:7px;width:60px;background:#f0f2f4;border-radius:2px"></div>
                                   <div style="height:14px;width:40px;background:#f0f2f4;border-radius:2px"></div>
@@ -396,7 +525,7 @@
                             </div>
                             <!-- Row 2: chart + pie -->
                             <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px;flex:1">
-                              <div style="background:white;border-radius:5px;padding:8px;box-shadow:0 0 2px rgba(0,0,0,0.1)">
+                              <div style="background:white;border-radius:5px;padding:8px;box-shadow:var(--shadow-card)">
                                 <div style="height:7px;width:80px;background:#f0f2f4;border-radius:2px;margin-bottom:8px"></div>
                                 <div style="height:60%;position:relative;overflow:hidden">
                                   <svg width="100%" height="100%" viewBox="0 0 300 80" preserveAspectRatio="none">
@@ -411,7 +540,7 @@
                                   </svg>
                                 </div>
                               </div>
-                              <div style="background:white;border-radius:5px;padding:8px;box-shadow:0 0 2px rgba(0,0,0,0.1);display:flex;flex-direction:column;align-items:center;justify-content:center">
+                              <div style="background:white;border-radius:5px;padding:8px;box-shadow:var(--shadow-card);display:flex;flex-direction:column;align-items:center;justify-content:center">
                                 <svg width="60" height="60" viewBox="0 0 60 60">
                                   <circle cx="30" cy="30" r="22" fill="none" stroke="#e9eaeb" stroke-width="8"/>
                                   <circle cx="30" cy="30" r="22" fill="none" :stroke="previewColor.main" stroke-width="8"
@@ -456,6 +585,23 @@
                     <div class="density-item__info">
                       <span class="density-item__label">{{ d.label }}</span>
                       <span class="density-item__desc">{{ d.description }}</span>
+                    </div>
+                  </label>
+                </div>
+                <!-- Cỡ chữ — Figma collection 🔢 Font Size (Small · Medium · Large); màn ≤ 640px tự dùng mode Mobile Responsive -->
+                <p class="settings-section-title settings-section-title--gap">Cỡ chữ</p>
+                <div class="density-options">
+                  <label v-for="f in FONT_SIZES" :key="f.id" class="density-item" :class="{ 'density-item--active': draftFontSize === f.id }" @click="draftFontSize = f.id">
+                    <div class="density-item__radio">
+                      <span class="radio-circle" :class="{ 'radio-circle--checked': draftFontSize === f.id }"></span>
+                    </div>
+                    <div class="density-item__preview font-size-preview font-size-scope" :data-font-size="f.id">
+                      <span class="font-size-preview__h">Tiêu đề</span>
+                      <span class="font-size-preview__b">Nội dung chữ thường</span>
+                    </div>
+                    <div class="density-item__info">
+                      <span class="density-item__label">{{ f.label }}</span>
+                      <span class="density-item__desc">{{ f.description }}</span>
                     </div>
                   </label>
                 </div>
@@ -535,18 +681,143 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { COLORS, currentTheme, applyTheme, currentMode, applyMode, currentBgTint, applyBgTint, DENSITIES, currentDensity, applyDensity, WALLPAPERS, currentWallpaper, applyWallpaper, currentSidebarMode, applySidebarMode } from '../theme.js'
+import { vTip } from '../utils/tooltip.js'
+import { avatarInitials as avatarInitialsOf, avatarColor } from '../utils/avatar.js'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted, getCurrentInstance } from 'vue'
+import { COLORS, currentTheme, applyTheme, currentMode, applyMode, currentBgTint, applyBgTint, DENSITIES, currentDensity, applyDensity, FONT_SIZES, currentFontSize, applyFontSize, WALLPAPERS, currentWallpaper, applyWallpaper, currentSidebarMode, applySidebarMode, sidebarDarkAllowed } from '../theme.js'
 import TIcon        from './TIcon.vue'
+import AppGlobalSearch from './AppGlobalSearch.vue'
+import AppSearchResultsDialog from './AppSearchResultsDialog.vue'
 import IconMisaAI   from './IconMisaAI.vue'
-import IconAmisChat from './IconAmisChat.vue'
 
 const props = defineProps({
   appName: { type: String, default: 'Kế Toán' },
   appTag:  { type: String, default: '' },
+  /** Ép nền header: 'color' (nền màu chủ đề) | 'light' (nền trắng) — bỏ trống = theo Thiết lập hiển thị của người dùng (VD khung ví dụ trong tài liệu) */
+  mode:    { type: String, default: '' },
   noMeta:  { type: Boolean, default: false },
   hideTrialBanner: { type: Boolean, default: false },
+  /** true: nút bánh răng mở thẳng "Thiết lập màu sắc và hiển thị" (bỏ bảng tiện ích & thiết lập) */
+  settingsOnly:    { type: Boolean, default: false },
+  /** Tên người dùng → avatar chữ cái đầu; để trống giữ avatar mặc định */
+  avatarName:      { type: String,  default: '' },
+  /** Ẩn các công cụ không dùng: 'apps' (nút 9 chấm) | 'search' | 'ai' | 'notify' | 'help' | 'more' */
+  hideTools:       { type: Array,   default: () => [] },
+  /** Mục thêm vào menu bánh răng: [{ id, icon, label }] — có giá trị thì bánh răng xổ menu
+      (mục đầu luôn là “Thiết lập hiển thị”); chọn mục của app → emit('settings-select', item) */
+  settingsMenu:    { type: Array,   default: () => [] },
+  /** Thông tin tài khoản hiện trong menu avatar: email, vai trò, ảnh (Google picture) */
+  userEmail:       { type: String,  default: '' },
+  userRole:        { type: String,  default: '' },
+  userPicture:     { type: String,  default: '' },
+  /** Mục thêm vào menu avatar (trên Đăng xuất): [{ id, icon, label } | { separator: true }] → emit('profile-select', item) */
+  profileMenu:     { type: Array,   default: () => [] },
+  /** Ẩn avatar / menu tài khoản — trang công khai khi người xem chưa đăng nhập (đặt nút “Đăng nhập” vào slot header-end) */
+  hideAvatar:      { type: Boolean, default: false },
+  /** Ô tìm kiếm toàn cục (bắt @search mới xổ kết quả): nhóm theo phân hệ [{ key, title, total, items: [{ id, name, subtitle, meta, avatar }] }] — null = chưa tìm */
+  searchPlaceholder: { type: String, default: 'Tìm kiếm' },
+  searchResults:   { type: Array,   default: null },
+  /** Popup “Xem thêm” của 1 phân hệ: toàn bộ kết quả của phân hệ đó (null = đang nạp) — app nạp khi nhận @search-more(group, q) */
+  searchMoreItems: { type: Array,   default: null },
+  searchMoreTotal: { type: Number,  default: null },
+  searchMoreLoading: { type: Boolean, default: false },
+  searchLoading:   { type: Boolean, default: false },
+  searchPanelWidth: { type: Number, default: 640 },
+  /** Địa chỉ trang chủ khi bấm logo / tên app (app dùng router: bắt @home để điều hướng) */
+  homeHref:        { type: String,  default: '/' },
+  /** Danh sách ứng dụng cho nút 9 chấm: [{ id, label, img (logo), href }] — có giá trị thì bấm 9 chấm xổ menu chuyển app */
+  apps:            { type: Array,   default: () => [] },
+  /** id của ứng dụng đang dùng trong apps (được đánh dấu ✓, chọn lại không làm gì) */
+  currentApp:      { type: String,  default: '' },
+  /** Popover Thông báo (Figma Header_Notification): [{ id, group ('Hôm nay' | 'Trước đó'…), text ('**đậm** thường'), time, unread?, avatar? | icon? + tone? | name?, badgeIcon? | badgeImg? }]
+      null = chuông không xổ (giữ như cũ) */
+  notifications:   { type: Array,   default: null },
+  /** Số trên chuông (mặc định = số thông báo chưa đọc) */
+  notifyCount:     { type: Number,  default: null },
+  /** Popover Trợ giúp (Header_Help): [{ title, items: [{ id, icon | img, label, color? }] }] → emit('help-select', item) */
+  helpMenu:        { type: Array,   default: () => [] },
+  /** Popover Thêm ⋯ (Header_More): [{ id, icon, label } | { separator: true }] + slot more-footer (VD khối cài app mobile) → emit('more-select', item) */
+  moreMenu:        { type: Array,   default: () => [] },
+  /** Menu tài khoản: khung công ty / dữ liệu đang làm việc (có ›) — [{ id, icon, label }] → emit('profile-select', item) */
+  profileContext:  { type: Array,   default: () => [] },
+  /** Dòng ngôn ngữ cuối menu tài khoản: { label: 'Tiếng Việt', flag?: url } → emit('profile-select', { id: '__language' }) */
+  language:        { type: Object,  default: null },
 })
+const appItems = computed(() => props.apps.map(a => ({ ...a, checked: a.id === props.currentApp })))
+const onAppSelect = a => { if (a.id === props.currentApp) return; emit('app-select', a); if (a.href) window.location.href = a.href }   // không có href → app tự xử lý qua @app-select
+/* Ảnh tài khoản (Google) lỗi / hết hạn → hiện chữ cái đầu */
+const picBroken = ref(false)
+watch(() => props.userPicture, () => { picBroken.value = false })
+const emit = defineEmits(['settings-select', 'home', 'logout', 'profile-select', 'app-select', 'notify-select', 'notify-action', 'help-select', 'more-select', 'search', 'search-select', 'search-more'])
+
+/* ── Menu tài khoản (bấm avatar) ── */
+const profileOpen = ref(false), profileStyle = ref({}), avatarBtnRef = ref(null), profileRef = ref(null)
+const more = ref(null)   // { group, q } — popup kết quả của 1 phân hệ đang mở
+function openMore(group, q) { more.value = { group, q }; emit('search-more', group, q) }
+const hasSearch = computed(() => !!inst?.vnode.props?.onSearch)   // app bắt @search → ô tìm kiếm xổ kết quả
+const hasLogout = computed(() => !!inst?.vnode.props?.onLogout)   // app bắt @logout → hiện “Đăng xuất”
+function onProfileOutside(e) { if (!profileRef.value?.contains(e.target) && !avatarBtnRef.value?.contains(e.target)) closeProfile() }
+function onProfileKey(e) { if (e.key === 'Escape') closeProfile() }
+const profileArrow = ref(16)
+function toggleProfile() {
+  if (profileOpen.value) return closeProfile()
+  panel.value = null
+  const r = avatarBtnRef.value.getBoundingClientRect(), right = Math.max(8, window.innerWidth - r.right - 8)
+  profileStyle.value = { top: r.bottom + 12 + 'px', right: right + 'px' }
+  profileArrow.value = Math.max(12, window.innerWidth - right - (r.left + r.width / 2) - 7)   // mũi nhọn chỉ đúng giữa avatar
+  profileOpen.value = true
+  document.addEventListener('mousedown', onProfileOutside, true); document.addEventListener('keydown', onProfileKey)
+}
+function closeProfile() {
+  profileOpen.value = false
+  document.removeEventListener('mousedown', onProfileOutside, true); document.removeEventListener('keydown', onProfileKey)
+}
+function onProfileItem(it) { closeProfile(); emit('profile-select', it) }
+function onLogout() { closeProfile(); emit('logout') }
+onUnmounted(closeProfile)
+const inst = getCurrentInstance()
+function onHome(e) { if (inst?.vnode.props?.onHome) { e.preventDefault(); emit('home') } }
+const settingsItems = computed(() => [{ id: '__display', icon: 'palette', label: 'Thiết lập hiển thị' }, ...props.settingsMenu])
+function onSettingsSelect(item) { if (item.id === '__display') openSettings(); else if (item.action === 'connect-apps') openConnectApps(); else emit('settings-select', item) }   // item.action 'connect-apps' → mở sẵn dialog Kết nối ứng dụng
+const hidden = k => props.hideTools.includes(k)
+
+/* ── Popover Thông báo / Trợ giúp / Thêm (Figma Global Header) — xổ dưới icon, mép phải canh theo icon, mũi nhọn chỉ giữa icon ── */
+const panel = ref(null), panelEl = ref(null), panelStyle = ref({}), panelArrow = ref(16)
+const panelBtn = {}
+const APP_TILE = 152, APP_GAP = 8
+const appCols = computed(() => Math.min(3, Math.max(1, props.apps.length)))
+const PANEL_W = { notify: 434, help: 296, more: 288, settings: 296, get apps() { return appCols.value * APP_TILE + (appCols.value - 1) * APP_GAP + 32 } }
+function togglePanel(name) {
+  if (panel.value === name) return (panel.value = null)
+  closeProfile()
+  const r = panelBtn[name]?.getBoundingClientRect(); if (!r) return
+  const w = Math.min(PANEL_W[name], window.innerWidth - 16)
+  const center = r.left + r.width / 2
+  const left = name === 'apps'
+    ? Math.max(8, Math.min(center - 28, window.innerWidth - w - 8))     // nút 9 chấm ở bên trái → popover mở sang phải
+    : Math.max(8, Math.min(center + 40 - w, window.innerWidth - w - 8))   // icon nằm gần mép phải popover
+  panelStyle.value = { top: r.bottom + 12 + 'px', left: left + 'px', width: w + 'px' }
+  panelArrow.value = Math.max(12, Math.min(w - 26, left + w - center - 7))
+  panel.value = name
+}
+const onPanelOutside = e => { if (panel.value && !panelEl.value?.contains(e.target) && !Object.values(panelBtn).some(b => b?.contains?.(e.target))) panel.value = null }
+const onPanelKey = e => { if (e.key === 'Escape') panel.value = null }
+watch(panel, v => {
+  if (v) { document.addEventListener('mousedown', onPanelOutside, true); document.addEventListener('keydown', onPanelKey) }
+  else { document.removeEventListener('mousedown', onPanelOutside, true); document.removeEventListener('keydown', onPanelKey) }
+})
+onUnmounted(() => { panel.value = null })
+const notifyBadge = computed(() => { const n = props.notifyCount ?? (props.notifications ? props.notifications.filter(x => x.unread).length : 9); return n > 99 ? '99+' : n || '' })
+const notifyGroups = computed(() => { const m = new Map(); for (const n of props.notifications || []) { const g = n.group || 'Thông báo'; if (!m.has(g)) m.set(g, []); m.get(g).push(n) } return [...m].map(([name, items]) => ({ name, items })) })
+/* '**Nguyễn A** đã bình luận' → các đoạn đậm / thường (không dùng v-html) */
+const msgParts = t => String(t || '').split(/(\*\*[^*]+\*\*)/).filter(Boolean).map(x => (x.startsWith('**') ? { b: true, t: x.slice(2, -2) } : { b: false, t: x }))
+function onMenuSelect(it) { const name = panel.value; panel.value = null; if (name === 'settings') return onSettingsSelect(it); emit(name === 'help' ? 'help-select' : 'more-select', it) }
+const initialsOf = n => avatarInitialsOf(n || '')
+const initialsStyle = n => { const c = avatarColor(n || ''); return { background: c.bg, color: c.fg } }
+
+/* ── Avatar chữ cái đầu — cùng quy tắc & bảng màu với DataTable ── */
+const avatarInitials = computed(() => avatarInitialsOf(props.avatarName))
+const avatarStyle = computed(() => { const c = avatarColor(props.avatarName); return { background: c.bg, color: c.fg } })
 
 /* ── Trial expiry banner ── */
 const showTrialBanner = ref(!props.hideTrialBanner)
@@ -625,7 +896,7 @@ function openToolsPopover() {
       position: 'fixed',
       top:   (rect.bottom + 8) + 'px',
       right: (window.innerWidth - rect.right) + 'px',
-      zIndex: 9500,
+      zIndex: 'var(--z-header-pop)',   // menu xổ từ header: luôn trên drawer / panel
     }
   }
   showToolsPopover.value = true
@@ -718,8 +989,11 @@ const draftColor     = ref(currentTheme.value)
 const draftMode      = ref(currentMode.value)
 const draftBgTint    = ref(currentBgTint.value)
 const draftDensity   = ref(currentDensity.value)
+const draftFontSize  = ref(currentFontSize.value)
 const draftWallpaper    = ref(currentWallpaper.value)
 const draftSidebarMode  = ref(currentSidebarMode.value)
+
+watch(draftMode, m => { if (!sidebarDarkAllowed(m)) draftSidebarMode.value = 'light' })   // chọn Tiêu đề màu → sidebar về nền trắng
 
 const sidebarModes = [
   { value: 'light', label: 'Nền trắng' },
@@ -729,7 +1003,7 @@ const sidebarModes = [
 const dialogTabs = [
   { id: 'color',      label: 'Thiết lập màu sắc' },
   { id: 'display',    label: 'Thiết lập hiển thị' },
-  { id: 'wallpaper',  label: 'Hình nền' },
+  // Tab "Hình nền" đã bỏ — không cho chọn hình nền nữa (áp dụng chung mọi app)
 ]
 const modes = [
   { value: 'color', label: 'Màu đang chọn' },
@@ -762,6 +1036,7 @@ function openSettings() {
   draftMode.value        = currentMode.value
   draftBgTint.value      = currentBgTint.value
   draftDensity.value     = currentDensity.value
+  draftFontSize.value    = currentFontSize.value
   draftWallpaper.value   = currentWallpaper.value
   draftSidebarMode.value = currentSidebarMode.value
   showSettings.value     = true
@@ -773,6 +1048,7 @@ function saveSettings() {
   applyMode(draftMode.value)
   applyBgTint(draftBgTint.value)
   applyDensity(draftDensity.value)
+  applyFontSize(draftFontSize.value)
   applyWallpaper(draftWallpaper.value)
   applySidebarMode(draftSidebarMode.value)
   showSettings.value = false
@@ -806,14 +1082,14 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   flex-shrink: 0;
 }
 .trial-banner__text {
-  font-size: 13px; line-height: 20px; margin: 0;
+  font-size: var(--text-body); line-height: var(--text-body-lh); margin: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .trial-banner__text strong { font-weight: var(--fw-semibold); }
 .trial-banner__actions { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
 .trial-banner__dismiss {
   background: none; border: none; cursor: pointer;
-  font-family: var(--font-family); font-size: 13px;
+  font-family: var(--font-family); font-size: var(--text-body);
   color: rgba(255,255,255,0.72);
 }
 .trial-banner__dismiss:hover { color: var(--text-white); text-decoration: underline; }
@@ -838,7 +1114,6 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 .settings-dialog__header {
   display: flex; align-items: center; justify-content: space-between;
   padding: var(--dialog-py) var(--dialog-px);
-  border-bottom: 1px solid var(--stroke-neutral-light);
   flex-shrink: 0;
 }
 
@@ -851,13 +1126,14 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 }
 .dialog-tab {
   height: 44px; padding: 0 16px;
-  font-size: 13px; font-weight: var(--fw-medium);
+  font-size: var(--text-body); font-weight: var(--fw-medium);
   color: var(--text-secondary);
   border: none; background: transparent; cursor: pointer;
   border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
-.dialog-tab:hover { color: var(--text-primary); }
+.dialog-tab:hover { color: var(--text-primary); background: var(--bg-brand-light); }   /* hover nền Brand Light (quy tắc hover chung) */
+.dialog-tab:active { background: var(--bg-brand-light-hover); }
 .dialog-tab--active { color: var(--text-brand); border-bottom-color: var(--stroke-brand); font-weight: var(--fw-semibold); }
 
 /* Body */
@@ -881,7 +1157,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 }
 .srow { display: flex; align-items: center; gap: 10px; }
 .srow__label {
-  font-size: 11px; font-weight: var(--fw-semibold);
+  font-size: var(--text-body); font-weight: var(--fw-semibold);
   color: var(--text-secondary);
   text-transform: uppercase; letter-spacing: 0.06em;
   min-width: 44px; text-align: right; white-space: nowrap;
@@ -893,7 +1169,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   border-radius: var(--radius-pill);
   border: 1.5px solid var(--stroke-neutral);
   background: var(--bg-white);
-  font-size: 12px; font-weight: var(--fw-medium);
+  font-size: var(--text-body); font-weight: var(--fw-medium);
   color: var(--text-secondary);
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, color 0.15s;
@@ -911,13 +1187,14 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   transition: background 0.15s;
 }
 .sopt--active .sopt__dot { background: var(--text-brand); }
+.sopt--disabled, .sopt--disabled:hover { border-color: var(--stroke-neutral-light); background: var(--bg-white); color: var(--text-disabled); cursor: not-allowed; }
 
 /* Color swatches */
 .color-swatches {
   display: flex; gap: 10px;
   flex-wrap: nowrap; overflow-x: auto;
   padding-bottom: 4px;
-  justify-content: center;
+  justify-content: safe center;   /* safe: màn hẹp hơn dãy màu → dồn trái để cuộn được tới màu đầu (center thường đẩy màu đầu ra ngoài, không cuộn tới được) */
 }
 .color-swatch {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -928,7 +1205,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   background: var(--bg-white);
   min-width: 80px;
 }
-.color-swatch:hover { background: var(--bg-neutral-light); }
+.color-swatch:hover { background: var(--bg-brand-light); }
 .color-swatch--selected { background: var(--bg-white); }
 
 .color-swatch__preview {
@@ -947,7 +1224,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 }
 .color-swatch__check .ti { font-size: 10px; color: white; }
 .color-swatch__label {
-  font-size: 12px; font-weight: var(--fw-medium);
+  font-size: var(--text-body); font-weight: var(--fw-medium);
   color: var(--text-primary); white-space: nowrap;
 }
 
@@ -955,8 +1232,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 .preview-wrap {
   width: 100%; overflow: hidden;
   border-radius: var(--radius-default);
-  border: 1px solid var(--stroke-neutral-light);
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--stroke-neutral-light);   /* có viền thì không bóng */
   flex-shrink: 0;
   display: flex; justify-content: center;
 }
@@ -988,7 +1264,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 .mini-subnav-tab {
   display: flex; align-items: center;
   height: 44px; padding: 0 14px;
-  font-size: 10px; font-weight: 500; color: #717680;
+  font-size: 10px; font-weight: 500; color: var(--text-secondary);
   border-bottom: 2px solid transparent;
   white-space: nowrap;
 }
@@ -1009,8 +1285,8 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 .settings-dialog__footer {
   display: flex; align-items: center; justify-content: flex-end;
   gap: 12px; padding: 12px var(--dialog-px);
-  background: var(--neutral-50);
-  border-top: 1px solid var(--stroke-neutral-light);
+  background: var(--bg-form-footer);
+  border-top: 1px solid var(--stroke-form-footer);
   border-radius: 0 0 var(--radius-dialog) var(--radius-dialog);
   flex-shrink: 0;
 }
@@ -1019,6 +1295,11 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 .density-options {
   display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
 }
+.settings-section-title--gap { margin-top: 20px; }
+/* Xem trước cỡ chữ: dùng đúng token của mode (khung .font-size-scope[data-font-size]) */
+.font-size-preview { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 0 12px; overflow: hidden; }
+.font-size-preview__h { font-size: var(--text-h3); line-height: var(--text-h3-lh); font-weight: var(--fw-semibold); color: var(--text-primary); white-space: nowrap; }
+.font-size-preview__b { font-size: var(--text-body); line-height: var(--text-body-lh); color: var(--text-secondary); white-space: nowrap; }
 .density-item {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
   cursor: pointer; padding: 16px;
@@ -1028,7 +1309,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   transition: border-color 0.15s, background 0.15s;
   min-width: 160px;
 }
-.density-item:hover { background: var(--bg-neutral-light); }
+.density-item:hover { background: var(--bg-brand-light); }
 .density-item--active { border-color: var(--stroke-brand); background: var(--bg-white); }
 .density-item__radio { display: flex; align-items: center; }
 .density-item__preview {
@@ -1050,10 +1331,10 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
 }
 .density-item__label {
-  font-size: 13px; font-weight: var(--fw-semibold); color: var(--text-primary);
+  font-size: var(--text-body); font-weight: var(--fw-semibold); color: var(--text-primary);
 }
 .density-item__desc {
-  font-size: 11px; color: var(--text-secondary); line-height: 1.4;
+  font-size: var(--text-body); color: var(--text-secondary); line-height: 1.4;
 }
 
 /* Placeholder */
@@ -1086,13 +1367,13 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   display: flex; align-items: center; justify-content: center;
 }
 .wallpaper-item__label {
-  font-size: 12px; font-weight: var(--fw-medium);
+  font-size: var(--text-body); font-weight: var(--fw-medium);
   color: var(--text-primary);
 }
 .wallpaper-check {
   position: absolute; top: 8px; right: 8px;
   width: 20px; height: 20px; border-radius: 50%;
-  background: var(--bg-brand); color: #fff;
+  background: var(--bg-brand); color: var(--icon-white);
   display: flex; align-items: center; justify-content: center;
 }
 .wallpaper-check .ti { font-size: 12px; }
@@ -1104,8 +1385,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 .wallpaper-preview {
   width: 480px; height: 280px; border-radius: 10px;
   background-size: cover; background-position: center;
-  overflow: hidden; border: 1px solid var(--stroke-neutral-light);
-  box-shadow: var(--shadow-md);
+  overflow: hidden; border: 1px solid var(--stroke-neutral-light);   /* có viền thì không bóng */
   display: flex; flex-direction: column;
 }
 .wp-preview-header {
@@ -1133,7 +1413,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 }
 .wp-preview-card--wide { flex: 2; min-width: 200px; }
 .wp-preview-note {
-  font-size: 12px; color: var(--text-hint);
+  font-size: var(--text-body); color: var(--text-hint);
   margin: 0; text-align: center;
 }
 
@@ -1149,8 +1429,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   max-width: calc(100vw - 32px);
   background: var(--bg-white);
   border-radius: var(--radius-dialog);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--stroke-neutral-light);
+  box-shadow: var(--shadow-popover);   /* chuẩn popover Figma: Bottom 12, không viền */
   font-family: var(--font-family);
   padding: 20px 24px 24px;
 }
@@ -1187,7 +1466,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   gap: 24px;
 }
 .tools-col__title {
-  font-size: 13px;
+  font-size: var(--text-body);
   font-weight: var(--fw-semibold);
   color: var(--text-primary);
   margin: 0;
@@ -1202,15 +1481,15 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   border: none;
   background: transparent;
   border-radius: var(--radius-default);
-  font-size: 13px;
+  font-size: var(--text-body);
   font-family: var(--font-family);
   color: var(--text-primary);
   text-align: left;
-  line-height: 20px;
+  line-height: var(--text-body-lh);
   cursor: pointer;
   transition: background 0.12s;
 }
-.tools-item:hover { background: var(--bg-neutral-hover); }
+.tools-item:hover { background: var(--bg-brand-light); }
 .tools-item__tag {
   display: inline-flex;
   align-items: center;
@@ -1244,7 +1523,6 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 .connect-dialog__header {
   display: flex; align-items: center; justify-content: space-between;
   padding: var(--dialog-py) var(--dialog-px);
-  border-bottom: 1px solid var(--stroke-neutral-light);
   flex-shrink: 0;
 }
 .connect-dialog__title { font-size: 20px; font-weight: var(--fw-semibold); color: var(--text-primary); margin: 0; }
@@ -1258,7 +1536,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 }
 .connect-syncbar__left, .connect-syncbar__right {
   display: flex; align-items: center; gap: 8px;
-  font-size: 13px; color: var(--text-secondary);
+  font-size: var(--text-body); color: var(--text-secondary);
 }
 .connect-syncbar__left .ti { font-size: 16px; color: var(--icon-neutral); }
 .connect-syncbar__label { color: var(--text-primary); font-weight: var(--fw-medium); }
@@ -1266,12 +1544,12 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   display: inline-flex; align-items: center;
   height: 20px; padding: 0 8px;
   background: var(--bg-brand-light); color: var(--text-brand);
-  font-size: 11px; font-weight: var(--fw-semibold);
+  font-size: var(--text-body); font-weight: var(--fw-semibold);
   border-radius: var(--radius-pill);
 }
 .connect-link {
   display: inline-flex; align-items: center; gap: 4px;
-  font-size: 13px; color: var(--text-link); text-decoration: none; cursor: pointer;
+  font-size: var(--text-body); color: var(--text-link); text-decoration: none; cursor: pointer;
 }
 .connect-link .ti { font-size: 14px; }
 .connect-link:hover { text-decoration: underline; }
@@ -1290,7 +1568,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 .connect-search .ti { font-size: 16px; color: var(--icon-neutral); flex-shrink: 0; }
 .connect-search input {
   border: none; outline: none; background: transparent;
-  font-size: 13px; font-family: var(--font-family); color: var(--text-primary);
+  font-size: var(--text-body); font-family: var(--font-family); color: var(--text-primary);
   width: 100%;
 }
 
@@ -1305,14 +1583,14 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   display: flex; align-items: center; gap: 10px;
   height: 36px; padding: 0 12px;
   border: none; background: transparent; border-radius: var(--radius-default);
-  font-size: 13px; font-weight: var(--fw-medium); color: var(--text-primary);
+  font-size: var(--text-body); font-weight: var(--fw-medium); color: var(--text-primary);
   text-align: left; cursor: pointer;
   transition: background 0.12s;
 }
 .connect-sidebar__item .ti { font-size: 16px; color: var(--icon-neutral); flex-shrink: 0; }
-.connect-sidebar__item:hover { background: var(--bg-neutral-hover); }
+.connect-sidebar__item:hover { background: var(--bg-brand-light); }
 .connect-sidebar__item--active { background: var(--bg-brand-light); color: var(--text-brand); font-weight: var(--fw-semibold); }
-.connect-sidebar__item--active .ti { color: var(--text-brand); }
+.connect-sidebar__item--active .ti { color: var(--icon-brand); }
 
 .connect-grid-wrap { flex: 1; min-width: 0; overflow-y: auto; padding: 20px 24px; background: var(--bg-page); }
 .connect-segment {
@@ -1324,12 +1602,12 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 }
 .connect-segment__item {
   height: 28px; padding: 0 16px;
-  font-size: 13px; font-weight: var(--fw-medium);
-  color: var(--text-secondary);
+  font-size: var(--text-body); font-weight: var(--fw-medium);
+  color: var(--text-primary);
   border: none; background: transparent; border-radius: calc(var(--radius-default) - 2px);
   cursor: pointer; transition: background 0.15s, color 0.15s;
 }
-.connect-segment__item:hover { color: var(--text-primary); }
+.connect-segment__item:hover:not(.connect-segment__item--active) { color: var(--text-primary); background: var(--bg-brand-light); }
 .connect-segment__item--active {
   background: var(--bg-white); color: var(--text-brand); font-weight: var(--fw-semibold);
   box-shadow: var(--shadow-sm);
@@ -1349,7 +1627,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   min-height: 162px;
   cursor: pointer; transition: box-shadow 0.15s;
 }
-.connect-card:hover { box-shadow: var(--shadow-md); }
+.connect-card:hover { box-shadow: var(--shadow-bottom-8); }
 .connect-card__head { display: flex; align-items: flex-start; gap: 12px; }
 .connect-card__actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .connect-card__icon {
@@ -1357,7 +1635,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.connect-card__icon .ti { font-size: 16px; color: var(--text-white); }
+.connect-card__icon .ti { font-size: 16px; color: var(--icon-white); }
 .connect-card__title {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; gap: 2px;
@@ -1367,21 +1645,126 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
   line-height: 18px;
 }
 .connect-card__status {
-  font-size: 12px; color: var(--text-hint);
+  font-size: var(--text-body); color: var(--text-hint);
 }
 .connect-card__status.is-connected { color: var(--text-success); }
 .connect-card__desc {
   flex: 1;
-  font-size: 13px; line-height: 20px; color: var(--text-secondary);
+  font-size: var(--text-body); line-height: var(--text-body-lh); color: var(--text-secondary);
   margin: 0; margin-left: 40px;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 .connect-empty {
   grid-column: 1 / -1;
-  text-align: center; color: var(--text-hint); font-size: 13px;
+  text-align: center; color: var(--text-hint); font-size: var(--text-body);
   padding: 40px 0;
 }
 
 @media (max-width: 1280px) { .connect-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 960px)  { .connect-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ── Avatar = nút tài khoản + menu thông tin cá nhân / Đăng xuất ── */
+.header-avatar-btn { padding: 0; border: none; background: none; border-radius: 50%; cursor: pointer; display: inline-flex; transition: box-shadow 0.15s; }
+.header-avatar-btn:hover, .header-avatar-btn--open { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35); }
+.global-header--white .header-avatar-btn:hover, .global-header--white .header-avatar-btn--open { box-shadow: 0 0 0 3px var(--bg-brand-light); }
+.header-avatar-btn img.header-avatar { object-fit: cover; }
+/* ── Popover của Global Header (Figma ❖ Global Header: Header_Notification · Header_Help · Header_More · Header_UserProfile) ──
+   Nền trắng · bo 8 · bóng Bottom 16 · mũi nhọn trên đầu chỉ vào icon vừa bấm · luôn trên drawer / panel */
+.hdr-pop { position: fixed; z-index: var(--z-header-pop); box-sizing: border-box; max-width: calc(100vw - 16px);
+  background: var(--bg-white); border-radius: var(--radius-default); box-shadow: var(--shadow-bottom-16, var(--shadow-popover)); font-family: var(--font-family); }
+.hdr-pop > .hdr-pop__arrow { position: absolute; display: block; top: -7px; width: 14px; height: 14px; background: var(--bg-white); transform: rotate(45deg); border-radius: 2px; box-shadow: -2px -2px 4px rgba(0, 0, 0, 0.04); }
+/* Menu List Item dùng chung: cao 32 · đệm ngang 12 · icon 20 · chữ 13 · bo 8 · hover Brand Light */
+.hdr-pop__item {
+  display: flex; align-items: center; gap: var(--menu-item-gap, 8px); width: 100%; min-height: var(--menu-item-h, 32px); padding: 0 var(--menu-item-px, 12px); box-sizing: border-box;
+  border: none; border-radius: var(--menu-radius, var(--radius-default)); background: transparent; cursor: pointer; text-align: left; flex-shrink: 0;
+  font-family: inherit; font-size: var(--text-body); line-height: var(--text-body-lh); color: var(--text-primary); transition: background 0.12s;
+}
+.hdr-pop__item > .ti { font-size: var(--menu-icon, 20px); color: var(--icon-neutral); flex-shrink: 0; }
+.hdr-pop__item:hover { background: var(--bg-brand-light); }
+.hdr-pop__item:focus-visible { outline: 2px solid var(--stroke-brand); outline-offset: -2px; }
+.hdr-pop__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hdr-pop__chev.ti { font-size: 16px; }
+.hdr-pop__img { width: 20px; height: 20px; flex-shrink: 0; object-fit: contain; border-radius: 4px; }
+
+/* Chuyển ứng dụng (9 chấm): lưới ô thoáng, nền gradient nhẹ, ô nổi lên khi rê */
+.hdr-apps { padding: 16px; border-radius: 12px; background: radial-gradient(120% 90px at 0 0, var(--bg-brand-light), transparent 70%), var(--bg-white);
+  transform-origin: 28px -8px; animation: hdr-apps-in 0.18s cubic-bezier(.2, .8, .3, 1.2); }
+.hdr-apps > .hdr-pop__arrow { background: color-mix(in srgb, var(--bg-brand-light) 85%, var(--bg-white)); }
+.hdr-apps__title { margin: 0 4px 12px; font-size: var(--text-body); line-height: var(--text-body-lh); font-weight: var(--fw-semibold); color: var(--text-secondary); }
+.hdr-apps__grid { display: grid; grid-template-columns: repeat(var(--apps-cols, 2), minmax(0, 1fr)); gap: 8px; }
+.hdr-apps__tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px 14px; min-width: 0;
+  border: 1px solid transparent; border-radius: 12px; background: transparent; cursor: pointer; font-family: inherit; text-align: center; color: var(--text-primary);
+  transition: background 0.18s, box-shadow 0.18s, transform 0.18s, border-color 0.18s; animation: hdr-apps-tile 0.28s ease both; animation-delay: calc(var(--i) * 40ms + 40ms); }
+.hdr-apps__tile:hover { background: var(--bg-white); border-color: var(--stroke-neutral-light); box-shadow: var(--shadow-bottom-8); transform: translateY(-2px); }
+.hdr-apps__tile:active { transform: translateY(0); }
+.hdr-apps__tile:focus-visible { outline: 2px solid var(--stroke-brand); outline-offset: 2px; }
+.hdr-apps__tile--on { background: var(--bg-white); border-color: var(--stroke-brand); box-shadow: 0 0 0 3px var(--bg-brand-light); }
+.hdr-apps__tile--on:hover { border-color: var(--stroke-brand); box-shadow: 0 0 0 3px var(--bg-brand-light), 0 8px 20px -6px rgba(16, 24, 40, 0.16); }
+.hdr-apps__logo { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; margin-bottom: 8px; border-radius: 14px;
+  filter: drop-shadow(0 4px 8px rgba(16, 24, 40, 0.14)); transition: transform 0.25s cubic-bezier(.2, .8, .3, 1.4); }   /* logo app vốn là ô bo màu → chỉ thêm bóng, không đóng khung thêm */
+.hdr-apps__logo img { width: 48px; height: 48px; object-fit: contain; }
+.hdr-apps__logo:not(:has(img)) { background: var(--bg-brand-light); }
+.hdr-apps__logo .ti { font-size: 28px; color: var(--icon-brand); }
+.hdr-apps__tile:hover .hdr-apps__logo { transform: scale(1.08) rotate(-3deg); }
+.hdr-apps__name { max-width: 100%; font-size: var(--text-body); line-height: var(--text-body-lh); font-weight: var(--fw-semibold); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hdr-apps__desc { max-width: 100%; font-size: var(--text-body); line-height: var(--text-body-lh); color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hdr-apps__check { position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--bg-brand); color: var(--icon-white); }
+.hdr-apps__check .ti { font-size: 14px; }
+@keyframes hdr-apps-in { from { opacity: 0; transform: translateY(-4px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes hdr-apps-tile { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hdr-apps, .hdr-apps__tile, .hdr-apps__logo { animation: none; transition: none; } }
+
+/* Tài khoản: đệm 24 trên dưới · 12 hai bên · các khối cách 20 */
+.hdr-profile { width: 352px; display: flex; flex-direction: column; gap: 16px; padding: 8px; }   /* Figma Header_UserProfile: đệm 8 đều 4 phía · 8 hai bên · khối cách 16 */
+.hdr-profile__head { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 8px; text-align: center; }   /* avatar ↔ tên 8 · đệm trên 8 */
+.hdr-profile__avatar { width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0; object-fit: cover; box-sizing: border-box; border: 0.5px solid var(--stroke-neutral); }
+.hdr-profile__avatar--initials { display: inline-flex; align-items: center; justify-content: center; font-size: 20px; font-weight: var(--fw-semibold); color: var(--text-primary); }   /* Figma Avatar cỡ lớn (56): chữ 20 Semi Bold Text/Primary */
+.hdr-profile__info { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; max-width: 100%; }
+.hdr-profile__name { font-size: var(--text-h3); line-height: var(--text-h3-lh); font-weight: var(--fw-semibold); color: var(--text-primary); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hdr-profile__sub { font-size: var(--text-body); line-height: var(--text-body-lh); color: var(--text-secondary); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hdr-profile__role { margin-top: 2px; padding: 0 6px; border-radius: var(--radius-default); background: var(--bg-brand-light); color: var(--text-brand); font-size: var(--text-body); font-weight: var(--fw-medium); }
+/* Khung công ty / dữ liệu: viền Stroke/Neutral, bo 8, đệm dọc 8, vạch ngăn thụt 12 */
+.hdr-profile__ctx { display: flex; flex-direction: column; gap: 4px; margin: 0 12px; padding: var(--menu-pad, 8px); border: 1px solid var(--stroke-neutral); border-radius: var(--radius-default); }   /* chuẩn Menu List: đệm khung 8 → dòng bo góc, hover không chạm 2 mép viền */
+.hdr-profile__ctx-sep { height: 1px; margin: 0 var(--menu-item-px, 12px); background: var(--stroke-neutral); flex-shrink: 0; }
+.hdr-profile__menu { display: flex; flex-direction: column; margin-top: -8px; }   /* cách khối công ty / dữ liệu 8 · mục liền nhau */
+.hdr-profile__logout { width: 100%; }   /* Figma: Đăng xuất = Button Medium (chữ + icon trung tính, căn giữa) dưới vạch ngăn */
+.hdr-profile__sep { height: 1px; margin: 8px 12px; background: var(--stroke-divider); flex-shrink: 0; }
+
+/* Thông báo: rộng 434 · đệm 12 / 24 · tiêu đề 20 Semi Bold + 3 icon 24 cách 12 · nhóm cách 16 · dòng: avatar 40 + chữ, đệm dọc 8, chưa đọc nền Brand Light tràn 2 mép */
+.hdr-notify { display: flex; flex-direction: column; gap: 12px; padding: 8px; max-height: min(580px, calc(100vh - 72px)); }   /* Figma Header_Notification: đệm 8 đều 4 phía */
+.hdr-notify__head { display: flex; align-items: center; gap: 12px; min-height: 32px; padding: 0 12px; flex-shrink: 0; }   /* hàng tiêu đề cao 32 */
+.hdr-notify__head .btn-icon .ti { font-size: 20px; }   /* Figma: Button Icon Small 28 · icon bên trong 20 */
+.hdr-notify__title { flex: 1; min-width: 0; margin: 0; font-size: var(--text-h3); line-height: var(--text-h3-lh); font-weight: var(--fw-semibold); color: var(--text-primary); }   /* H3 */
+.hdr-notify__body { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+.hdr-notify__group { display: flex; flex-direction: column; }   /* dòng liền nhau (mỗi dòng đệm 8 trên-dưới) */
+.hdr-notify__group-title { margin: 0 0 8px; padding: 0 12px; font-size: var(--text-body); line-height: var(--text-body-lh); font-weight: var(--fw-semibold); color: var(--text-primary); }
+.hdr-notify__item { display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 8px 12px; border: none; border-radius: var(--radius-default); background: transparent; text-align: left; cursor: pointer; font-family: inherit; }   /* dòng bo góc, thụt 8 khỏi mép popup (chuẩn Menu List) */
+.hdr-notify__item:hover { background: var(--bg-brand-light); }
+.hdr-notify__item--unread { background: var(--bg-brand-light); }
+.hdr-notify__item--unread:hover { background: var(--bg-brand-light-hover); }
+.hdr-notify__avatar { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
+.hdr-notify__avatar > img:not(.hdr-notify__badge-img), .hdr-notify__avatar-initials, .hdr-notify__avatar-icon { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
+.hdr-notify__avatar-initials { font-size: 12px; font-weight: var(--fw-medium); color: var(--text-primary); }   /* Figma Avatar 40px: chữ 12 Medium Text/Primary */
+.hdr-notify__avatar-icon .ti { font-size: 22px; }
+.hdr-notify__avatar-icon--brand { background: var(--bg-brand-light); color: var(--icon-brand); }
+.hdr-notify__avatar-icon--danger { background: var(--bg-danger-light); color: var(--icon-danger); }
+.hdr-notify__avatar-icon--warning { background: var(--bg-warning-light); color: var(--icon-warning); }
+.hdr-notify__avatar-icon--success { background: var(--bg-success-light); color: var(--icon-success); }
+.hdr-notify__badge { position: absolute; right: -4px; bottom: -4px; width: 20px; height: 20px; border-radius: 50%; background: var(--bg-white); box-shadow: 0 0 0 1px var(--stroke-neutral-light); display: inline-flex; align-items: center; justify-content: center; color: var(--icon-brand); }
+.hdr-notify__badge .ti { font-size: 12px; }
+.hdr-notify__badge-img { position: absolute; left: 22px; top: 22px; width: 24px; height: 24px; }   /* biểu cảm / huy hiệu ảnh góc dưới avatar (Figma) */
+.hdr-notify__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.hdr-notify__msg { font-size: var(--text-body); line-height: var(--text-body-lh); color: var(--text-primary); }
+.hdr-notify__msg b { font-weight: var(--fw-semibold); }
+.hdr-notify__time { font-size: var(--text-body); line-height: var(--text-body-lh); color: var(--text-secondary); }
+.hdr-notify__empty { margin: 0; color: var(--text-secondary); font-size: var(--text-body); }
+
+/* Trợ giúp (304) / Thêm (296): đệm 24 trên dưới · 12 hai bên · nhóm có tiêu đề H3 cách 8, nhóm cách 12 · vạch ngăn thụt 12 */
+.hdr-menu { display: flex; flex-direction: column; gap: 12px; padding: 8px; }   /* Figma Header_Help / Header_More (và menu Thiết lập): đệm 8 đều 4 phía */
+.hdr-menu__sec { display: flex; flex-direction: column; }   /* Menu List Item 32 liền nhau */
+.hdr-menu--help { gap: 16px; }
+.hdr-menu__sec > .hdr-menu__sep:last-child { margin-bottom: 0; }   /* vạch cuối nhóm → khối dưới chỉ cách 12 (gap khung) */   /* Trợ giúp: các nhóm có tiêu đề cách nhau 16 */
+.hdr-menu__title { display: flex; align-items: center; min-height: 32px; margin: 0; padding: 0 12px; font-size: var(--text-h3); line-height: var(--text-h3-lh); font-weight: var(--fw-semibold); color: var(--text-primary); }
+.hdr-menu__sep { height: 1px; margin: 8px 12px; background: var(--stroke-neutral); flex-shrink: 0; }
+.hdr-menu__footer { padding: 0 12px; }
 </style>

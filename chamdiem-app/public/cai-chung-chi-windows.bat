@@ -1,0 +1,43 @@
+@echo off
+chcp 65001 >nul
+echo Cai chung chi bao mat MISA Solution Point (HTTPS)...
+set "F=%TEMP%\misa-solution-point-ca.crt"
+if exist "%F%" del "%F%"
+echo -----BEGIN CERTIFICATE----->>"%F%"
+echo MIIFhTCCA22gAwIBAgIJAKuA+tB3aGeSMA0GCSqGSIb3DQEBCwUAMEQxJDAiBgNV>>"%F%"
+echo BAMMG01JU0EgU29sdXRpb24gUG9pbnQgUm9vdCBDQTEcMBoGA1UECgwTTUlTQSBT>>"%F%"
+echo b2x1dGlvbiBQb2ludDAeFw0yNjEwMTYwMTIwMTFaFw0zNjEwMTMwMTIwMTFaMEQx>>"%F%"
+echo JDAiBgNVBAMMG01JU0EgU29sdXRpb24gUG9pbnQgUm9vdCBDQTEcMBoGA1UECgwT>>"%F%"
+echo TUlTQSBTb2x1dGlvbiBQb2ludDCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoC>>"%F%"
+echo ggIBAKlLsEE4w45Fid9Yk7raWEvEEhCXoRnotSCPOIEXmaBKCb0EelSZ2Gjjt4mb>>"%F%"
+echo LjO7IQYia38x/izaf3m043OerVm9fp+TXuLDAzHfSFpuCS1urTMcbs9s0b/vYUK6>>"%F%"
+echo r97ZYnKw4jCIoSlgAqepxuc9u1403n1mhdEAzDcdSQE+Ta3rbEmqFwVthqpNKy6b>>"%F%"
+echo L0eLoPNGeLPxwjrw6sVWBXaqa1ACoKqenVItScLGn5dN0Lhv/wOWpQyPe8Epgu5k>>"%F%"
+echo LdtR5l7Wn2cMBZTXeQjxJS04ZXgDaAH+mT9YSjQxNoL19AfXP8/s678Pg1VYQv0j>>"%F%"
+echo QNKjE2gSV/AuEFlSN0ladpg9Aae7TvkFn4vt4l5lb2yBgqHhOoRNErCulV4gArmZ>>"%F%"
+echo lGcjMh8VmUrj6l0dzC6E398XS3gJrBghUINYoQKYzYRZnBpTDWWwf73IsRwZpY1q>>"%F%"
+echo dsbt1/SVHbWBhTNNddjo+Bt3Eb+7J5O52WAw/xks9Abv5nsw4u+ZFEoaMiPvBwda>>"%F%"
+echo yu/eS+8tSUpk6SERwEQBkPbPZf5iRM0FwvEKHyDQjXUc5lbtvhA91xznWe6FEUwd>>"%F%"
+echo vgGVb/afnUSEoR9GmkQldRxYknDhkVTFWXukYGXbkT9NxKq5qGU/JMO9sHkpXPYT>>"%F%"
+echo MA/57/ILh+B4D9CrmXz6J7JFjuihXnT+jN9oM2PzgTgwVPhTAgMBAAGjejB4MBIG>>"%F%"
+echo A1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBS4USVv>>"%F%"
+echo A6q24JEMQ4ECcstoK6gPUjAzBgNVHR4BAf8EKTAnoCUwF4IVcGRwb2ludC5zZGN0>>"%F%"
+echo aGluLmxvY2FsMAqHCAoBJwv/////MA0GCSqGSIb3DQEBCwUAA4ICAQBo5JAcfAhl>>"%F%"
+echo cykh8TW8txqPYLYWJvVTC4Qb2uMSQlvGR0NtOvx9hiNWYPO8Y2cw2E5+m9/Pi4Gl>>"%F%"
+echo cRQa+jaCQDIKRbUobH2HdHOAc81rHC/FsnPcLm/q5VjtQBpDSOmYpzsfIkQLsr3m>>"%F%"
+echo giFwjglUwJj3OQ6icGPjtVG15J9Ijkcm7L0L6CpRK2uHaZsWOUqqnUyixxkmY0oq>>"%F%"
+echo hSCDhmoinZOB+4m0h+iFyN84BI8m7neF4qmZoaiCmHtoJG63pnbzPQDf6bT256vc>>"%F%"
+echo XekirV1ZSMvtdcXfqFOVqFYzr813kblZp8cqZzo//kyROALdCu5gQ5v5Wfy/nsT4>>"%F%"
+echo TChx1F2q26VaDCp1AC3UC9YbT6/iojbtPy2lvs1EUjfx1gg/rqqEOy6nXl8Gdq0Q>>"%F%"
+echo MUA+3AWWE3tUHjpOZOXhvzdOAXFMyzYDuovxlsJGSj1eDzFdO76y1PnJqQnP6Q3m>>"%F%"
+echo KqtEmX1aWoMU7Tnse8Rv3kcwy9s+R8KyigyjpYPg/dxXOYz84g8fSNek/UWm8CtS>>"%F%"
+echo OaKHQ+k0Kqrl+OFcqtaYyOudmFPpguyPpbUPQEHfchG+BTgXSzt16l5Q6vvHUtlu>>"%F%"
+echo H+ofj7pkvbEZYGHSE6wQP5A8vkuhlQF6x+05Sf4xiKASThJPLZyR82l0UyY/Tsby>>"%F%"
+echo yyuV2pwgC0kSq1IWStV+3ujUHPiLR729eQ==>>"%F%"
+echo -----END CERTIFICATE----->>"%F%"
+certutil -user -addstore Root "%F%"
+if errorlevel 1 (echo. & echo Chua cai duoc - hay bam Yes khi Windows hoi xac nhan. & pause & exit /b 1)
+del "%F%"
+echo.
+echo Da cai xong. Dong han trinh duyet roi mo lai https://pdpoint.sdcthin.local
+pause

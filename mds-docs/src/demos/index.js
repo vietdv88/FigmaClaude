@@ -1,0 +1,60 @@
+/* ═══ Ví dụ sống (dùng control thật của mds-ui) ═══
+   Chèn vào trang tài liệu bằng khối:  ::: demo <mã>  (xuống dòng)  :::
+   Thêm ví dụ mới: tạo file *Demo.vue trong thư mục này + khai báo 1 dòng bên dưới (mã · tên hiện trong CMS) */
+const files = import.meta.glob('./*Demo.vue')
+const sources = import.meta.glob('./*Demo.vue', { query: '?raw', import: 'default' })
+
+export const DEMOS = {
+  'button':      { title: 'Button — các loại nút', file: './ButtonDemo.vue' },
+  'text-field':  { title: 'Text field — ô nhập liệu', file: './TextFieldDemo.vue' },
+  'textarea':    { title: 'Textarea — ô nhập nhiều dòng, tự giãn / 1 dòng', file: './TextareaDemo.vue' },
+  'dropdown':    { title: 'Dropdown — chọn 1 giá trị', file: './DropdownDemo.vue' },
+  'combobox':    { title: 'ComboBox — chọn 1, chọn nhiều, tìm kiếm', file: './ComboboxDemo.vue' },
+  'checkbox':    { title: 'Checkbox — chọn nhiều, chọn một phần', file: './CheckboxDemo.vue' },
+  'datetime':    { title: 'Date Time picker', file: './DatetimeDemo.vue' },
+  'context-menu': { title: 'Context menu — menu 3 chấm, chuột phải', file: './ContextMenuDemo.vue' },
+  'data-table':  { title: 'Data table — tìm kiếm, lọc, thiết lập, ghim cột, phân trang', file: './DataTableDemo.vue' },
+  'data-table-types': { title: 'Data table — các loại cột', file: './DataTableTypesDemo.vue' },
+  'data-table-edit':  { title: 'Data table — sửa trực tiếp trong ô', file: './DataTableEditDemo.vue' },
+  'sidebar':     { title: 'Side bar — co cụp, menu con, số đếm', file: './SidebarDemo.vue' },
+  'popup':       { title: 'Popup / Form 1 cột — nhãn trái hoặc nhãn trên', file: './PopupDemo.vue' },
+  'alert':       { title: 'Thông báo — 5 dạng (Dialog, Toast, Notification, Inline, Global Inline)', file: './AlertDemo.vue' },
+  'loading':     { title: 'Loading — nút đang xử lý, khung chờ', file: './LoadingDemo.vue' },
+  'tokens':      { title: 'Biến chuẩn (Design tokens) — liệt kê theo nhóm Chữ · Nền · Viền · Icon · Bo góc · Bóng · Khoảng cách…', file: './TokensDemo.vue' },
+  'color':       { title: 'Màu sắc — token theo chủ đề', file: './ColorDemo.vue' },
+  'radio':       { title: 'Radio button — nhóm ngang, dọc, lỗi', file: './RadioDemo.vue' },
+  'dialog':      { title: 'Dialog — xác nhận, 3 nút, thông báo', file: './DialogDemo.vue' },
+  'leave-warning': { title: 'Cảnh báo thoát khi đang nhập liệu', file: './LeaveWarningDemo.vue' },
+  'empty-state': { title: 'Empty state — chưa có dữ liệu / không có kết quả', file: './EmptyStateDemo.vue' },
+  'header':      { title: 'Header bar — ControlHeader', file: './HeaderDemo.vue' },
+  'icons':       { title: 'Icons — tra cứu bộ icon có sẵn', file: './IconsDemo.vue' },
+  'icon-playground': { title: 'Icons — dán thử mã icon, xem hiển thị + soát lỗi', file: './IconPlaygroundDemo.vue' },
+  'icon-states': { title: 'Icon Swap — màu & trạng thái Default / Hover / Disabled', file: './IconStatesDemo.vue' },
+  'typography':  { title: 'Kiểu chữ — Text Styles', file: './TypographyDemo.vue' },
+  'css-terms':   { title: 'Thuật ngữ CSS — Margin, Border, Padding, Gap, Border radius…', file: './CssTermsDemo.vue' },
+  'font-check':  { title: 'Thử chữ HOA có dấu — ô nhập, nút, tag, bảng', file: './FontCheckDemo.vue' },
+  'number':      { title: 'Định dạng số — ô nhập số, TT200', file: './NumberDemo.vue' },
+  'tree':        { title: 'Tree — cây tổ chức, có / không ô tick', file: './TreeDemo.vue' },
+  'data-viz':    { title: 'Data visualization — Score card & biểu đồ ECharts', file: './DataVizDemo.vue' },
+  'tabs':        { title: 'Tabs — Brand Text, Filled, Solid, Neutral', file: './TabsDemo.vue' },
+  'segmented':   { title: 'Segmented — Brand Text, Solid, Filled, icon, chia đều', file: './SegmentedDemo.vue' },
+  'avatar':      { title: 'Avatar — ảnh, chữ cái theo theme, badge', file: './AvatarDemo.vue' },
+  'accordion':   { title: 'Accordion — Style Outline True / False, mở nhiều mục hoặc 1 mục', file: './AccordionDemo.vue' },
+  'cross-sell':  { title: 'Quảng cáo, liên kết sản phẩm — thanh Tiện ích trên màn Tổng quan (thu gọn / mở rộng)', file: './CrossSellDemo.vue' },
+  'popup-list':  { title: 'Popup chứa danh sách — bảng giãn hết chiều cao, phân trang ghim đáy (Đúng / Sai)', file: './PopupListDemo.vue' },
+  'tag':         { title: 'Tag — Solid / Outline / Text, 3 cỡ, icon, avatar, chấm, nhóm tag', file: './TagDemo.vue' },
+  'searchbox':   { title: 'Search box — tìm kiếm thường & thông minh (AI)', file: './SearchboxDemo.vue' },
+  'email':       { title: 'Mẫu email — xem trước máy tính / điện thoại, mã HTML', file: './EmailDemo.vue' },
+  'rich-text':   { title: 'Rich text editor — TinyMCE: đơn giản, đầy đủ, classic, inline', file: './RichTextDemo.vue' },
+  'layout-dashboard': { title: 'Bố cục — Màn hình tổng quan', file: './LayoutDashboardDemo.vue' },
+  'layout-list':      { title: 'Bố cục — Màn hình danh sách (7 dạng)', file: './LayoutListDemo.vue' },
+  'layout-form':      { title: 'Bố cục — Màn hình thêm và sửa', file: './LayoutFormDemo.vue' },
+  'chatbox-agent':    { title: 'Cửa sổ chat AI Agent — panel phải kéo đổi rộng', file: './ChatboxAgentDemo.vue' },
+  'help-panel':       { title: 'Trợ giúp (Help) — panel phải kéo đổi rộng', file: './HelpPanelDemo.vue' },
+  'layout-detail':    { title: 'Bố cục — Màn hình chi tiết', file: './LayoutDetailDemo.vue' },
+  'onboarding-start': { title: 'Bắt đầu sử dụng — popup các bước, tiến độ, nút nổi (Onboarding)', file: './OnboardingDemo.vue' },
+  'background-tasks': { title: 'Xử lý tiến trình — khay tiến trình chạy ngầm (nhập / xuất khẩu lớn)', file: './BackgroundTasksDemo.vue' },
+}
+export const demoComponent = id => files[DEMOS[id]?.file]
+export const demoSource = id => sources[DEMOS[id]?.file]
+export const DEMO_OPTIONS = Object.entries(DEMOS).map(([value, d]) => ({ value, label: d.title }))

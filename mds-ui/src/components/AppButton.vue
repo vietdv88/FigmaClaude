@@ -5,12 +5,12 @@
     :disabled="disabled || loading"
     v-bind="$attrs"
   >
-    <TIcon v-if="loading" name="loader-2" class="btn__spinner" />
-    <TIcon v-else-if="iconLeft" :name="iconLeft" />
+    <span v-if="loading" class="spinner spinner--sm" role="status" aria-label="Đang xử lý" />
+    <TIcon v-if="iconLeft" :name="iconLeft" />
     <span v-if="label || $slots.default" class="btn__label">
       <slot>{{ label }}</slot>
     </span>
-    <TIcon v-if="!loading && iconRight" :name="iconRight" />
+    <TIcon v-if="iconRight" :name="iconRight" />
   </button>
 </template>
 
@@ -20,7 +20,7 @@ import TIcon from './TIcon.vue'
 
 const props = defineProps({
   label:    { type: String,  default: '' },
-  variant:  { type: String,  default: 'filled' }, // filled | outline | ghost
+  variant:  { type: String,  default: 'filled' }, // filled | outline | ghost | text (Figma Style=Text — nút dạng link)
   color:    { type: String,  default: 'primary' }, // primary | neutral | success | warning | danger | black | white
   size:     { type: String,  default: 'md' },      // sm | md | lg
   iconLeft: { type: String,  default: '' },
@@ -58,6 +58,14 @@ const VARIANT_MAP = {
     warning: 'btn--ghost',
     danger:  'btn--ghost',
   },
+  text: {
+    primary: 'btn--text',
+    neutral: 'btn--text-neutral',
+    info:    'btn--text-info',
+    success: 'btn--text-success',
+    warning: 'btn--text-warning',
+    danger:  'btn--text-danger',
+  },
 }
 
 const btnClass = computed(() => {
@@ -75,6 +83,4 @@ const btnClass = computed(() => {
 </script>
 
 <style scoped>
-.btn__spinner { animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 </style>

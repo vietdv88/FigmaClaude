@@ -1,0 +1,17 @@
+# Chạy:  cd chamdiem-app && cp .env.example .env  (điền giá trị)  &&  docker compose up -d --build
+services:
+  chamdiem:
+    build:
+      context: ..                      # gốc monorepo (cần mds-ui)
+      dockerfile: chamdiem-app/Dockerfile
+    image: chamdiem-pd:latest
+    container_name: chamdiem-pd
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    volumes:
+      - chamdiem-data:/data            # file SQLite — KHÔNG xóa volume này
+
+volumes:
+  chamdiem-data:

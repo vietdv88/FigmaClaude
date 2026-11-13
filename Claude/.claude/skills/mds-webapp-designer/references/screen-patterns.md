@@ -564,6 +564,8 @@ Khi đọc ảnh thiết kế tham chiếu, PHẢI nhận diện nền của Glo
 | With Branch | Icon | `Type=With Branch, Search Type=Icon` | Brand + tên công ty/chi nhánh + search icon |
 | White | Box | `Type=White, Search Type=Box` | Nền trắng, search input |
 | White | Icon | `Type=White, Search Type=Icon` | Nền trắng, search icon |
+
+> ⛔ Sidebar tối chỉ đi với header `White`. Header màu brand (`Default` / `With Branch`) → sidebar luôn nền sáng.
 | **With Branch White** | **Box** | **`Type=With Branch White, Search Type=Box`** | **Nền trắng + tên công ty ← PHỔ BIẾN** |
 | With Branch White | Icon | `Type=With Branch White, Search Type=Icon` | Nền trắng + tên công ty + search icon |
 
@@ -1295,6 +1297,16 @@ modalFooter.layoutSizingVertical = "FIXED";
 ```
 
 ---
+
+### Popup chứa danh sách (Chọn nhân viên…) — bảng giãn hết chiều cao, phân trang ghim đáy
+Áp dụng cho popup / vùng có chiều cao cố định chứa danh sách (Chọn nhân viên, Chọn hàng hóa, Danh sách đã chọn, tab chi tiết có bảng…):
+- **Khung bảng lấp đầy chiều cao còn lại** của popup (sau tiêu đề, thanh tìm kiếm / lọc), kéo tới sát footer nút Hủy / Đồng ý.
+- **Thanh phân trang (Tổng số · Số dòng/trang · chuyển trang) luôn ghim ở ĐÁY khung bảng**, ngay trên footer — vị trí cố định dù có 1 dòng hay 100 dòng.
+- **Ít dòng** → phần trống nằm TRONG khung bảng (giữa dòng cuối và thanh phân trang, nền trắng). **Nhiều dòng** → vùng dòng tự cuộn bên trong, tiêu đề cột và phân trang đứng yên.
+- **Không có dữ liệu** → màn trống (Empty state) ở giữa khung bảng, khung vẫn giữ nguyên chiều cao.
+- Chiều cao popup **cố định theo cỡ popup**, không co giãn theo số dòng → lọc / chuyển trang / bỏ chọn popup không nhảy kích thước.
+- ⛔ **Không vẽ** khung bảng co theo số dòng làm thanh phân trang “nổi” lơ lửng giữa popup, bên dưới là khoảng trắng lớn tới footer (popup trông cụt, trống, mắt phải dò tìm phân trang ở vị trí khác nhau mỗi lần).
+- Thi công (mds-ui): thân popup `display: flex; flex-direction: column`, khung bảng `.table-panel.table-panel--fill` (giãn hết phần còn lại; `.table-scroll` cuộn trong, phân trang ở đáy).
 
 ### Variant 3 — Thêm/Sửa dạng Popup full màn hình
 

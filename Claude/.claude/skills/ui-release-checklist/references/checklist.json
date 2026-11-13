@@ -1,0 +1,356 @@
+{
+  "source": "Google Sheet “CHECKLIST KIỂM TRA GIAO DIỆN ỨNG DỤNG” (1AZPHz4gpLLXJL1HS_f8MniOXgj5D0XNEgtTCD-emW_w, gid 0) — đọc 09/11/2026",
+  "items": [
+    {
+      "id": "favicon",
+      "group": "Chung",
+      "item": "Favicon.ico",
+      "check": "Đã có chưa?",
+      "standard": "UI/UX Designer của dự án cung cấp",
+      "mode": "auto",
+      "method": "probe.favicon(): <link rel=icon> + tải /favicon.ico 200; file do UI/UX của dự án cung cấp"
+    },
+    {
+      "id": "browser-title",
+      "group": "Chung",
+      "item": "Tiêu đề trình duyệt",
+      "check": "Đã đúng quy chuẩn chưa?",
+      "standard": "/ds/browser-title",
+      "mode": "auto",
+      "method": "probe.title(): đọc document.title ở vài màn — đúng mẫu “Phân hệ | Cha… | Tên app” theo /ds/browser-title"
+    },
+    {
+      "id": "header-bar",
+      "group": "Chung",
+      "item": "HeaderBar",
+      "check": "Logo đúng kích thước chưa, các icon liên quan như: Avatar, quả chuông, thiết lập...đã đồng nhất và đúng chuẩn chưa?",
+      "standard": "/ds/hearder-bar",
+      "mode": "semi",
+      "method": "Chụp header 1366 + 375; so với /ds/hearder-bar: logo đúng cỡ, icon Avatar / chuông / thiết lập cùng cỡ, badge đồng nhất"
+    },
+    {
+      "id": "sidebar",
+      "group": "Chung",
+      "item": "SideBar",
+      "check": "Đã đúng quy chuẩn chưa?",
+      "standard": "Quy chuẩn do UI/UX Designer của dự án thiết kế",
+      "mode": "manual",
+      "method": "Chụp sidebar (thu gọn / mở rộng); người kiểm tra so với thiết kế sidebar của dự án"
+    },
+    {
+      "id": "i18n",
+      "group": "Chung",
+      "item": "Đa ngôn ngữ",
+      "check": "Thi công đã đúng chuẩn chưa?",
+      "standard": "https://www.figma.com/design/rkaeZokeZ53UB4e9fO98l7/Quy-chu%E1%BA%A9n-chung?node-id=23130-832&t=Lyoy2wg5rLG2gOXJ-1",
+      "mode": "manual",
+      "method": "Đổi ngôn ngữ (nếu app có) → không vỡ bố cục, không còn chữ chưa dịch"
+    },
+    {
+      "id": "empty-state",
+      "group": "Màn hình danh sách",
+      "item": "Màn hình trống",
+      "check": "Đã có chưa? đúng chuẩn chưa? Đồng nhất style giữa các màn hình trong toàn bộ ứng dụng chưa?",
+      "standard": "Quy chuẩn do UI/UX Designer của dự án thiết kế",
+      "mode": "semi",
+      "method": "Mở danh sách khi chưa có dữ liệu / tìm không ra → có màn trống đúng 4 dạng /ds/empty-state, đồng nhất giữa các màn"
+    },
+    {
+      "id": "row-hover-cursor",
+      "group": "Màn hình danh sách",
+      "item": "Trạng thái hover trên dòng dữ liệu",
+      "check": "Dòng bấm được vào chi tiết thì con trỏ chuột đã là bàn tay thể hiện bấm được chưa?",
+      "standard": "",
+      "mode": "auto",
+      "method": "probe.rowCursor(): rê chuột lên dòng bấm được → cursor = pointer, nền dòng đổi"
+    },
+    {
+      "id": "row-actions",
+      "group": "Màn hình danh sách",
+      "item": "Các chức năng: Sửa, xóa...trên dòng dữ liệu",
+      "check": "Vị trí hiển thị đã đúng chuẩn chưa, đồng nhất với các danh sách khác trong ứng dụng chưa?",
+      "standard": "",
+      "mode": "semi",
+      "method": "Rê dòng → nút Sửa / Xóa… cùng vị trí (cột thao tác bên phải) ở mọi danh sách; dòng cuối menu tự lật lên"
+    },
+    {
+      "id": "bulk-checkbox",
+      "group": "Màn hình danh sách",
+      "item": "Checkbox chọn hành động hàng loạt",
+      "check": "Vị trí hiển thị đã đúng chuẩn chưa, đồng nhất với các danh sách khác trong ứng dụng chưa?",
+      "standard": "",
+      "mode": "semi",
+      "method": "Cột checkbox đầu bảng ở mọi danh sách; tick → thanh thao tác hàng loạt đúng chỗ"
+    },
+    {
+      "id": "column-tools",
+      "group": "Màn hình danh sách",
+      "item": "Các chức năng: Sắp xếp cột, thiết lập ẩn hiện cột.",
+      "check": "Kiểm tra lại vị trí đã đồng nhất với các màn hình khác chưa?",
+      "standard": "",
+      "mode": "semi",
+      "method": "Sắp xếp cột, thiết lập ẩn / hiện cột cùng vị trí (thanh công cụ bảng: Làm mới, Thiết lập, Lọc bên phải)"
+    },
+    {
+      "id": "list-filter",
+      "group": "Màn hình danh sách",
+      "item": "Bộ lọc trên danh sách",
+      "check": "Đã có chưa? đúng chuẩn chưa?",
+      "standard": "",
+      "mode": "semi",
+      "method": "Có lọc nhanh + lọc nâng cao; lọc cột và lọc nâng cao liên thông"
+    },
+    {
+      "id": "paging",
+      "group": "Màn hình danh sách",
+      "item": "Phân trang",
+      "check": "Đã có chưa? đúng chuẩn chưa?",
+      "standard": "Áp dụng chuẩn phân trang trong danh sách",
+      "mode": "auto",
+      "method": "probe.exists(\".table-paging\") + đổi số dòng / trang, chuyển trang hoạt động"
+    },
+    {
+      "id": "list-shortcuts",
+      "group": "Màn hình danh sách",
+      "item": "Phím tắt trên màn hình danh sách",
+      "check": "Đã có chưa? đúng chuẩn chưa?",
+      "standard": "/ds/hearder-bar",
+      "mode": "semi",
+      "method": "Thử phím tắt theo /ds/shortcut-key trên màn danh sách"
+    },
+    {
+      "id": "loading",
+      "group": "Màn hình danh sách",
+      "item": "Trạng thái loading",
+      "check": "Khi đang load dữ liệu đã có trạng thái loading chưa, và đã theo quy chuẩn chung chưa?",
+      "standard": "/ds/loading",
+      "mode": "semi",
+      "method": "Làm chậm mạng (route delay) → có spinner (combo, nút) / skeleton (Tổng quan) theo /ds/loading"
+    },
+    {
+      "id": "list-f5",
+      "group": "Màn hình danh sách",
+      "item": "Bấm F5 trên màn hình danh sách",
+      "check": "Khi load xong vẫn phải giữ được đúng màn hình danh sách đang mở, chỉ làm mới lại dữ liệu chứ không ra một page khác",
+      "standard": "",
+      "mode": "auto",
+      "method": "F5 trên danh sách → vẫn đúng màn, giữ tham số trên URL, chỉ tải lại dữ liệu"
+    },
+    {
+      "id": "autofocus",
+      "group": "Màn hình chi tiết",
+      "item": "Tự động focus vào ô nhập liệu đầu tiên",
+      "check": "Đã có chưa? đúng chuẩn chưa?",
+      "standard": "/ds/general-usability-requirements",
+      "mode": "auto",
+      "method": "probe.focused(): mở form → document.activeElement là ô nhập đầu tiên"
+    },
+    {
+      "id": "select-all-on-click",
+      "group": "Màn hình chi tiết",
+      "item": "Click chuột vào từng ô nhập liệu",
+      "check": "Đã tự động bôi đen tất cả text chưa?",
+      "standard": "",
+      "mode": "auto",
+      "method": "probe.selectAllOnClick(): bấm vào ô có chữ → toàn bộ chữ được chọn"
+    },
+    {
+      "id": "tab-order",
+      "group": "Màn hình chi tiết",
+      "item": "Thứ tự tabindex",
+      "check": "Đã có chưa? Khi bấm tab nhảy đúng yêu cầu mong muốn chưa?",
+      "standard": "",
+      "mode": "auto",
+      "method": "probe.tabOrder(n): bấm Tab n lần, ghi thứ tự ô được focus — đúng thứ tự nhập liệu trên form"
+    },
+    {
+      "id": "controls",
+      "group": "Màn hình chi tiết",
+      "item": "Các control: Button, Textbox, Combo...",
+      "check": "- Đã đúng chuẩn chưa? Hover lên các control đã có trạng thái thể hiện chưa? - Các combo xổ ra giá trị sử dụng phím mũi tên trên bàn phím có di chuyển được giữa các bản ghi chưa? Bấm enter đã select được bản ghi chưa?",
+      "standard": "Button: https://www.figma.com/design/1DP5RJM3MsZJ8SnUWgTavS/MDS-Web-Components---v2.0?node-id=6019-3884&t=7bv2L1w7Gvt4tUHT-1  Input: https://www.figma.com/design/1DP5RJM3MsZJ8SnUWgTavS/MDS-Web-Components---v2.0?node-id=6019-3895&t=7bv2L1w7Gvt4tUHT-1",
+      "mode": "auto",
+      "method": "Combo: mở bằng phím ↓, ↑ ↓ di chuyển, Enter chọn; hover control có trạng thái; kích thước theo token (skill control-audit)"
+    },
+    {
+      "id": "leave-warning",
+      "group": "Màn hình chi tiết",
+      "item": "Bấm F5 hay tắt trình duyệt khi đang nhập liệu",
+      "check": "Đã cảnh báo mất dữ liệu và khuyến nghị người dùng lưu lại chưa?",
+      "standard": "/ds/leave-page-warning",
+      "mode": "auto",
+      "method": "Sửa form rồi F5 / đóng tab → có cảnh báo (beforeunload) và rời màn trong app → hộp “Thoát và không lưu?”"
+    },
+    {
+      "id": "detail-f5",
+      "group": "Màn hình chi tiết",
+      "item": "Bấm F5 trên màn hình xem dữ liệu chi tiết",
+      "check": "Khi load xong vẫn phải giữ được đúng màn hình chi tiết đang mở, chỉ làm mới lại dữ liệu chứ không ra một page khác",
+      "standard": "",
+      "mode": "auto",
+      "method": "F5 trên màn chi tiết → vẫn đúng bản ghi đang mở"
+    },
+    {
+      "id": "detail-shortcuts",
+      "group": "Màn hình chi tiết",
+      "item": "Phím tắt trên màn hình chi tiết",
+      "check": "CTR+S: Lưu, ESC đóng popup...",
+      "standard": "/ds/shortcut-key",
+      "mode": "auto",
+      "method": "Ctrl + S lưu, Esc đóng popup (theo /ds/shortcut-key)"
+    },
+    {
+      "id": "action-loading",
+      "group": "Màn hình chi tiết",
+      "item": "Trạng thái khi bấm vào các hành động",
+      "check": "Khi bấm lưu hoặc thao tác cần gọi server lấy dữ liệu đã có trạng thái loading trên nút báo cho người dùng biết phần mềm đang thực hiện để tránh khách hàng bấm nhiều lần gây dupplicate dữ liệu hoặc lỗi hay chưa?",
+      "standard": "/ds/interaction-states",
+      "mode": "auto",
+      "method": "Làm chậm API lưu → nút Lưu chuyển trạng thái đang xử lý (spinner, không bấm lần 2) — bấm nhanh 2 lần chỉ tạo 1 bản ghi"
+    },
+    {
+      "id": "display-1366",
+      "group": "Màn hình chi tiết",
+      "item": "Khả năng hiển thị trên màn hình tiêu chuẩn",
+      "check": "Check lại trên màn hình tiêu chuẩn các thông tin đã hiển thị tối ưu hay chưa?",
+      "standard": "/ds/display-requirement",
+      "mode": "auto",
+      "method": "Viewport 1366×768 (+ 375 nếu có mobile): overflow-check.js = [] ở mọi popup / bảng / card"
+    },
+    {
+      "id": "spacing",
+      "group": "Layout & Visual",
+      "item": "Spacing",
+      "check": "Kiểm tra padding, margin và gap giữa các thành phần",
+      "standard": "",
+      "mode": "semi",
+      "method": "Bật đo (DevTools / nút Đo) so khoảng cách 16 / 12 / 8 / 4 theo skill; double-border-check.js = []"
+    },
+    {
+      "id": "alignment",
+      "group": "Layout & Visual",
+      "item": "Alignment",
+      "check": "Kiểm tra độ chính xác của căn lề trái, phải, giữa",
+      "standard": "",
+      "mode": "semi",
+      "method": "Căn lề: nhãn, ô, cột số căn phải trong bảng, ô số trong form căn trái"
+    },
+    {
+      "id": "shadow",
+      "group": "Layout & Visual",
+      "item": "Shadow",
+      "check": "Kiểm tra hiệu ứng đổ bóng có đúng thiết kế không",
+      "standard": "",
+      "mode": "auto",
+      "method": "grep code: không còn box-shadow gõ tay / --shadow-md / --shadow-lg; card = --shadow-card, popup = --shadow-dialog (Bottom 12)"
+    },
+    {
+      "id": "typography",
+      "group": "Layout & Visual",
+      "item": "Typography",
+      "check": "Kiểm tra font size, weight, color và line-height",
+      "standard": "",
+      "mode": "auto",
+      "method": "probe.fontSizes(): chữ nội dung 13px (Small), không có chữ 11–12px; tiêu đề đúng token"
+    },
+    {
+      "id": "visual",
+      "group": "Layout & Visual",
+      "item": "Visual",
+      "check": "Kiểm tra màu nền, màu border, icon, border-radius của card/button/input",
+      "standard": "",
+      "mode": "semi",
+      "method": "Màu nền, viền, bo góc (card 8, popup 12, control theo token) — chỉ dùng token Text/ Icon/ Stroke/ BG/"
+    },
+    {
+      "id": "icon",
+      "group": "Layout & Visual",
+      "item": "Icon",
+      "check": "Kiểm tra đúng loại icon, kích thước và màu sắc",
+      "standard": "",
+      "mode": "semi",
+      "method": "Đúng icon (Tabler outline), cỡ 16/20, icon trung tính --icon-neutral"
+    },
+    {
+      "id": "hover",
+      "group": "Trạng thái",
+      "item": "Hover",
+      "check": "Link/button phải đổi màu hoặc gạch chân",
+      "standard": "",
+      "mode": "auto",
+      "method": "Rê link / button → đổi màu (hover Brand Light / Neutral theo quy chuẩn)"
+    },
+    {
+      "id": "focus",
+      "group": "Trạng thái",
+      "item": "Focus",
+      "check": "Input phải có border highlight rõ ràng",
+      "standard": "",
+      "mode": "auto",
+      "method": "Tab vào ô nhập → viền focus rõ"
+    },
+    {
+      "id": "disabled",
+      "group": "Trạng thái",
+      "item": "Disabled",
+      "check": "Trạng thái mờ, không thể click được",
+      "standard": "",
+      "mode": "auto",
+      "method": "Control disabled: mờ, không bấm được"
+    },
+    {
+      "id": "readonly",
+      "group": "Trạng thái",
+      "item": "Readonly",
+      "check": "Trạng thái nền mờ, vẫn cho phép copy được text",
+      "standard": "",
+      "mode": "auto",
+      "method": "Control readonly: nền mờ, vẫn chọn / copy được chữ"
+    },
+    {
+      "id": "empty-state-2",
+      "group": "Trạng thái",
+      "item": "Empty state",
+      "check": "Có thông báo phù hợp khi không có dữ liệu",
+      "standard": "",
+      "mode": "semi",
+      "method": "Có thông báo phù hợp khi không có dữ liệu (xem mục Màn hình trống)"
+    },
+    {
+      "id": "error-state",
+      "group": "Trạng thái",
+      "item": "Error state",
+      "check": "Có màu cảnh báo và thông báo lỗi rõ ràng",
+      "standard": "",
+      "mode": "auto",
+      "method": "Lưu form thiếu trường bắt buộc → viền đỏ + icon + tooltip lỗi, focus ô lỗi đầu tiên"
+    },
+    {
+      "id": "button-hover",
+      "group": "Trạng thái",
+      "item": "Button Hover",
+      "check": "Màu nền thay đổi theo quy chuẩn",
+      "standard": "",
+      "mode": "auto",
+      "method": "Rê button → màu nền đổi đúng quy chuẩn Button"
+    },
+    {
+      "id": "active-selected",
+      "group": "Trạng thái",
+      "item": "Active/Selected",
+      "check": "Phải phân biệt rõ với trạng thái mặc định",
+      "standard": "",
+      "mode": "semi",
+      "method": "Mục đang chọn (menu, tab, dòng đang xem) phân biệt rõ với mặc định"
+    },
+    {
+      "id": "loading-state",
+      "group": "Trạng thái",
+      "item": "Loading state",
+      "check": "Phải có spinner hoặc skeleton hiển thị",
+      "standard": "",
+      "mode": "semi",
+      "method": "Có spinner / skeleton khi tải (xem mục Trạng thái loading)"
+    }
+  ]
+}

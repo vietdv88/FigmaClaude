@@ -1,0 +1,8 @@
+{
+ "slug": "number-separation-rules",
+ "title": "Quy tắc phân tách số",
+ "group": "Others",
+ "order": 602,
+ "summary": "Theo Thông tư 200/2014/TT-BTC đối với mọi báo cáo kế toán/tài chính tại Việt Nam: Tất cả các báo cáo tài chính cần hiển thị số liệu dùng dấu chấm (.) để phân tách hàng nghìn và dấu phẩy (,) để phân tách phần thập phân.",
+ "body": "### Sử dụng dấu (.) để phân tách nhóm hàng nghìn trong số liệu\n\nDấu chấm (.) được sử dụng để phân tách các nhóm hàng nghìn trong số liệu.\n\nQuy định này là bắt buộc trên mọi biểu mẫu, bảng biểu kế toán và báo cáo tài chính tại Việt Nam.\n\nVí dụ:\n- 1.000\n- 1.234.567\n- 12.345.600\n\n### Sử dụng dấu (,) để phân tách số thập phân\n\nDấu phẩy (,) được sử dụng để phân tách phần thập phân trong số liệu.\n\nVí dụ:\n- 1,25\n- 12.350,50\n- 1.234.567,89\n"
+}

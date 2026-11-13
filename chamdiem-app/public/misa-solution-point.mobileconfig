@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>PayloadCertificateFileName</key><string>misa-solution-point-ca.crt</string>
+      <key>PayloadContent</key><data>MIIFhTCCA22gAwIBAgIJAKuA+tB3aGeSMA0GCSqGSIb3DQEBCwUAMEQxJDAiBgNVBAMMG01JU0EgU29sdXRpb24gUG9pbnQgUm9vdCBDQTEcMBoGA1UECgwTTUlTQSBTb2x1dGlvbiBQb2ludDAeFw0yNjEwMTYwMTIwMTFaFw0zNjEwMTMwMTIwMTFaMEQxJDAiBgNVBAMMG01JU0EgU29sdXRpb24gUG9pbnQgUm9vdCBDQTEcMBoGA1UECgwTTUlTQSBTb2x1dGlvbiBQb2ludDCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKlLsEE4w45Fid9Yk7raWEvEEhCXoRnotSCPOIEXmaBKCb0EelSZ2Gjjt4mbLjO7IQYia38x/izaf3m043OerVm9fp+TXuLDAzHfSFpuCS1urTMcbs9s0b/vYUK6r97ZYnKw4jCIoSlgAqepxuc9u1403n1mhdEAzDcdSQE+Ta3rbEmqFwVthqpNKy6bL0eLoPNGeLPxwjrw6sVWBXaqa1ACoKqenVItScLGn5dN0Lhv/wOWpQyPe8Epgu5kLdtR5l7Wn2cMBZTXeQjxJS04ZXgDaAH+mT9YSjQxNoL19AfXP8/s678Pg1VYQv0jQNKjE2gSV/AuEFlSN0ladpg9Aae7TvkFn4vt4l5lb2yBgqHhOoRNErCulV4gArmZlGcjMh8VmUrj6l0dzC6E398XS3gJrBghUINYoQKYzYRZnBpTDWWwf73IsRwZpY1qdsbt1/SVHbWBhTNNddjo+Bt3Eb+7J5O52WAw/xks9Abv5nsw4u+ZFEoaMiPvBwdayu/eS+8tSUpk6SERwEQBkPbPZf5iRM0FwvEKHyDQjXUc5lbtvhA91xznWe6FEUwdvgGVb/afnUSEoR9GmkQldRxYknDhkVTFWXukYGXbkT9NxKq5qGU/JMO9sHkpXPYTMA/57/ILh+B4D9CrmXz6J7JFjuihXnT+jN9oM2PzgTgwVPhTAgMBAAGjejB4MBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBS4USVvA6q24JEMQ4ECcstoK6gPUjAzBgNVHR4BAf8EKTAnoCUwF4IVcGRwb2ludC5zZGN0aGluLmxvY2FsMAqHCAoBJwv/////MA0GCSqGSIb3DQEBCwUAA4ICAQBo5JAcfAhlcykh8TW8txqPYLYWJvVTC4Qb2uMSQlvGR0NtOvx9hiNWYPO8Y2cw2E5+m9/Pi4GlcRQa+jaCQDIKRbUobH2HdHOAc81rHC/FsnPcLm/q5VjtQBpDSOmYpzsfIkQLsr3mgiFwjglUwJj3OQ6icGPjtVG15J9Ijkcm7L0L6CpRK2uHaZsWOUqqnUyixxkmY0oqhSCDhmoinZOB+4m0h+iFyN84BI8m7neF4qmZoaiCmHtoJG63pnbzPQDf6bT256vcXekirV1ZSMvtdcXfqFOVqFYzr813kblZp8cqZzo//kyROALdCu5gQ5v5Wfy/nsT4TChx1F2q26VaDCp1AC3UC9YbT6/iojbtPy2lvs1EUjfx1gg/rqqEOy6nXl8Gdq0QMUA+3AWWE3tUHjpOZOXhvzdOAXFMyzYDuovxlsJGSj1eDzFdO76y1PnJqQnP6Q3mKqtEmX1aWoMU7Tnse8Rv3kcwy9s+R8KyigyjpYPg/dxXOYz84g8fSNek/UWm8CtSOaKHQ+k0Kqrl+OFcqtaYyOudmFPpguyPpbUPQEHfchG+BTgXSzt16l5Q6vvHUtluH+ofj7pkvbEZYGHSE6wQP5A8vkuhlQF6x+05Sf4xiKASThJPLZyR82l0UyY/TsbyyyuV2pwgC0kSq1IWStV+3ujUHPiLR729eQ==</data>
+      <key>PayloadDisplayName</key><string>MISA Solution Point Root CA</string>
+      <key>PayloadIdentifier</key><string>vn.misa.solutionpoint.ca.cert</string>
+      <key>PayloadType</key><string>com.apple.security.root</string>
+      <key>PayloadUUID</key><string>94BC918D-572F-4322-82DB-C0D90EA605A0</string>
+      <key>PayloadVersion</key><integer>1</integer>
+    </dict>
+  </array>
+  <key>PayloadDescription</key><string>Cho phép trình duyệt tin cậy kết nối HTTPS tới https://pdpoint.sdcthin.local (MISA Solution Point). Chứng chỉ chỉ dùng được cho tên miền này.</string>
+  <key>PayloadDisplayName</key><string>MISA Solution Point — Chứng chỉ HTTPS</string>
+  <key>PayloadIdentifier</key><string>vn.misa.solutionpoint.ca</string>
+  <key>PayloadOrganization</key><string>MISA Solution Point</string>
+  <key>PayloadType</key><string>Configuration</string>
+  <key>PayloadUUID</key><string>A1AFC0C9-9FC0-4DB7-A349-03FF45E0EF71</string>
+  <key>PayloadVersion</key><integer>1</integer>
+</dict>
+</plist>

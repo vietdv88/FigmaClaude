@@ -9,7 +9,7 @@
 
 ## ❖ Space Variables — từ "📏 Space" collection {#space-variables}
 
-> Collection có 3 modes: **Standard** / Compact / Comfortable. Mặc định dùng **Standard**.
+> Collection có 3 modes: **Standard** / Nhỏ / Rộng. Mặc định dùng **Standard**.
 > ⚠️ `setBoundVariable("cornerRadius")` không hoạt động qua Plugin API — set giá trị số trực tiếp.
 
 ### Radius
@@ -387,6 +387,7 @@ const results = await figma.searchAsync("add_circle", { type: "COMPONENT" });
 
 > ⛔ NGHIÊM CẤM tự vẽ header bằng frame — PHẢI dùng component này.  
 > ⚠️ `defaultVariant` của component set này là **`Type=Default`** (nền xanh đậm brand) — PHẢI gọi `setProperties({ "Type": "White" })` ngay nếu app cần header trắng.
+> ⛔ **Tổ hợp Header × Sidebar chỉ có 3 kiểu:** header màu (`Default` / `With Branch`) + sidebar **sáng** · header `White` + sidebar **sáng** · header `White` + sidebar **tối**. **Cấm header màu + sidebar tối** (code `theme.js` cũng tự khóa).
 
 **Component Set key:** `a73126feab6a3724986a5912e8bbb599c301d77a`  
 **Height:** 56px (FIXED) | **Width:** FILL
@@ -444,7 +445,7 @@ Khu vực Branch hiển thị **ngay dưới logo/app name**, gồm:
 
 ### Toolbar phải (tất cả variants)
 
-Từ trái sang phải: icon `settings` → icon AMIS Chat (badge đỏ "20") → icon `bell` → icon `help` → icon `dots-circle-horizontal` → **Avatar 32px**
+Từ trái sang phải: icon `settings` → icon `bell` → icon `help` → icon `dots-circle-horizontal` → **Avatar 32px**
 
 ---
 

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MISA Solution Point</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <!-- Màn hình chờ khi mở / F5 (quy chuẩn): hiện ngay khung app + vệt sáng, thay cho trang trắng lúc đang tải dữ liệu.
+         Vue mount vào #app sẽ thay thế toàn bộ — style viết sẵn ở đây vì CSS của app chưa tải xong -->
+    <style>
+      .boot { position: fixed; inset: 0; display: flex; flex-direction: column; background: #f2f2f4; font: 13px/1.5 system-ui, sans-serif; }
+      .boot__head { height: 48px; flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: #fff; border-bottom: 1px solid #e9eaeb; }
+      .boot__head img { width: 32px; height: 32px; }
+      .boot__name { font-size: 18px; font-weight: 600; color: #181d27; }
+      .boot__body { flex: 1; display: flex; min-height: 0; }
+      .boot__side { width: 200px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; padding: 16px 12px; background: #fff; }
+      .boot__main { flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 16px; }
+      .boot__cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+      .boot__card, .boot__table { background: #fff; border-radius: 8px; box-shadow: 0 0 2px rgba(0,0,0,.1); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+      .boot__table { flex: 1; gap: 22px; }
+      .boot i { display: block; height: 12px; border-radius: 4px; background: #ecedef linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent) no-repeat; background-size: 200% 100%; animation: boot-sh 1.2s ease-in-out infinite; }
+      .boot__bar { position: fixed; top: 0; left: 0; height: 3px; background: #0e9a62; animation: boot-bar 6s cubic-bezier(.1,.7,.2,1) forwards; }
+      @keyframes boot-sh { 0% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
+      @keyframes boot-bar { 0% { width: 0; } 15% { width: 45%; } 100% { width: 85%; } }
+      @media (prefers-color-scheme: dark) {
+        .boot { background: #0c0e12; } .boot__head, .boot__side, .boot__card, .boot__table { background: #161b26; border-color: #22262f; }
+        .boot__name { color: #f7f7f7; } .boot i { background-color: #22262f; background-image: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent); }
+      }
+      @media (max-width: 1024px) { .boot__side { display: none; } .boot__cards { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="boot" aria-busy="true" aria-label="Đang tải MISA Solution Point">
+        <div class="boot__bar"></div>
+        <div class="boot__head"><img src="/logo.svg" alt="" /><span class="boot__name">MISA Solution Point</span></div>
+        <div class="boot__body">
+          <div class="boot__side"><i style="width:80%"></i><i style="width:60%"></i><i style="width:70%"></i><i style="width:85%"></i><i style="width:65%"></i></div>
+          <div class="boot__main">
+            <i style="width:220px;height:22px"></i>
+            <div class="boot__cards">
+              <div class="boot__card"><i style="width:40%"></i><i style="width:30%;height:24px"></i></div>
+              <div class="boot__card"><i style="width:40%"></i><i style="width:30%;height:24px"></i></div>
+              <div class="boot__card"><i style="width:40%"></i><i style="width:30%;height:24px"></i></div>
+              <div class="boot__card"><i style="width:40%"></i><i style="width:30%;height:24px"></i></div>
+            </div>
+            <div class="boot__table"><i style="width:240px;height:24px"></i><i style="width:60%"></i><i style="width:45%"></i><i style="width:55%"></i><i style="width:40%"></i><i style="width:50%"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

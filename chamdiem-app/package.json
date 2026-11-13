@@ -1,0 +1,25 @@
+{
+  "name": "chamdiem-app",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:api": "API=1 vite",
+    "build": "vite build && node ../mds-ui/scripts/precompress.mjs dist",
+    "server": "cd server && DEV_LOGIN=1 node --watch index.js"
+  },
+  "dependencies": {
+    "@tabler/icons-vue": "^3.44.0",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "@tesseract.js-data/vie": "^1.0.0",
+    "echarts": "^5.5.0",
+    "read-excel-file": "^9.3.10",
+    "tesseract.js": "^7.0.0",
+    "vue": "^3.4.0",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0"
+  }
+}

@@ -1,0 +1,8 @@
+{
+ "slug": "display-requirement",
+ "title": "Yêu cầu hiển thị",
+ "group": "General",
+ "order": 103,
+ "summary": "",
+ "body": "![](img/b4855af49b226101f3bbc9052058bb0d89e48d6b.png)\n\nTheo thống kê mới nhất thì màn hình có độ phân 1366x768 vẫn là độ phân giải có tỉ lệ sử dụng khá cao ở các thiết bị desktop nên khi thiết kế vẫn **lấy độ phân giải 1366x768 làm chuẩn**.\n\n### Lưu ý khi thiết kế ứng dụng\n\n::: warning\nLưu ý: Tuy màn hình 1366x768 làm chuẩn nhưng kích thước thực tế của ứng dụng khi hiển thị lên trình duyệt phải trừ đi các đoạn chiều cao như ảnh bên dưới nên các designer cần thiết kế tối ưu trong khoảng chiều cao màn hình 635px.\n:::\n\n![](img/1b20fe687df2038603b7f379dc58f25cc370ea0d.png)\n\n### Khoảng 635 - 650px\n\nKhi thiết kế sẽ lựa chọn **kích thước chuẩn là 1366x760px**. Với kích thước này **designer phải đảm bảo thiết kế của mình hiển thị tốt nhất trên đó.** Tuy nhiên, phải lưu ý khi sản phẩm chạy trên các màn hình lớn hơn cũng phải tính toán giao diện sẽ hiển thị như thế nào, có thể không cần phải vẽ ra bản thiết kế nhưng cần phải mô tả được lại cho Dev biết cách thi công.\n\nĐối với các thiết bị có kích thước **màn hình nhỏ hơn 1366x768px dự án cần đảm bảo giao diện hiển thị được và người dùng có thể thực hiện đầy đủ các chức năng** nhưng cách hiển thị thông tin và thao tác có thể không thuận tiện được như màn hình có kích thước chuẩn 1366x768px, tối thiểu phải xem được và thao tác được trên màn hình có kích thước 1024x768px. Xem thêm quy tắc xử lý responsive cho màn hình Chat AI [tại đây.](/ds/chatbox-ai-agent)\n"
+}
