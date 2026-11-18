@@ -23,7 +23,9 @@ function setup(el, opts = {}) {
     e.preventDefault()
     el.classList.add('drawer-resizing')
     handle.setPointerCapture?.(e.pointerId)
-    const move = ev => { el.style.width = clamp(window.innerWidth - ev.clientX, min, maxOf()) + 'px' }
+    /* Tính theo độ dời chuột (không theo mép phải màn hình) → đúng cả khi drawer neo trong khung trang / khung bị thu nhỏ (transform scale) */
+    const x0 = e.clientX, w0 = el.offsetWidth, scale = (el.getBoundingClientRect().width / el.offsetWidth) || 1
+    const move = ev => { el.style.width = clamp(w0 + (x0 - ev.clientX) / scale, min, maxOf()) + 'px' }
     const up = () => {
       el.classList.remove('drawer-resizing')
       handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', up); handle.removeEventListener('pointercancel', up)

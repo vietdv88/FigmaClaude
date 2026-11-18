@@ -915,9 +915,9 @@ aside.sidebar .sidebar-inner { scrollbar-width: thin; scrollbar-color: transpare
 /* ── Sub-nav tabs ── */
 .sub-nav {
   display: flex; align-items: flex-end;
-  height: 48px; padding: 0 16px;
+  height: calc(var(--tab-h) + 4px); padding: 0 16px;   /* tab + 4 (36 + 4 = 40; Rộng 44) — thấp hơn trước (48) để khoảng từ tiêu đề tới tab đỡ xa: đệm dưới Page Header 12 + 4 */
   background: var(--bg-white);
-  border-bottom: 1px solid var(--stroke-neutral-light);
+  border-bottom: 1px solid var(--stroke-neutral);
   flex-shrink: 0; gap: 0;
   justify-content: space-between;
 }
@@ -934,7 +934,7 @@ aside.sidebar .sidebar-inner { scrollbar-width: thin; scrollbar-color: transpare
 .sub-nav-right { display: flex; align-items: center; gap: var(--gap-control); align-self: center; flex-shrink: 0; }
 .sub-nav-tab {
   display: flex; align-items: center; gap: 8px;   /* Components/Tabs/Medium/Gap-Content */
-  height: var(--tab-h); padding: 0 var(--tab-px);   /* tab cao 36 (Rộng 40), nằm SÁT ĐÁY thanh chứa (sub-nav 48 / page-header 56) — ⛔ không kéo cao bằng thanh */
+  height: var(--tab-h); padding: 0 var(--tab-px);   /* tab cao 36 (Rộng 40), nằm SÁT ĐÁY thanh chứa (sub-nav = tab + 4 / page-header 56) — ⛔ không kéo cao bằng thanh */
   border-radius: var(--radius-default) var(--radius-default) 0 0;   /* Radius/Default — chỉ bo 2 góc trên (kiểu Underline) */
   font-size: var(--text-body); font-weight: var(--fw-regular);
   color: var(--text-primary);
@@ -960,12 +960,15 @@ aside.sidebar .sidebar-inner { scrollbar-width: thin; scrollbar-color: transpare
 /* ── Page Header ── */
 .page-header {
   display: flex; align-items: center; justify-content: space-between;
-  height: var(--layout-page-header-h);
-  padding: 0 16px;
-  background: var(--bg-white);
-  border-bottom: 1px solid var(--stroke-neutral-light);
+  min-height: calc(var(--btn-height) + 24px);   /* control cao 32 + đệm 12 trên / dưới */
+  padding: 12px 16px;   /* trái = phải 16 (= lề vùng nội dung) · trên = dưới 12 — ghép liền đầu vùng nội dung (content-wrapper không đệm trên), KHÔNG cần gap bên dưới */
+  background: transparent;   /* KHÔNG có tab: tiêu đề nằm thẳng trên nền BG Page (không thanh trắng, không viền) */
   flex-shrink: 0; gap: 8px;
 }
+/* CÓ tab (tab trong thanh tiêu đề, hoặc dải tab / sub-nav ngay bên dưới) → Page Header mới có nền trắng */
+.page-header:has(.page-header__tabs), .page-header:has(+ .tabbar), .page-header:has(+ .sub-nav) { background: var(--bg-white); }
+.page-header:has(.page-header__tabs) { border-bottom: 1px solid var(--stroke-neutral); }
+.page-header:has(+ .tabbar) { border-bottom: 0; }   /* tab đặt sát page header trắng → liền 1 khối trắng, bỏ vạch ngăn; chỉ còn gạch chân của tab đang chọn */
 .page-header__left  { display: flex; align-items: center; gap: var(--gap-control); }
 .page-header__right { display: flex; align-items: center; gap: var(--gap-control); }
 /* Tab nằm ngay trên thanh tiêu đề (màn có ít tab, VD màn chi tiết 2–3 tab) → gộp 2 hàng thành 1 cho gọn.
@@ -976,9 +979,63 @@ aside.sidebar .sidebar-inner { scrollbar-width: thin; scrollbar-color: transpare
 /* ── Content Wrapper ── */
 .content-wrapper {
   flex: 1; overflow-y: auto; overflow-x: hidden;
-  padding: var(--page-gutter);   /* cách sidebar, lề phải, lề dưới đúng 16px */
+  padding: 2px max(0px, calc(var(--page-gutter) - var(--sb-w, 0px))) var(--page-gutter) var(--page-gutter); margin-top: -2px;   /* PHẢI = 16 − rãnh thanh cuộn (--sb-w): thanh cuộn nằm TRONG lề phải 16 → mép phải card luôn cách mép khung 16, thẳng với Page Header */   /* 2px đệm trên bù bằng margin âm: bóng card (All 2 = 2px) không bị overflow cắt mất mép trên, vị trí nội dung giữ nguyên */
   display: flex; flex-direction: column; gap: var(--card-col-gap);
+  scrollbar-gutter: stable;   /* rãnh thanh cuộn luôn có sẵn → hiện / ẩn không xô nội dung */
 }
+
+/* Dải tab / sub-nav nằm giữa Page Header và nội dung: lề trên của nội dung = 12 (bằng đệm dưới Page Header) vì content-wrapper không có đệm trên */
+.sub-nav + .content-wrapper, .tabbar + .content-wrapper, .page-header:has(.page-header__tabs) + .content-wrapper { padding-top: 12px; margin-top: 0; }   /* sau thanh trắng có tab: chừa 12 (Page Header không tab nằm trên nền xám, tự có đệm dưới 12)*/
+
+/* ══ KHUNG MÀN HÌNH CHUẨN /ds/layout — <AppPage> · <AppMasterDetail> · <AppDrawer> (mds-ui/src/components) ══
+   ⛔ App KHÔNG tự viết hàng tiêu đề trang, lề trang, dải tab phân hệ, khung master-detail, drawer chi tiết, chân Lưu/Hủy —
+   dùng component; class dưới đây là của component, app không viết đè. Mẫu chạy thật: mds-docs/src/demos/Layout*Demo.vue */
+.app-page { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.app-page__top { flex-shrink: 0; display: flex; flex-direction: column; }
+/* Hàng tiêu đề: đệm 12 16 (trái/phải = lề trang 16), cao = control + 24 → thay bằng thanh hàng loạt cũng KHÔNG nhảy chiều cao */
+.app-page__head { display: flex; align-items: center; gap: var(--gap-control); box-sizing: border-box; min-height: calc(var(--btn-height) + 24px); padding: 12px 16px; }
+.app-page--sub .app-page__head { min-height: calc(var(--btn-height) + 28px); padding-top: 16px; }   /* màn con có ← Quay lại (thêm / sửa / chi tiết dạng page): đệm trên 16 */
+.app-page__title { min-width: 0; margin: 0; font-size: var(--text-h2); line-height: var(--text-h2-lh); font-weight: var(--fw-semibold); color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-page__spacer { flex: 1; min-width: 0; }
+.app-page__actions { display: flex; align-items: center; gap: var(--gap-control); flex-shrink: 0; }   /* nút phụ → nút chính → ⋯ (More luôn ngoài cùng phải) */
+.app-page__head > .bulk-bar { flex: 1; min-width: 0; }
+.app-page__tabs { flex-shrink: 0; padding: 0 16px; }
+/* Tiêu đề + tab nền trắng liền khối, tràn 2 mép; từ nội dung trở xuống nền xám */
+.app-page--tabs-white .app-page__top { background: var(--bg-white); border-bottom: 1px solid var(--stroke-neutral); }
+/* Tab phân hệ con thay tiêu đề: dải trắng trên cùng (đệm trên 4 — rê chuột không dính mép) */
+.app-page__toptabs { flex-shrink: 0; padding: 4px 16px 0; background: var(--bg-white); border-bottom: 1px solid var(--stroke-neutral-light); }
+/* Thân: lề trái / phải / dưới 16, các card cách nhau 16; sau dải tab chừa 12 */
+.app-page__body { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: var(--card-col-gap); padding: 0 16px 16px; }
+.app-page[class*="app-page--tabs-"] .app-page__body { padding-top: 12px; }
+.app-page--fill .app-page__body > .table-panel, .app-page--fill .app-page__body > .app-md, .app-page--fill .app-page__body > .app-card-grid { flex: 1; min-height: 0; }
+.app-page--scroll .app-page__body { overflow-y: auto; padding-top: 2px; margin-top: -2px; }   /* 2px: bóng card (All 2) không bị cắt mép trên */
+.app-page--scroll[class*="app-page--tabs-"] .app-page__body { padding-top: 12px; margin-top: 0; }
+/* Khối nội dung trong màn thêm / sửa / chi tiết dạng page: card trắng đệm 16, tiêu đề H3; --grow = kéo dài tới sát chân Lưu/Hủy (cách 16) */
+.app-page__section { display: flex; flex-direction: column; gap: 16px; padding: var(--box-padding); background: var(--bg-white); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
+.app-page__section--grow { flex: 1 0 auto; }
+.app-page__section-title { margin: 0; font-size: var(--text-h3); line-height: var(--text-h3-lh); font-weight: var(--fw-semibold); color: var(--text-primary); }
+/* Chân Lưu / Hủy: LUÔN ghim đáy trang (không bao giờ đặt ở đầu form) — Hủy (outline neutral) → Lưu (primary) ngoài cùng phải */
+.app-page__footer { flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end; gap: var(--gap-control); padding: 12px 16px; background: var(--bg-form-footer); border-top: 1px solid var(--stroke-form-footer); }
+/* Danh sách dạng card: lưới tự chia cột (≥ 240px / card), card cách 16, cuộn trong vùng */
+.app-card-grid { overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--card-col-gap); align-content: start; }
+
+/* Master-Detail: wide = master rộng + detail 300 · narrow = master 280 + detail rộng · bottom = master trên + detail dưới */
+.app-md { flex: 1; min-width: 0; min-height: 0; display: flex; gap: var(--card-col-gap); }
+.app-md--bottom { flex-direction: column; }
+.app-md__master, .app-md__detail { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.app-md__master > *, .app-md__detail > * { flex: 1; min-height: 0; }
+.app-md--wide .app-md__master, .app-md--narrow .app-md__detail { flex: 1; }
+.app-md--wide .app-md__detail { width: 300px; flex-shrink: 0; }
+.app-md--narrow .app-md__master { width: 280px; flex-shrink: 0; }
+.app-md--bottom .app-md__master { flex: 1.2; }
+.app-md--bottom .app-md__detail { flex: 1; }
+
+/* Drawer chi tiết bên phải: đè lên danh sách trong khung trang, danh sách vẫn bấm được; kéo mép trái đổi độ rộng */
+.app-drawer { position: absolute; top: 0; right: 0; bottom: 0; z-index: 3; max-width: 100%; display: flex; flex-direction: column; background: var(--bg-white); box-shadow: var(--shadow-dialog); }
+.app-drawer__head { flex-shrink: 0; display: flex; align-items: center; gap: var(--gap-control); padding: 16px 16px 12px 20px; }
+.app-drawer__title { flex: 1; min-width: 0; margin: 0; font-size: var(--text-h3); line-height: var(--text-h3-lh); font-weight: var(--fw-semibold); color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-drawer__body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 20px 20px; }
+.app-drawer__footer { flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end; gap: var(--gap-control); padding: 12px 20px; background: var(--bg-form-footer); border-top: 1px solid var(--stroke-form-footer); }
 
 /* ── Card ── */
 .card {
@@ -1531,6 +1588,9 @@ button.paging-num:focus-visible { outline: 2px solid var(--stroke-brand); outlin
 .badge--danger  { background: var(--bg-danger-light);  color: var(--text-danger); }
 .badge--warning { background: var(--bg-warning-light); color: var(--text-warning); }
 .badge--brand   { background: var(--bg-brand-light);   color: var(--text-brand); }
+/* Badge số đếm (cạnh tiêu đề card / mục): cùng thông số badge header — nền Danger, chữ trắng 10 Bold, cao 16, pill; không dùng AppTag cho số đếm */
+.badge-count { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box; min-width: 16px; height: 16px; padding: 0 4px; background: var(--bg-danger); color: var(--text-white); border-radius: var(--radius-pill); font-size: 10px; line-height: 16px; font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
+.badge-count--outline { background: transparent; color: var(--text-danger); box-shadow: inset 0 0 0 1px var(--stroke-danger); }   /* dạng outline: không nền, viền Danger 1px (inset — không đổi kích thước), chữ Danger */
 
 /* ── Dropdown Menu ── */
 .dropdown-wrap { position: relative; display: inline-flex; }
@@ -1594,6 +1654,28 @@ button.paging-num:focus-visible { outline: 2px solid var(--stroke-brand); outlin
 .dropdown-menu__separator { flex-shrink: 0; width: 100%; height: 1px; background: var(--stroke-divider); margin: var(--menu-sep-my) 0; }
 .dropdown-enter-active, .dropdown-leave-active { transition: opacity 0.12s, transform 0.12s; }
 .dropdown-enter-from, .dropdown-leave-to { opacity: 0; transform: translateY(-4px); }
+
+/* ── AppPopover — lớp nổi nội dung tuỳ ý. ⛔ App KHÔNG tự viết khung nổi (position fixed/absolute + shadow + z-index) — dùng <AppPopover>.
+   menu  = khung Menu List (y hệt .dropdown-menu): đệm --menu-pad, bo --menu-radius, item bên trong dùng .dropdown-menu__item (+ --active / --danger)
+   panel = Figma Body Filter (6019:136455, như TableFilterPopover): 320px · bo 8 · đầu tiêu đề H3 + ✕ · thân đệm 12 · chân nền Form Footer ── */
+.mds-popover-anchor { display: inline-flex; }
+.mds-popover {
+  box-sizing: border-box; display: flex; flex-direction: column;
+  max-width: calc(100vw - 16px); max-height: min(70vh, 560px);
+  background: var(--bg-white); box-shadow: var(--shadow-popover); border: none;
+}
+.mds-popover--menu {
+  gap: var(--menu-gap); padding: var(--menu-pad); overflow-y: auto;
+  border-radius: var(--menu-radius);
+  min-width: max(200px, var(--menu-min-w)); max-width: min(360px, calc(100vw - 16px));
+}
+.mds-popover--panel { width: 320px; gap: 8px; padding-top: 12px; border-radius: var(--radius-default); overflow: hidden; }
+.mds-popover__body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 0 12px; }
+.mds-popover__head { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 8px; flex-shrink: 0; }
+.mds-popover__title { flex: 1; min-width: 0; margin: 0; font-size: var(--text-h3); line-height: var(--text-h3-lh); font-weight: var(--fw-semibold); color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mds-popover__content { display: flex; flex-direction: column; gap: 12px; padding: 0 8px 12px; min-width: 0; }
+.mds-popover__foot { display: flex; align-items: center; justify-content: flex-end; gap: var(--gap-control); padding: 12px 24px; flex-shrink: 0; background: var(--bg-form-footer); border-top: 1px solid var(--stroke-form-footer); }
+.mds-popover__foot > .btn--text, .mds-popover__foot > [data-left] { margin-right: auto; }   /* nút phụ (Bỏ lọc…) nằm trái, Hủy · Áp dụng phải */
 
 /* ── Sub Menu — Figma MDS “Sub Menu” (node 8266:95709), dạng 1 cột, ẩn Title.
    MỌI menu điều hướng nằm BÊN PHẢI Sidebar chính (mục lục chi tiết hồ sơ, menu cài đặt, menu danh mục…) dùng dạng này:
@@ -2497,6 +2579,16 @@ button.app-tag:disabled { cursor: not-allowed; }
   border-color: var(--stroke-brand); background: var(--bg-white);
   box-shadow: 0 0 0 3px rgba(4,153,228,0.12);
 }
+/* Combo Link: chữ link + mũi tên sát chữ, không viền / nền / đệm; rộng vừa chữ; hover gạch chân */
+.ibox--link { width: auto; max-width: 100%; height: auto; padding: 0; gap: 2px; border-color: transparent; background: transparent; box-shadow: none; display: inline-flex; }
+.ibox.ibox--link:is(:hover, :focus-within):not(.ibox--disabled):not(.ibox--readonly):not(.ibox--error) { border-color: transparent; background: transparent; box-shadow: none; }
+.ibox--link .cb-field { flex: 0 1 auto; height: auto; }
+.ibox--link .ibox__native { flex: 0 1 auto; min-width: 0; height: var(--text-body-lh); line-height: var(--text-body-lh); color: var(--text-link); font-weight: var(--fw-medium); text-overflow: ellipsis; cursor: pointer; }
+.ibox--link:hover .ibox__native:not(:focus) { text-decoration: underline; }
+.ibox--link .ibox__native::placeholder { color: var(--text-secondary); font-weight: var(--fw-regular); }
+.ibox--link .cb-chevron { font-size: 14px; color: var(--icon-neutral); }
+.ibox.ibox--link.ibox--disabled { border-color: transparent; background: transparent; opacity: 1; }
+.ibox--link.ibox--disabled .ibox__native { color: var(--text-disabled, var(--text-secondary)); cursor: default; }
 .ibox--header { background: rgba(255,255,255,0.2); border-color: transparent; border-radius: 8px; }
 .ibox--header:hover:not(:focus-within) { background: rgba(255,255,255,0.28); border-color: transparent; }
 .ibox--header:focus-within { background: rgba(255,255,255,0.3); border-color: transparent; box-shadow: none; }
@@ -2659,6 +2751,7 @@ input::placeholder { padding: 4px 0; margin: -4px 0; }
   background: var(--bg-white);
   flex-shrink: 0;
 }
+.form-header--top { align-items: flex-start; }   /* tiêu đề nhiều dòng (slot #title: dòng nhỏ + tiêu đề) → nút đóng ghim GÓC TRÊN, không nằm giữa */
 .form-header--divider { border-bottom: 1px solid var(--stroke-neutral-light); }
 /* Tiêu đề form / popup — Figma MDS Form (6019:124359): Text style “H2 - App, Page Title, Form title” = 20px Semi Bold / dòng 28px
    (đổi từ 16px). Khung tiêu đề cao 72 = đệm 24 + nút đóng 32 + đệm 16 · nút đóng 32px, icon × 20px */
@@ -2867,7 +2960,7 @@ html:has(.route-progress--run) { cursor: progress; }
 .img-up--drag .img-up__box { background: var(--bg-brand-light); border-style: dashed; }
 .img-up__img { width: 100%; height: 100%; object-fit: contain; }
 .img-up__initials { font-size: 18px; font-weight: var(--fw-semibold); color: var(--text-secondary); }
-.img-up__side { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.img-up__side { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
 .img-up__actions { display: flex; align-items: center; gap: 8px; }
 .img-up__hint { font-size: var(--text-body); line-height: var(--text-body-lh); color: var(--text-secondary); }
 .img-up__error { display: flex; align-items: center; gap: 4px; font-size: var(--text-body); color: var(--text-danger); }
@@ -2920,7 +3013,7 @@ html:has(.route-progress--run) { cursor: progress; }
 .tabs { display: flex; align-items: flex-end; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
 .tabs--line { gap: 0; box-shadow: inset 0 -1px 0 var(--stroke-neutral); }
-.tabs--line.tabs--no-baseline { box-shadow: none; }   /* tab chưa chọn không gạch chân — khung chứa đã có viền dưới */
+.tabs--line.tabs--no-baseline { box-shadow: none; margin-bottom: -1px; }   /* hàng tab nhô xuống 1px: gạch chân tab đang chọn ĐÈ LÊN viền neutral của khung chứa (không nằm cạnh phía trên) — khung chứa cần có border-bottom và không đệm dưới   /* tab chưa chọn không gạch chân — khung chứa đã có viền dưới */
 .tab {
   --tab-bg-on: var(--bg-white); --tab-c-on: var(--text-brand); --tab-ic-on: var(--icon-brand); --tab-line-on: var(--stroke-brand); --tab-line-w: 2px;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; box-sizing: border-box;
@@ -2976,6 +3069,11 @@ html:has(.route-progress--run) { cursor: progress; }
 .seg__item--active { font-weight: var(--fw-semibold); color: var(--text-brand); background: var(--bg-white); box-shadow: var(--shadow-bottom-4); }
 .seg__item--active .ti { color: var(--icon-brand); }
 .seg__item--active:hover { background: var(--bg-white); }
+/* Badge số lượng trong mục (cùng kiểu .tab__badge của AppTabs): chưa chọn = nền Neutral Pressed chữ Primary · đang chọn = nền Brand chữ trắng */
+.seg__badge { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box; flex-shrink: 0;
+  border-radius: var(--radius-pill); background: var(--bg-neutral-pressed); color: var(--text-primary); font-size: 10px; line-height: 16px; font-weight: var(--fw-semibold); }
+.seg__item--active .seg__badge { background: var(--bg-brand); color: var(--text-white); }
+.seg--solid .seg__item--active .seg__badge { background: var(--bg-brand-light); color: var(--text-brand); }
 .seg--solid  .seg__item--active, .seg--solid  .seg__item--active:hover { background: var(--bg-brand); color: var(--text-white); box-shadow: none; }
 .seg--solid  .seg__item--active .ti { color: var(--icon-white); }
 .seg--solid  .seg__item--active:active { background: var(--bg-brand-hover); }
@@ -3019,3 +3117,25 @@ html:has(.route-progress--run) { cursor: progress; }
     --lh-btn-md: 20px; --lh-btn-sm: 16px; --lh-label: 20px;
   }
 }
+/* Ô sửa trực tiếp khi KHÔNG rê chuột lên dòng = ô xem thường: ẩn mũi tên combobox (giữ chỗ, chữ không xô lệch) + nút ×; rê lên dòng / focus mới hiện */
+.datatable .dt-combobox .cb-chevron, .datatable .dt-combobox .ibox__clear-btn, .datatable .dt-mc-view__chev { visibility: hidden; }
+.dt-row--body:hover .dt-combobox .cb-chevron, .dt-row--body:hover .dt-combobox .ibox__clear-btn, .dt-row--body:hover .dt-mc-view__chev,
+.datatable .dt-combobox:focus-within .cb-chevron, .datatable .dt-combobox:focus-within .ibox__clear-btn { visibility: visible; }
+/* Ô chọn nhiều: dạng Tag (xem) và Combobox chuẩn (rê dòng / focus) xếp chồng cùng 1 ô; chỉ đổi cái nào nhìn thấy, control vẫn được đo bề rộng bình thường */
+.datatable .dt-mc { display: grid; width: 100%; min-width: 0; }
+.datatable .dt-mc > * { grid-area: 1 / 1; min-width: 0; }
+.datatable .dt-mc__view { display: flex; align-items: center; padding: 0 12px; pointer-events: none; }   /* 9 = đệm 8 + viền 1 của control ghost → Tag không nhảy chỗ khi đổi */
+.datatable .dt-mc__view { gap: 4px; }
+.datatable .dt-mc__view .dt-tag-group { min-width: 0; flex: 0 1 auto; }   /* chip dài thì cắt ở nhóm, thẻ “+N” bên ngoài luôn hiện đủ */
+.datatable .dt-mc__more { flex: none; }
+.datatable .dt-mc__view .dt-empty { color: var(--text-secondary); }
+.datatable .dt-mc__ctl { visibility: hidden; }
+.dt-row--body:hover .dt-mc__ctl, .datatable .dt-mc__ctl:focus-within { visibility: visible; }
+.dt-row--body:hover .dt-mc__view, .datatable .dt-mc:focus-within .dt-mc__view { visibility: hidden; }
+
+/* Bảng sửa trực tiếp, KHÔNG rê dòng: chữ trong ô thẳng trái / phải với chữ tiêu đề cột (cách mép ô 12 + đệm 4 của ô).
+   Control ghost lấn ra sát mép ô (đệm ô → 0) và tự đệm trong 11px (+ viền 1px = 12) → rê dòng hiện viền control mà chữ không nhúc nhích */
+.datatable--editable .dt-cell-inner:has(.dt-ctl, .dt-mc, textarea.dt-input) { padding-left: 0; padding-right: 0; }
+.datatable--editable .dt-ctl.ibox:not(.ibox--tags), .datatable--editable .dt-ctl .ibox:not(.ibox--tags) { padding-left: 11px; padding-right: 11px; }
+.datatable--editable .dt-input.dt-textarea { padding-left: 11px; padding-right: 11px; }
+.datatable .dt-mc__view { padding: 0 12px; }

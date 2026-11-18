@@ -9,6 +9,7 @@
       :disabled="o.disabled" v-tip="!o.label ? o.tip : ''" @click="select(o)">
       <TIcon v-if="o.icon" :name="o.icon" />
       <span v-if="o.label">{{ o.label }}</span>
+      <span v-if="o.badge != null && o.badge !== ''" class="seg__badge">{{ o.badge }}</span>
     </button>
   </div>
 </template>
@@ -19,7 +20,7 @@ import TIcon from './TIcon.vue'
 import { vTip } from '../utils/tooltip.js'
 
 const props = defineProps({
-  /** [{ value, label?, icon?, tip? (bắt buộc khi chỉ có icon), disabled? }] */
+  /** [{ value, label?, icon?, badge? (số lượng — VD bộ lọc trạng thái), tip? (bắt buộc khi chỉ có icon), disabled? }] */
   options:    { type: Array, default: () => [] },
   modelValue: { default: null },
   variant:    { type: String, default: 'text' },   // text | solid | filled

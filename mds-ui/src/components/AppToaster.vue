@@ -29,7 +29,7 @@ const ICON = { success: 'circle-check', error: 'alert-circle', warning: 'alert-t
 .toast {
   pointer-events: auto;
   display: flex; align-items: center; gap: 12px;
-  min-width: 320px; max-width: min(560px, calc(100vw - 32px));
+  width: fit-content; max-width: min(400px, calc(100vw - 32px));
   padding: 12px 12px 12px 16px;
   border-radius: var(--radius-dialog); box-shadow: var(--shadow-popover);
   background: var(--toast-bg); color: var(--text-white);

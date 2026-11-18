@@ -256,11 +256,11 @@
                     v-for="(t, ti) in shownTags(col, cellVal(row, col))" :key="ti"
                     :label="t.label ?? String(t)"
                     :color="t.color || 'neutral'"
-                    v-tip="t.label ?? String(t)"
+                    v-tip="t.tip ?? t.label ?? String(t)"
                   />
                   <AppTag v-if="moreTags(col, cellVal(row, col)).length" class="dt-tag-more"
                     :label="'+' + moreTags(col, cellVal(row, col)).length" color="neutral"
-                    v-tip="moreTags(col, cellVal(row, col)).map(t => t.label ?? String(t)).join(', ')" />
+                    v-tip="moreTags(col, cellVal(row, col)).map(t => t.tip ?? t.label ?? String(t)).join(', ')" />
                 </div>
                 <AppTag v-else
                   :label="cellVal(row, col).label ?? String(cellVal(row, col))"
@@ -458,10 +458,25 @@
             <!-- Combobox (editable select) -->
             <template v-else-if="col.type === 'combobox'">
               <!-- Combobox của mds-ui (danh sách tự vẽ, gõ để lọc) — KHÔNG dùng <select> của trình duyệt -->
-              <DtCellError v-if="editable" :message="cellError(row, col)" :icon="false">
+              <!-- Chọn nhiều: không rê dòng / không focus = dạng Tag như ô xem (tối đa col.maxTags, còn lại “+n”); rê dòng / focus = đổi sang đúng control Combobox chọn nhiều chuẩn của mds-ui (xếp chồng, không tự vẽ khuôn riêng) -->
+              <div v-if="editable && col.multiple" class="dt-mc">
+                <div class="dt-mc__view" aria-hidden="true">
+                  <div v-if="multiLabels(row, col).length" class="dt-tag-group">
+                    <AppTag v-for="(t, ti) in multiLabels(row, col).slice(0, tagLimit(col))" :key="ti" :label="t" color="neutral" />
+                  </div>
+                  <AppTag v-if="multiLabels(row, col).length > tagLimit(col)" class="dt-tag-more dt-mc__more" :label="'+' + (multiLabels(row, col).length - tagLimit(col))" color="neutral" />
+                  <span v-else-if="!multiLabels(row, col).length" class="dt-empty">Chọn</span>
+                </div>
+                <DtCellError class="dt-mc__ctl" :message="cellError(row, col)" :icon="false">
+                  <AppCombobox class="dt-combobox dt-ctl" ghost multiple :model-value="Array.isArray(cellVal(row, col)) ? cellVal(row, col) : []" :options="col.options || []" placeholder="Chọn" :required="!!col.required"
+                    @update:model-value="v => { touch(row, col); $emit('cell-update', { row, col, value: v }) }" @click.stop />
+                </DtCellError>
+              </div>
+              <DtCellError v-else-if="editable" :message="cellError(row, col)" :icon="false">
                 <AppCombobox class="dt-combobox dt-ctl" ghost :model-value="cellVal(row, col) ?? ''" :options="col.options || []" placeholder="Chọn" :required="!!col.required"
                   @update:model-value="v => { touch(row, col); $emit('cell-update', { row, col, value: v }) }" @click.stop />
               </DtCellError>
+              <span v-else-if="col.multiple" class="dt-text">{{ multiLabels(row, col).join(', ') || '–' }}</span>
               <span v-else class="dt-text">{{ (col.options || []).find(o => (o.value ?? o) === cellVal(row, col))?.label ?? cellVal(row, col) ?? '–' }}</span>
             </template>
 
@@ -571,11 +586,14 @@ import AppCombobox from './AppCombobox.vue'
 import FilterConditionEditor from './FilterConditionEditor.vue'
 import { isComplete, newCondition } from '../utils/advancedFilter.js'
 import DtCellError from './DtCellError.vue'
+import { placeFloating } from '../utils/floating.js'
 
 /** Giá trị ô số (số hoặc chuỗi đã định dạng “50.000”) → số cho AppNumberbox */
 const numOf = v => (v === '' || v == null ? '' : typeof v === 'number' ? v : (Number.isFinite(parseNum(String(v))) ? parseNum(String(v)) : ''))
 const props = defineProps({
   columns:         { type: Array,   default: () => [] },
+  /** Sắp xếp mặc định khi mở bảng { key, dir: 'asc' | 'desc' } — hiện mũi tên trên tiêu đề cột; khớp defaultSort của useTableView */
+  defaultSort:     { type: Object,  default: null },
   /** Liên thông với bộ lọc Advance: { mode, conditions } (v-model:filter) — lọc theo cột trên tiêu đề ghi vào CHÍNH bộ lọc này → TableFilterPanel tự tick trường, TableFilterTags hiện tag; ngược lại lọc ở panel → cột tự hiện đang lọc.
       Cột ↔ trường: col.filterKey ?? col.key khớp field.key trong filterFields; cột không có trường → không có nút lọc. Bỏ trống = lọc cột kiểu cũ (emit column-filter) */
   filter:          { type: Object,  default: null },
@@ -938,10 +956,10 @@ function alignClass(col) {
 const hoveredHeaderKey = ref(null)
 
 /* ── Sort ── */
-const sortState = ref({}) // { colKey: 'asc' | 'desc' | null }
+const sortState = ref(props.defaultSort ? { [props.defaultSort.key]: props.defaultSort.dir } : {}) // { colKey: 'asc' | 'desc' | null }
 
 function setSort(col, dir) {
-  if (props.summary && !externalSort) sortState.value = {}   // bảng tự sắp xếp: mỗi lần 1 cột
+  if ((props.summary && !externalSort) || props.defaultSort) sortState.value = {}   // mỗi lần 1 cột (bảng tự sắp xếp / có sắp xếp mặc định → chọn cột khác thì bỏ mũi tên mặc định)
   if (dir === null) {
     delete sortState.value[col.key]
   } else {
@@ -990,6 +1008,7 @@ const avatarOk = url => !!url && !brokenAvatars.has(url)
 const isWrap = col => wrapOverride[col.key] ?? !!col.wrap
 const anyWrap = computed(() => visibleCols.value.some(isWrap))
 const tagLimit  = col => (isWrap(col) ? Infinity : (col.maxTags ?? 3))
+const multiLabels = (row, col) => (Array.isArray(cellVal(row, col)) ? cellVal(row, col) : []).map(v => (col.options || []).find(o => (o.value ?? o) === v)?.label ?? v)
 const shownTags = (col, list) => list.slice(0, tagLimit(col))
 const moreTags  = (col, list) => list.slice(tagLimit(col))
 function setWrap(col, wrap) {
@@ -1018,13 +1037,18 @@ function toggleSelectAll(val) {
 function openHeaderMenu(col, e) {
   // Không mở menu cho cột checkbox/radio
   if (col.type === 'checkbox' || col.type === 'radio' || col.noMenu) return
-  const rect = e.currentTarget.closest('.dt-cell--header').getBoundingClientRect()
-  // position: fixed → dùng viewport coords trực tiếp (không cộng scrollX/Y)
-  let x = rect.left
-  const menuW = 220
-  if (x + menuW > window.innerWidth - 8) x = rect.right - menuW
-  if (x < 8) x = 8
-  headerMenu.value = { col, x, y: rect.bottom + 2 }
+  headerMenu.value = { col, x: 0, y: 0 }
+  floatAt(e.currentTarget.closest('.dt-cell--header'), 220, '.dt-header-menu', headerMenu)
+}
+
+/* Định vị menu tiêu đề cột / popover lọc cột theo thuật toán chung utils/floating.js:
+   dưới phần tử neo · đo chiều cao thật rồi LẬT lên khi thiếu chỗ (bảng sát đáy màn hình) · không tràn mép 8 */
+function floatAt(anchor, width, sel, state) {
+  if (!anchor) return
+  const a = anchor.getBoundingClientRect()
+  const put = h => { const p = placeFloating(a, { width, height: h }, { matchWidth: false }); if (state.value) { state.value.x = p.left; state.value.y = p.top } }
+  put(0)
+  nextTick(() => { const h = document.querySelector(sel)?.offsetHeight; if (h) put(h) })
 }
 
 function closeHeaderMenu() {
@@ -1075,8 +1099,8 @@ function openFilter(col, e) {
   if (props.filter) {
     const field = fieldOfCol(col), existing = props.filter.conditions?.find(c => c.key === field.key)
     linkDraft.value = existing ? { ...existing } : newCondition(field)
-    const r = e.currentTarget.getBoundingClientRect(), popW = 280
-    filterPopover.value = { col, field, x: Math.max(8, Math.min(r.left, window.innerWidth - popW - 8)), y: r.bottom + 4 }
+    filterPopover.value = { col, field, x: 0, y: 0 }
+    floatAt(e.currentTarget, 280, '.dt-filter-popover', filterPopover)
     nextTick(() => document.querySelectorAll('.dt-filter-popover input')[1]?.focus())   // ô giá trị (sau ô toán tử)
     return
   }
@@ -1086,14 +1110,8 @@ function openFilter(col, e) {
     ? { condition: existing.condition, value: existing.value ?? '' }
     : { condition: 'contains', value: '' }
 
-  // Position popover below the filter button
-  // position: fixed → dùng viewport coords trực tiếp (không cộng scrollX/Y)
-  const btn = e.currentTarget
-  const rect = btn.getBoundingClientRect()
-  let x = rect.left
-  const popW = 280
-  if (x + popW > window.innerWidth - 8) x = Math.max(8, window.innerWidth - popW - 8)
-  filterPopover.value = { col, x, y: rect.bottom + 4 }
+  filterPopover.value = { col, x: 0, y: 0 }
+  floatAt(e.currentTarget, 280, '.dt-filter-popover', filterPopover)
 
   nextTick(() => document.querySelector('.dt-filter-popover input:not([role=combobox])')?.focus())   // con trỏ sẵn ở ô giá trị
 }

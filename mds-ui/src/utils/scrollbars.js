@@ -14,4 +14,18 @@ export function detectClassicScrollbars() {
   }
   if (document.body) check(); else document.addEventListener('DOMContentLoaded', check, { once: true })
   window.matchMedia?.('(pointer: fine)').addEventListener?.('change', check)   // cắm / rút chuột → macOS có thể đổi kiểu
+  // --sb-w = bề rộng rãnh thanh cuộn THẬT của vùng nội dung (.content-wrapper có scrollbar-gutter: stable → luôn cố định) → .content-wrapper bớt đệm phải tương ứng (thanh cuộn nằm trong lề phải 16) nên mép phải card thẳng với Page Header.
+  // Đo trực tiếp phần tử thật (không dùng phần tử giả: trình duyệt có thể báo 0). Màn nào chưa có .content-wrapper thì giữ giá trị cũ.
+  let raf = 0
+  const syncSbw = () => {
+    raf = 0
+    const cw = document.querySelector('.content-wrapper')
+    if (!cw) return
+    const w = cw.offsetWidth - cw.clientWidth
+    const root = document.documentElement
+    if (root.style.getPropertyValue('--sb-w') !== w + 'px') root.style.setProperty('--sb-w', w + 'px')
+  }
+  const schedule = () => { if (!raf) raf = requestAnimationFrame(syncSbw) }
+  const start = () => { new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true }); new MutationObserver(schedule).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] }); window.addEventListener('resize', schedule); schedule() }
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start, { once: true })
 }

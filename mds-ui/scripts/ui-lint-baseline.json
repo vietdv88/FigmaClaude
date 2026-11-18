@@ -1,0 +1,532 @@
+{
+ "note": "Lỗi CŨ ghi nhận khi bật ui-lint (app cũ sửa dần). Hook chỉ chặn lỗi MỚI. Sửa xong lỗi cũ thì chạy lại --baseline để thu nhỏ danh sách.",
+ "created": "2026-11-18",
+ "files": {
+  "amis-home/src/components/WidgetGrid.vue": [
+   "chu-nho|.wg__cp-lbl|11px",
+   "chu-nho|.wg__chip|12px",
+   "chu-nho|.wg__cp-hint|11px",
+   "kich-thuoc-cung|.wg__wc-btn|height"
+  ],
+  "amis-home/src/components/home/LeaderboardCard.vue": [
+   "chu-nho|.lb-item__rank|10px",
+   "chu-nho|.lb-item__avatar|12px",
+   "chu-nho|.lb-item__dept|11px"
+  ],
+  "amis-home/src/components/home/QuickAppsCard.vue": [
+   "chu-nho|.qa-group__title|11px"
+  ],
+  "amis-home/src/components/home/WorkflowCard.vue": [
+   "chu-nho|.wf-item__sub|11px"
+  ],
+  "chamdiem-app/src/app.css": [
+   "tu-ve-khung-noi|.petal"
+  ],
+  "chamdiem-app/src/components/AvaPanel.vue": [
+   "tu-ve-khung-noi|.ava",
+   "chu-nho|.ava__att-x .ti|12px",
+   "tu-ve-khung-noi|.ava-callout"
+  ],
+  "chamdiem-app/src/components/BaClosingPanel.vue": [
+   "tu-ve-khung-noi|.pd-drawer"
+  ],
+  "chamdiem-app/src/components/BaReportPanel.vue": [
+   "tu-ve-khung-noi|.pd-drawer"
+  ],
+  "chamdiem-app/src/components/ChatPanel.vue": [
+   "tu-ve-khung-noi|.chat",
+   "chu-nho|.chat__seen .ti|12px",
+   "chu-nho|.chat__avatar--sm|12px",
+   "tu-ve-khung-noi|.chat__picker",
+   "tu-ve-khung-noi|.chat__reactions"
+  ],
+  "chamdiem-app/src/components/FavProjects.vue": [
+   "chu-nho|.fav__logo--initials|11px"
+  ],
+  "chamdiem-app/src/components/InfoTip.vue": [
+   "tu-ve-khung-noi|.info-tip__pop"
+  ],
+  "chamdiem-app/src/components/MemberPicker.vue": [
+   "tu-ve-khung-noi|.mpick",
+   "trung-component|MemberPicker.vue"
+  ],
+  "chamdiem-app/src/components/NotificationBell.vue": [
+   "tu-ve-khung-noi|.bell-pop"
+  ],
+  "chamdiem-app/src/components/OnlineUsersBadge.vue": [
+   "tu-ve-khung-noi|.pdp-online-pop",
+   "chu-nho|.pdp-online-pop__avatar|12px"
+  ],
+  "chamdiem-app/src/components/StagePicker.vue": [
+   "trung-component|StagePicker.vue"
+  ],
+  "chamdiem-app/src/components/TaskDrawer.vue": [
+   "tu-ve-khung-noi|.drawer",
+   "chu-nho|.stepper__dot|11px",
+   "chu-nho|.stepper__dot .ti|12px",
+   "trung-component|TaskDrawer.vue"
+  ],
+  "chamdiem-app/src/components/TodayPanel.vue": [
+   "tu-ve-khung-noi|.today__pop"
+  ],
+  "chamdiem-app/src/components/UpcomingTasks.vue": [
+   "chu-nho|.upc__av|12px"
+  ],
+  "chamdiem-app/src/pages/AvaLogsPage.vue": [
+   "khung-trang|AvaLogsPage.vue"
+  ],
+  "chamdiem-app/src/pages/BaFormulaPage.vue": [
+   "khung-trang|BaFormulaPage.vue"
+  ],
+  "chamdiem-app/src/pages/CertPage.vue": [
+   "khung-trang|CertPage.vue"
+  ],
+  "chamdiem-app/src/pages/ClosingPage.vue": [
+   "tu-ve-khung-noi|.pd-drawer",
+   "khung-trang|ClosingPage.vue"
+  ],
+  "chamdiem-app/src/pages/ForceChangePasswordPage.vue": [
+   "khung-trang|ForceChangePasswordPage.vue"
+  ],
+  "chamdiem-app/src/pages/FormulaPage.vue": [
+   "khung-trang|FormulaPage.vue"
+  ],
+  "chamdiem-app/src/pages/LandingPage.vue": [
+   "kich-thuoc-cung|.lp-seg__btn::before|height",
+   "chu-nho|.lp-kicker__no|12px",
+   "khung-trang|LandingPage.vue"
+  ],
+  "chamdiem-app/src/pages/LoginPage.vue": [
+   "khung-trang|LoginPage.vue"
+  ],
+  "chamdiem-app/src/pages/MyTasksPage.vue": [
+   "khung-trang|MyTasksPage.vue"
+  ],
+  "chamdiem-app/src/pages/PendingPage.vue": [
+   "khung-trang|PendingPage.vue"
+  ],
+  "chamdiem-app/src/pages/ProjectDetailPage.vue": [
+   "chu-nho|.pdp-logo--initials|12px",
+   "khung-trang|ProjectDetailPage.vue"
+  ],
+  "chamdiem-app/src/pages/ProjectsPage.vue": [
+   "khung-trang|ProjectsPage.vue"
+  ],
+  "chamdiem-app/src/pages/RegisterPage.vue": [
+   "khung-trang|RegisterPage.vue"
+  ],
+  "chamdiem-app/src/pages/ReportPage.vue": [
+   "chu-nho|.pdp-pdview__avatar|12px",
+   "khung-trang|ReportPage.vue"
+  ],
+  "chamdiem-app/src/pages/SetPasswordPage.vue": [
+   "khung-trang|SetPasswordPage.vue"
+  ],
+  "chamdiem-app/src/pages/SettingsPage.vue": [
+   "khung-trang|SettingsPage.vue"
+  ],
+  "chamdiem-app/src/pages/UsersPage.vue": [
+   "khung-trang|UsersPage.vue"
+  ],
+  "congviec-app/src/components/CvSidebar.vue": [
+   "chu-nho|.qab-arr .ti|12px",
+   "nhay-khi-hover|.cv-group__hd:hover .cv-hd-acts|display",
+   "nhay-khi-hover|.cv-proj:hover .cv-hd-acts|display",
+   "chu-nho|.cv-act .ti|12px",
+   "tu-ve-khung-noi|.qap-mention-dd"
+  ],
+  "congviec-app/src/pages/BaoCaoPage.vue": [
+   "khung-trang|BaoCaoPage.vue"
+  ],
+  "congviec-app/src/pages/TongQuanPage.vue": [
+   "chu-nho|.fchip__x .ti|12px",
+   "chu-nho|.trow__chk .ti|12px",
+   "chu-nho|.trow__meta .ti|12px",
+   "chu-nho|.due .ti|12px",
+   "tu-ve-khung-noi|.fitem__kind",
+   "chu-nho|.fitem__kind .ti|9px",
+   "chu-nho|.fitem__change .ti|12px",
+   "chu-nho|.fitem__file .ti|12px",
+   "chu-nho|.ev__sub .ti|12px",
+   "khung-trang|TongQuanPage.vue"
+  ],
+  "congviec-app/src/pages/ViecCuaToiPage.vue": [
+   "chu-nho|.kpc-av--fb|10px",
+   "chu-nho|.pp-av|10px",
+   "chu-nho|.pp-initial|9px",
+   "kich-thuoc-cung|.pp-collapse-btn|height",
+   "kich-thuoc-cung|.kgap__btn|height",
+   "kich-thuoc-cung|.kgap__btn::before|height",
+   "chu-nho|.kgap__circle .ti|10px",
+   "chu-nho|.task-check--done .ti|12px",
+   "chu-nho|.kcard__overdue .ti|11px",
+   "kich-thuoc-cung|.vctt-filter-btn.has-filter::after|height",
+   "kich-thuoc-cung|.td-edge-btn|height",
+   "chu-nho|.td-cl-circle.done .ti|10px",
+   "chu-nho|.td-sub-circle.done .ti|12px",
+   "chu-nho|.td-empty-circle .ti|12px",
+   "kich-thuoc-cung|.td-addon-btn|height",
+   "chu-nho|.td-cmt-av-fb|10px",
+   "chu-nho|.td-log-av-fb|9px",
+   "nhay-khi-hover|.td-field-box--filled:hover .td-field-hist|width",
+   "nhay-khi-hover|.td-field-hist:focus-visible|width"
+  ],
+  "contract360-app/src/pages/Contract360Dashboard.vue": [
+   "chu-nho|.sb-group-label|10px",
+   "chu-nho|.c360-subtitle|12px",
+   "chu-nho|.data-updated|12px",
+   "chu-nho|.fb-label|12px",
+   "chu-nho|.fb-isel__label|12px",
+   "chu-nho|.kpi-num|12px",
+   "chu-nho|.kpi-card-title|12px",
+   "chu-nho|.kpi-val-suffix|11px",
+   "chu-nho|.kpi-ml|11px",
+   "chu-nho|.kpi-mv|11px",
+   "chu-nho|.section-sub|12px",
+   "chu-nho|.pf-step-label|12px",
+   "chu-nho|.pf-step-sub|11px",
+   "chu-nho|.block-label-tag|11px",
+   "chu-nho|.block-card__subtitle|11px",
+   "chu-nho|.block-ml|12px",
+   "chu-nho|.block-mv|12px",
+   "chu-nho|.block-breakdown-btn|12px",
+   "chu-nho|.attention-sub|11px",
+   "chu-nho|.ap-total|12px",
+   "chu-nho|.attention-table|12px",
+   "chu-nho|.attention-table th|11px",
+   "chu-nho|.status-chip, .alert-chip|11px",
+   "chu-nho|.attention-footer|12px",
+   "khung-trang|Contract360Dashboard.vue"
+  ],
+  "gravity-ketoan/src/components/ControlHeader.vue": [
+   "chu-nho|.color-swatch__check .ti|10px",
+   "chu-nho|.color-swatch__label|12px",
+   "chu-nho|.mini-subnav-tab|10px",
+   "chu-nho|.tools-item__tag|10px"
+  ],
+  "gravity-ketoan/src/pages/BanHangPage.vue": [
+   "kich-thuoc-cung|.fopt-radio input|height"
+  ],
+  "gravity-ketoan/src/pages/HomePage.vue": [
+   "chu-nho|.ph__datetime|11px",
+   "chu-nho|.ph__sep|12px",
+   "chu-nho|.ph__weather-meta|11px",
+   "kich-thuoc-cung|.ph-icon-btn|height",
+   "kich-thuoc-cung|.dock-apps-btn__icon|height",
+   "chu-nho|.app-chip__name|10px",
+   "chu-nho|.app-chip::after|12px",
+   "kich-thuoc-cung|.dock-add-btn__icon|height",
+   "chu-nho|.dash-chip|11px",
+   "kich-thuoc-cung|.amis-btn|height",
+   "chu-nho|.amis-link|12px",
+   "chu-nho|.wcard__src|12px",
+   "chu-nho|.wcard__period|11px",
+   "kich-thuoc-cung|.wc-btn|height",
+   "chu-nho|.kpi__unit|11px",
+   "chu-nho|.ltx__date|11px",
+   "chu-nho|.ltx__tag|11px",
+   "chu-nho|.task-time|11px",
+   "chu-nho|.catalog-panel__sub|12px",
+   "kich-thuoc-cung|.cat-item__btn|height",
+   "tu-ve-khung-noi|.bg-picker",
+   "chu-nho|.bg-thumb__name|11px",
+   "chu-nho|.rcard__sub|11px",
+   "chu-nho|.rcard__filter-label|11px",
+   "chu-nho|.rcard__empty|12px",
+   "chu-nho|.rrow__av|11px",
+   "chu-nho|.rrow__name|12px",
+   "chu-nho|.rrow__sub|11px",
+   "kich-thuoc-cung|.rrow__btn|height",
+   "chu-nho|.notice-text|12px",
+   "chu-nho|.sales-rank|11px",
+   "kich-thuoc-cung|.qa-btn__icon|height",
+   "tu-ve-khung-noi|.qa-badge",
+   "chu-nho|.qa-btn__name|11px",
+   "chu-nho|.qlink__name|12px"
+  ],
+  "gravity-ketoan/src/pages/KetoanDashboard.vue": [
+   "chu-nho|.unit-line|11px",
+   "chu-nho|.period-sel|12px",
+   "chu-nho|.card-foot|11px",
+   "chu-nho|.foot-link|11px",
+   "chu-nho|.tch-row--head|12px",
+   "chu-nho|.debt-lbl|11px",
+   "chu-nho|.debt-sub-unit|11px",
+   "chu-nho|.debt-sub-lbl|11px",
+   "chu-nho|.chart-metric__lbl|11px",
+   "chu-nho|.chart-legend__item|11px",
+   "chu-nho|.dash-tbl th|12px",
+   "chu-nho|.dash-tbl td|12px",
+   "chu-nho|.cost-legend__item|12px"
+  ],
+  "gravity-ketoan/src/pages/PhieuThuForm.vue": [
+   "chu-nho|.ht-cell--stt|12px",
+   "chu-nho|.ht-row--header .ht-cell|12px",
+   "kich-thuoc-cung|.ht-input|height",
+   "chu-nho|.form-footer__hints|12px"
+  ],
+  "gravity-ketoan/src/pages/TienGuiPage.vue": [
+   "chu-nho|.kpi-card__label|12px",
+   "chu-nho|.kpi-card__time|11px"
+  ],
+  "gravity-ketoan/src/pages/TienMatPage.vue": [
+   "chu-nho|.kpi-card__label|12px",
+   "chu-nho|.kpi-card__time|11px"
+  ],
+  "gravity-ketoan/src/style.css": [
+   "chu-nho|.header-company .ti|12px",
+   "kich-thuoc-cung|.btn-icon-white|height",
+   "chu-nho|.header-avatar|11px",
+   "kich-thuoc-cung|.btn-add-quick|height",
+   "kich-thuoc-cung|.btn-collapse|height",
+   "chu-nho|.card__sub|12px",
+   "chu-nho|.btn--sm|12px",
+   "kich-thuoc-cung|.btn--sm|height",
+   "kich-thuoc-cung|.btn-icon|height",
+   "kich-thuoc-cung|.btn-icon--sm|height"
+  ],
+  "ketoan-dashboard/src/components/AVAChatPanel.vue": [
+   "kich-thuoc-cung|.ava-icon-btn|height",
+   "chu-nho|.ava-beta|10px",
+   "chu-nho|.ava-quick-btn|12px",
+   "kich-thuoc-cung|.ava-quick-btn|height",
+   "kich-thuoc-cung|.ava-input|height",
+   "kich-thuoc-cung|.ava-mic-btn|height",
+   "kich-thuoc-cung|.ava-send-btn|height"
+  ],
+  "ketoan-dashboard/src/components/AvaInsightBanner.vue": [
+   "chu-nho|.ava-banner__time|12px",
+   "chu-nho|.ava-banner__time .t-icon|12px",
+   "kich-thuoc-cung|.ava-btn-icon|height"
+  ],
+  "ketoan-dashboard/src/components/BanHangForm.vue": [
+   "chu-nho|.dinh-kem__hint|12px"
+  ],
+  "ketoan-dashboard/src/components/ControlHeader.vue": [
+   "chu-nho|.srow__label|11px",
+   "chu-nho|.sopt|12px",
+   "chu-nho|.color-swatch__check .ti|10px",
+   "chu-nho|.color-swatch__label|12px",
+   "chu-nho|.mini-subnav-tab|10px",
+   "chu-nho|.search-pop-label|11px",
+   "chu-nho|.search-chip|12px",
+   "chu-nho|.tools-item__tag|10px"
+  ],
+  "ketoan-dashboard/src/components/HeaderSearchBox.vue": [
+   "chu-nho|.sh-ai-title|12px",
+   "chu-nho|.sh-ai-shortcut|11px",
+   "chu-nho|.sh-label|11px",
+   "chu-nho|.sh-chip|12px",
+   "chu-nho|.sh-recent-enter|12px",
+   "chu-nho|.sh-hints-header|11px",
+   "chu-nho|.sh-hint-title|12px",
+   "chu-nho|.sh-hint-item|12px"
+  ],
+  "ketoan-dashboard/src/components/PhieuTienMatPopup.vue": [
+   "chu-nho|.ht-cell--stt|12px"
+  ],
+  "ketoan-dashboard/src/pages/BanHangPage.vue": [
+   "kich-thuoc-cung|.fopt-radio input|height"
+  ],
+  "ketoan-dashboard/src/pages/HomePage.vue": [
+   "chu-nho|.ph__datetime|11px",
+   "chu-nho|.ph__sep|12px",
+   "chu-nho|.ph__weather-meta|11px",
+   "kich-thuoc-cung|.ph-icon-btn|height",
+   "kich-thuoc-cung|.dock-apps-btn__icon|height",
+   "chu-nho|.app-chip__name|10px",
+   "chu-nho|.app-chip::after|12px",
+   "kich-thuoc-cung|.dock-add-btn__icon|height",
+   "chu-nho|.dash-chip|11px",
+   "kich-thuoc-cung|.amis-btn|height",
+   "chu-nho|.amis-link|12px",
+   "chu-nho|.wcard__src|12px",
+   "chu-nho|.wcard__period|11px",
+   "kich-thuoc-cung|.wc-btn|height",
+   "chu-nho|.kpi__unit|11px",
+   "chu-nho|.ltx__date|11px",
+   "chu-nho|.ltx__tag|11px",
+   "chu-nho|.task-time|11px",
+   "chu-nho|.catalog-panel__sub|12px",
+   "kich-thuoc-cung|.cat-item__btn|height",
+   "tu-ve-khung-noi|.bg-picker",
+   "chu-nho|.bg-thumb__name|11px",
+   "chu-nho|.rcard__sub|11px",
+   "chu-nho|.rcard__filter-label|11px",
+   "chu-nho|.rcard__empty|12px",
+   "chu-nho|.rrow__av|11px",
+   "chu-nho|.rrow__name|12px",
+   "chu-nho|.rrow__sub|11px",
+   "kich-thuoc-cung|.rrow__btn|height",
+   "chu-nho|.notice-text|12px",
+   "chu-nho|.sales-rank|11px",
+   "kich-thuoc-cung|.qa-btn__icon|height",
+   "tu-ve-khung-noi|.qa-badge",
+   "chu-nho|.qa-btn__name|11px",
+   "chu-nho|.qlink__name|12px"
+  ],
+  "ketoan-dashboard/src/pages/KetoanDashboard.vue": [
+   "chu-nho|.unit-line|11px",
+   "chu-nho|.period-sel|12px",
+   "chu-nho|.card-foot|11px",
+   "chu-nho|.foot-link|11px",
+   "chu-nho|.tch-row--head|12px",
+   "chu-nho|.debt-lbl|11px",
+   "chu-nho|.debt-sub-unit|11px",
+   "chu-nho|.debt-sub-lbl|11px",
+   "chu-nho|.chart-metric__lbl|11px",
+   "chu-nho|.chart-legend__item|11px",
+   "chu-nho|.dash-tbl th|12px",
+   "chu-nho|.dash-tbl td|12px",
+   "chu-nho|.cost-legend__item|12px",
+   "kich-thuoc-cung|.tnm-wrapper .btn|height",
+   "tu-ve-khung-noi|.tnm-play-btn",
+   "kich-thuoc-cung|.tnm-play-btn|height",
+   "tu-ve-khung-noi|.tnm-hero__ico",
+   "tu-ve-khung-noi|.tnm-mock-ui"
+  ],
+  "ketoan-dashboard/src/pages/PhieuThuForm.vue": [
+   "chu-nho|.ht-cell--stt|12px",
+   "chu-nho|.form-footer__hints|12px"
+  ],
+  "ketoan-dashboard/src/pages/ThietLapMauEmail.vue": [
+   "chu-nho|.tmpl-card__num|11px",
+   "chu-nho|.tmpl-card__desc|12px",
+   "chu-nho|.tmpl-tag|11px",
+   "chu-nho|.code-pre|12px",
+   "khung-trang|ThietLapMauEmail.vue"
+  ],
+  "ketoan-dashboard/src/pages/TienGuiPage.vue": [
+   "chu-nho|.kpi-cep .cep__icon|12px",
+   "chu-nho|.kpi-stat__label|12px",
+   "chu-nho|.kpi-stat__time|10px"
+  ],
+  "ketoan-dashboard/src/pages/TienMatPage.vue": [
+   "chu-nho|.kpi-cep .cep__icon|12px",
+   "chu-nho|.kpi-stat__label|12px",
+   "chu-nho|.kpi-stat__time|10px"
+  ],
+  "ketoan-dashboard/src/style.css": [
+   "chu-nho|.header-company .ti|12px",
+   "kich-thuoc-cung|.btn-icon-white|height",
+   "chu-nho|.header-avatar|11px",
+   "kich-thuoc-cung|.btn-collapse|height",
+   "chu-nho|.ht-row--header .ht-cell|12px",
+   "chu-nho|.card__sub|12px",
+   "chu-nho|.btn--sm|12px"
+  ],
+  "mds-docs/src/app.css": [
+   "tu-ve-khung-noi|.ds-search__pop",
+   "chu-nho|.ds-link__host .ti|12px",
+   "tu-ve-khung-noi|.ds-nav",
+   "tu-ve-khung-noi|.ds-search--open .ds-search__box",
+   "tu-ve-khung-noi|.leaf"
+  ],
+  "mds-docs/src/components/DemoInspector.vue": [
+   "tu-ve-khung-noi|.dsi-card",
+   "chu-nho|.dsi-card__pin|11px",
+   "chu-nho|.dsi-card code|11px",
+   "chu-nho|.dsi-card__term|11px",
+   "chu-nho|.dsi-card__note|11px",
+   "chu-nho|.dsi-card__hint|11px",
+   "chu-nho|.dsi-card__css-tip|11px"
+  ],
+  "mds-docs/src/components/DocAva.vue": [
+   "tu-ve-khung-noi|.ds-ava-callout",
+   "tu-ve-khung-noi|.ds-ava",
+   "chu-nho|.ds-ava__att-x .ti|12px"
+  ],
+  "mds-docs/src/components/OnlineUsersBadge.vue": [
+   "tu-ve-khung-noi|.ds-online-pop"
+  ],
+  "mds-docs/src/components/PageRating.vue": [
+   "tu-ve-khung-noi|.ds-rate__pop"
+  ],
+  "mds-docs/src/demos/ComboboxDemo.vue": [
+   "trung-component|ComboboxDemo.vue"
+  ],
+  "mds-docs/src/demos/ContextMenuDemo.vue": [
+   "trung-component|ContextMenuDemo.vue"
+  ],
+  "mds-docs/src/demos/CssTermsDemo.vue": [
+   "chu-nho|.ct-pad|9px",
+   "chu-nho|.ct-gap|9px"
+  ],
+  "mds-docs/src/demos/DataTableDemo.vue": [
+   "tu-ve-khung-noi|.demo-dt-split > .afp"
+  ],
+  "mds-docs/src/demos/DropdownDemo.vue": [
+   "trung-component|DropdownDemo.vue"
+  ],
+  "mds-docs/src/demos/EmailDemo.vue": [
+   "chu-nho|.gm-chip|12px",
+   "chu-nho|.gm-sender__time|12px",
+   "chu-nho|.gm-mute|12px",
+   "kich-thuoc-cung|.gm-btn|height"
+  ],
+  "mds-docs/src/demos/layout/LayoutFrame.vue": [
+   "tu-ve-khung-noi|.lf-controls"
+  ],
+  "mds-docs/src/demos/layout/SidePanelFrame.vue": [
+   "kich-thuoc-cung|.spf-composer__input|height"
+  ],
+  "nhan-vien-app/src/pages/PlaceholderPage.vue": [
+   "khung-trang|PlaceholderPage.vue"
+  ],
+  "nhan-vien-app/src/pages/TongQuanPage.vue": [
+   "chu-nho|.avatar-xs|10px",
+   "chu-nho|.task-item__date|11px",
+   "khung-trang|TongQuanPage.vue"
+  ],
+  "qlns-app/src/pages/HoSoChiTietPage.vue": [
+   "tu-ve-khung-noi|.hsct-pin",
+   "tu-ve-khung-noi|.hsct-avatar__cam",
+   "khung-trang|HoSoChiTietPage.vue"
+  ],
+  "qlns-app/src/pages/HoSoPage.vue": [
+   "khung-trang|HoSoPage.vue"
+  ],
+  "qlns-app/src/pages/TongQuanPage.vue": [
+   "khung-trang|TongQuanPage.vue"
+  ],
+  "spa-app/src/pages/KhachHangPage.vue": [
+   "chu-nho|.stat-label|11px",
+   "chu-nho|.detail-label|12px",
+   "khung-trang|KhachHangPage.vue"
+  ],
+  "spa-app/src/pages/LichHenPage.vue": [
+   "chu-nho|.detail-label|12px"
+  ],
+  "spa-app/src/pages/NhanVienPage.vue": [
+   "chu-nho|.detail-email|12px",
+   "chu-nho|.skill-tag|12px",
+   "chu-nho|.schedule-status|12px",
+   "khung-trang|NhanVienPage.vue"
+  ],
+  "spa-app/src/pages/TongQuanPage.vue": [
+   "chu-nho|.page-header__sub|12px",
+   "kich-thuoc-cung|.card__btn-icon|height",
+   "chu-nho|.kpi-card__trend|12px",
+   "chu-nho|.card__link|12px",
+   "khung-trang|TongQuanPage.vue"
+  ],
+  "survey-app/src/components/ConsentDialog.vue": [
+   "tu-ve-khung-noi|.consent__deco"
+  ],
+  "survey-app/src/pages/BuilderPage.vue": [
+   "khung-trang|BuilderPage.vue"
+  ],
+  "survey-app/src/pages/HomePage.vue": [
+   "khung-trang|HomePage.vue"
+  ],
+  "survey-app/src/pages/ResultsPage.vue": [
+   "khung-trang|ResultsPage.vue"
+  ],
+  "survey-app/src/pages/SurveysPage.vue": [
+   "khung-trang|SurveysPage.vue"
+  ],
+  "survey-app/src/pages/TemplatesPage.vue": [
+   "khung-trang|TemplatesPage.vue"
+  ]
+ }
+}

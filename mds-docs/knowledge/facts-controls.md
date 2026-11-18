@@ -189,7 +189,8 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.cb-avatar span`: Cao **100%** · Rộng **100%** · Font size **9px** · Font weight **600** · Line height **1** · Màu chữ **#10141b**
 - `.cb-field`: Cao **100%** · Rộng tối thiểu **0** · Gap **4px**
 - `.cb-trigger`: Rộng tối thiểu **40px** · Padding **0**
-- `.cb-trigger--tight`: Rộng tối thiểu **8px**
+- `.ibox--link .cb-trigger`: Rộng tối thiểu **0**
+- `.cb-trigger--tight` (Combo Link: ô rộng đúng bằng chữ): Rộng tối thiểu **8px**
 - `.cb-tags`: Rộng tối thiểu **0** · Gap **4px**
 - `.cb-tags:not(.cb-tags--measure) .cb-tag:last-child` (Thẻ cuối được co + cắt “…” khi 1 thẻ cũng không đủ chỗ; lúc đo thì giữ nguyên bề rộng thật): Rộng tối thiểu **0**
 - `.cb-tag__label`: Rộng tối thiểu **0**
@@ -219,7 +220,6 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.cb-list--table .cb-list__item`: Cao tối thiểu Trung bình **36px** · Nhỏ **36px** · Rộng **40px** · Padding Trung bình **6px 20px** · Nhỏ **6px 20px** · Rộng **6px 24px** · Border radius **0**
 - `.cb-list__foot`: Padding Trung bình **8px 20px** · Nhỏ **8px 20px** · Rộng **8px 24px** · Gap **12px** · Nền **#f2f2f4**
 - `.cb-list__create-ic`: Màu chữ **#245fdf**
-- `.cb-tag__x`: Màu chữ **#6b707a**
 
 ## ComboBox / DropDownList (ô chọn xổ xuống) — trạng thái (hover, focus, disabled, lỗi, được chọn)
 - `.cb-tag.cb-tag--focus` (Backspace lần 1: thẻ cuối sáng màu brand (lần 2 mới bỏ)): Nền **#f0f6fe** · Màu chữ **#245fdf** · Màu viền **#245fdf**
@@ -322,6 +322,7 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.dp__foot` (Chân): Padding **0 12px** · Gap **8px**
 - `.ibox--no-border`: Nền **#f2f2f4**
 - `.ibox--ghost`: Nền **transparent**
+- `.ibox--link`: Cao **auto** · Rộng **auto** · Rộng tối đa **100%** · Padding **0** · Gap **2px** · Box shadow **none** · Nền **transparent**
 - `.ibox--header`: Border radius **8px** · Nền **rgba(255,255,255,0.2)**
 - `.ibox--sm`: Cao Trung bình **28px** · Nhỏ **24px** · Rộng **32px** · Padding **0 6px 0 10px** · Gap **6px**
 - `.ibox--area`: Cao **auto** · Padding trên **6px** · Padding dưới **6px**
@@ -330,7 +331,6 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.ibox__clear-btn`: Màu chữ **#6b707a**
 - `.ibox__search-clear`: Padding **0** · Màu chữ **#6b707a**
 - `.ibox__icon`: Font size **16px** · Line height **0** · Màu chữ **#6b707a**
-- `.ibox__icon--sm`: Font size **14px**
 
 ## DatePicker (lịch chọn ngày) — trạng thái (hover, focus, disabled, lỗi, được chọn)
 - `.dp-box--open`: Màu viền **#245fdf**
@@ -383,6 +383,7 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.date-pop__link--muted`: Font weight **400** · Màu chữ **#6b707a**
 - `.ibox--no-border`: Nền **#f2f2f4**
 - `.ibox--ghost`: Nền **transparent**
+- `.ibox--link`: Cao **auto** · Rộng **auto** · Rộng tối đa **100%** · Padding **0** · Gap **2px** · Box shadow **none** · Nền **transparent**
 - `.ibox--header`: Border radius **8px** · Nền **rgba(255,255,255,0.2)**
 - `.ibox--sm`: Cao Trung bình **28px** · Nhỏ **24px** · Rộng **32px** · Padding **0 6px 0 10px** · Gap **6px**
 - `.ibox--area`: Cao **auto** · Padding trên **6px** · Padding dưới **6px**
@@ -427,6 +428,13 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.ibox__stepper-btn:hover`: Nền **#f2f2f4**
 - `.ibox__stepper-btn:disabled`: Độ mờ **0.4**
 - `.ibox__icon--error`: Màu chữ **#f04438**
+
+## AppDrawer
+- `.app-drawer`: Rộng tối đa **100%** · Box shadow **0 4px 12px 0 #000000 độ mờ 10%** (Figma Effect style: Neutral / Bottom 12) · Nền **#ffffff**
+- `.app-drawer__head`: Padding **16px 16px 12px 20px** · Gap **8px**
+- `.app-drawer__title`: Rộng tối thiểu **0** · Font size **16px** · Font weight **600** · Line height **22px** · Màu chữ **#10141b**
+- `.app-drawer__body`: Cao tối thiểu **0** · Padding **0 20px 20px**
+- `.app-drawer__footer`: Padding **12px 20px** · Gap **8px** · Nền **#f4f4f6**
 
 ## Popup / Form panel (form nhập liệu dạng popup) — AppFormPanel
 - `.form-panel`: Border radius Trung bình **8px** · Nhỏ **6px** · Rộng **8px** · Nền **#ffffff**
@@ -575,8 +583,13 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 ## Input (ô nhập) — trạng thái (hover, focus, disabled, lỗi, được chọn)
 - `.input-field__message--error`: Màu chữ **#f04438**
 
+## AppMasterDetail
+- `.app-md`: Cao tối thiểu **0** · Rộng tối thiểu **0** · Gap **16px**
+- `.app-md__master`: Cao tối thiểu **0** · Rộng tối thiểu **0**
+- `.app-md__detail`: Cao tối thiểu **0** · Rộng tối thiểu **0**
+
 ## AppNotification
-- `.notif`: Rộng **fit-content** · Rộng tối thiểu **320px** · Rộng tối đa **min(400px, 100%)** · Padding **16px** · Gap **16px** · Border radius **12px** · Font size **13px** · Line height **20px** · Box shadow **0 4px 12px 0 #000000 độ mờ 10%** (Figma Effect style: Neutral / Bottom 12) · Nền **#ffffff** · Màu chữ **#10141b**
+- `.notif`: Rộng **fit-content** · Rộng tối đa **min(400px, 100%)** · Padding **16px** · Gap **16px** · Border radius **12px** · Font size **13px** · Line height **20px** · Box shadow **0 4px 16px 0 #000000 độ mờ 10%** (Figma Effect style: Neutral / Bottom 16) · Nền **#ffffff** · Màu chữ **#10141b**
 - `.notif__ico`: Cao **40px** · Rộng **40px** · Border radius **50%** · Font size **20px**
 - `.notif--success .notif__ico`: Nền **#ecfdf3** · Màu chữ **#039855**
 - `.notif--warning .notif__ico`: Nền **#fffaeb** · Màu chữ **#dc6803**
@@ -591,11 +604,12 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.notif--error .notif__ico`: Nền **#fef3f2** · Màu chữ **#f04438**
 
 ## AppNotifier
-- `.notifier`: Cao tối đa **calc(100vh - 48px - 32px)** · Gap **16px**
+- `.notifier`: Cao tối đa **calc(100vh - 48px + 8px)** · Padding **24px** · Gap **16px**
 
 ## Numberbox (ô nhập số) — AppNumberbox
 - `.ibox--no-border`: Nền **#f2f2f4**
 - `.ibox--ghost`: Nền **transparent**
+- `.ibox--link`: Cao **auto** · Rộng **auto** · Rộng tối đa **100%** · Padding **0** · Gap **2px** · Box shadow **none** · Nền **transparent**
 - `.ibox--header`: Border radius **8px** · Nền **rgba(255,255,255,0.2)**
 - `.ibox--sm`: Cao Trung bình **28px** · Nhỏ **24px** · Rộng **32px** · Padding **0 6px 0 10px** · Gap **6px**
 - `.ibox--area`: Cao **auto** · Padding trên **6px** · Padding dưới **6px**
@@ -690,6 +704,21 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.ob-link:active`: Nền **#ddeafc**
 - `.ob-link:focus-visible`: Outline **2px solid #245fdf**
 
+## AppPage
+- `.app-page`: Cao tối thiểu **0** · Rộng tối thiểu **0**
+- `.app-page__head`: Cao tối thiểu Trung bình **56px** · Nhỏ **52px** · Rộng **60px** · Padding **12px 16px** · Gap **8px**
+- `.app-page__title`: Rộng tối thiểu **0** · Font size **20px** · Font weight **600** · Line height **28px** · Màu chữ **#10141b**
+- `.app-page__spacer`: Rộng tối thiểu **0**
+- `.app-page__actions`: Gap **8px**
+- `.app-page__tabs`: Padding **0 16px**
+- `.app-page__toptabs`: Padding **4px 16px 0** · Nền **#ffffff**
+- `.app-page__body`: Cao tối thiểu **0** · Rộng tối thiểu **0** · Padding **0 16px 16px** · Gap **16px**
+- `.app-page__section`: Padding **16px** · Gap **16px** · Border radius **8px** · Box shadow **0 0 2px 0 #000000 độ mờ 10%** (Figma Effect style: Neutral / All 2) · Nền **#ffffff**
+- `.app-page__section-title`: Font size **16px** · Font weight **600** · Line height **22px** · Màu chữ **#10141b**
+- `.app-page__footer`: Padding **12px 16px** · Gap **8px** · Nền **#f4f4f6**
+- `.tabs`: Rộng tối thiểu **0** · Gap **4px**
+- `.tabs--line`: Gap **0** · Box shadow **inset 0 -1px 0 #ced1d6**
+
 ## Pagination (phân trang) — AppPagination
 - `.pagination-bar`: Cao Trung bình **48px** · Nhỏ **40px** · Rộng **56px** · Padding Trung bình **0 16px** · Nhỏ **0 12px** · Rộng **0 16px** · Gap **16px** · Nền **#ffffff**
 - `.pagination-bar__sums`: Gap **24px**
@@ -709,6 +738,33 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.pagination-bar__nav-btn:hover:not(:disabled)`: Nền **#f2f2f4** · Màu chữ **#6b707a**
 - `.pagination-bar__nav-btn:disabled`: Độ mờ **0.35**
 - `.paging-num--on`: Màu chữ **#245fdf** · Font weight **700**
+
+## AppPopover
+- `.icon-swap`: Font size **20px** · Line height **0** · Màu chữ **var(--is-c)**
+- `.icon-swap--12`: Font size **12px**
+- `.icon-swap--16`: Font size **16px**
+- `.icon-swap--24`: Font size **24px**
+- `.icon-swap--28`: Font size **28px**
+- `.icon-swap--32`: Font size **32px**
+- `.icon-swap--36`: Font size **36px**
+- `.icon-swap--40`: Font size **40px**
+- `.icon-swap--44`: Font size **44px**
+- `.icon-swap--48`: Font size **48px**
+- `.icon-swap--action`: Padding **0** · Border radius **4px**
+- `.mds-popover`: Cao tối đa **min(70vh, 560px)** · Rộng tối đa **calc(100vw - 16px)** · Box shadow **0 4px 12px 0 #000000 độ mờ 10%** (Figma Effect style: Neutral / Bottom 12) · Nền **#ffffff**
+- `.mds-popover--menu`: Rộng tối thiểu Trung bình **max(200px, 80px)** · Nhỏ **max(200px, 80px)** · Rộng **max(200px, 96px)** · Rộng tối đa **min(360px, calc(100vw - 16px))** · Padding **8px** · Gap **0px** · Border radius Trung bình **8px** · Nhỏ **6px** · Rộng **8px**
+- `.mds-popover--panel`: Rộng **320px** · Padding trên **12px** · Gap **8px** · Border radius Trung bình **8px** · Nhỏ **6px** · Rộng **8px**
+- `.mds-popover__body`: Cao tối thiểu **0** · Padding **0 12px** · Gap **8px**
+- `.mds-popover__head`: Cao tối thiểu **32px** · Padding **0 8px** · Gap **8px**
+- `.mds-popover__title`: Rộng tối thiểu **0** · Font size **16px** · Font weight **600** · Line height **22px** · Màu chữ **#10141b**
+- `.mds-popover__content`: Rộng tối thiểu **0** · Padding **0 8px 12px** · Gap **12px**
+- `.mds-popover__foot`: Padding **12px 24px** · Gap **8px** · Nền **#f4f4f6**
+
+## AppPopover — trạng thái (hover, focus, disabled, lỗi, được chọn)
+- `.icon-swap--action:hover:not(:disabled)`: Màu chữ **var(--is-h)**
+- `.icon-swap:disabled`: Màu chữ **var(--is-d)**
+- `.icon-swap--disabled`: Màu chữ **var(--is-d)**
+- `.icon-swap--action:focus-visible`: Outline **2px solid #245fdf**
 
 ## Radio button — AppRadio
 - `.app-rb` (Kích thước theo Figma: vòng 16 (Rộng 20) · chấm chọn 8 (Rộng 10) · cách chữ 8): Gap **8px**
@@ -803,6 +859,7 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.ibox--no-border`: Nền **#f2f2f4**
 - `.ibox-search__clear`: Màu chữ **#6b707a**
 - `.ibox--ghost`: Nền **transparent**
+- `.ibox--link`: Cao **auto** · Rộng **auto** · Rộng tối đa **100%** · Padding **0** · Gap **2px** · Box shadow **none** · Nền **transparent**
 - `.ibox--header`: Border radius **8px** · Nền **rgba(255,255,255,0.2)**
 - `.ibox--sm`: Cao Trung bình **28px** · Nhỏ **24px** · Rộng **32px** · Padding **0 6px 0 10px** · Gap **6px**
 - `.ibox--area`: Cao **auto** · Padding trên **6px** · Padding dưới **6px**
@@ -847,6 +904,7 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.seg--fit`: Rộng **100%**
 - `.seg__item`: Cao Trung bình **28px** · Nhỏ **24px** · Rộng **32px** · Padding **0 12px** · Gap **8px** · Border radius Trung bình **6px** · Nhỏ **4px** · Rộng **6px** · Font size **13px** · Font weight **500** · Line height **20px** · Nền **transparent** · Màu chữ **#10141b**
 - `.seg__item--icon`: Rộng Trung bình **28px** · Nhỏ **24px** · Rộng **32px** · Padding **0**
+- `.seg__badge`: Cao **16px** · Rộng tối thiểu **16px** · Padding **0 4px** · Border radius **9999px** · Font size **10px** · Font weight **600** · Line height **16px** · Nền **#e6e7ea** · Màu chữ **#10141b**
 
 ## Segmented (nhóm nút chọn 1) — trạng thái (hover, focus, disabled, lỗi, được chọn)
 - `.seg__item:hover`: Nền **#f0f6fe**
@@ -968,6 +1026,7 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 ## Textarea (ô nhập nhiều dòng) — AppTextarea
 - `.ibox--no-border`: Nền **#f2f2f4**
 - `.ibox--ghost`: Nền **transparent**
+- `.ibox--link`: Cao **auto** · Rộng **auto** · Rộng tối đa **100%** · Padding **0** · Gap **2px** · Box shadow **none** · Nền **transparent**
 - `.ibox--header`: Border radius **8px** · Nền **rgba(255,255,255,0.2)**
 - `.ibox--sm`: Cao Trung bình **28px** · Nhỏ **24px** · Rộng **32px** · Padding **0 6px 0 10px** · Gap **6px**
 - `.ibox--area`: Cao **auto** · Padding trên **6px** · Padding dưới **6px**
@@ -1008,6 +1067,7 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 ## Textbox / Text field (ô nhập) — AppTextbox
 - `.ibox--no-border`: Nền **#f2f2f4**
 - `.ibox--ghost`: Nền **transparent**
+- `.ibox--link`: Cao **auto** · Rộng **auto** · Rộng tối đa **100%** · Padding **0** · Gap **2px** · Box shadow **none** · Nền **transparent**
 - `.ibox--header`: Border radius **8px** · Nền **rgba(255,255,255,0.2)**
 - `.ibox--sm`: Cao Trung bình **28px** · Nhỏ **24px** · Rộng **32px** · Padding **0 6px 0 10px** · Gap **6px**
 - `.ibox--area`: Cao **auto** · Padding trên **6px** · Padding dưới **6px**
@@ -1047,7 +1107,7 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 
 ## Toast (thông báo nổi) — AppToaster
 - `.toaster`: Gap **8px**
-- `.toast`: Rộng tối thiểu **320px** · Rộng tối đa **min(560px, calc(100vw - 32px))** · Padding **12px 12px 12px 16px** · Gap **12px** · Border radius **12px** · Font size **13px** · Font weight **500** · Line height **20px** · Box shadow **0 4px 12px 0 #000000 độ mờ 10%** (Figma Effect style: Neutral / Bottom 12) · Nền **var(--toast-bg)** · Màu chữ **#ffffff**
+- `.toast`: Rộng **fit-content** · Rộng tối đa **min(400px, calc(100vw - 32px))** · Padding **12px 12px 12px 16px** · Gap **12px** · Border radius **12px** · Font size **13px** · Font weight **500** · Line height **20px** · Box shadow **0 4px 12px 0 #000000 độ mờ 10%** (Figma Effect style: Neutral / Bottom 12) · Nền **var(--toast-bg)** · Màu chữ **#ffffff**
 - `.toast__icon`: Font size **22px** · Màu chữ **#ffffff**
 - `.toast__msg`: Rộng tối thiểu **0**
 - `.toast__close`: Padding **4px** · Border radius Trung bình **8px** · Nhỏ **6px** · Rộng **8px** · Nền **transparent** · Màu chữ **#ffffff**
@@ -1336,7 +1396,7 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.sn-close svg`: Cao **12px** · Rộng **12px**
 - `.sn-sync svg`: Cao **16px** · Rộng **16px**
 - `.sn-add` (── Add ──): Padding **6px 8px** · Gap **6px**
-- `.sn-input`: Font size **13px** · Line height **20px** · Nền **transparent** · Màu chữ **#3a2a00** · Rộng tối thiểu **0**
+- `.sn-input`: Padding **0** · Font size **13px** · Line height **20px** · Nền **transparent** · Màu chữ **#3a2a00** · Rộng tối thiểu **0**
 - `.sn-input::placeholder`: Màu chữ **#a08030**
 - `.sn-list` (── List ──): Cao tối thiểu **0**
 - `.sn-empty`: Padding **10px** · Font size **13px** · Màu chữ **#a08030**
@@ -1469,7 +1529,7 @@ Mỗi dòng = 1 phần tử của control: selector → các số đo (đã đ�
 - `.icon-swap--action:focus-visible`: Outline **2px solid #245fdf**
 
 ## Table header (thanh công cụ bảng) — TableHeader
-- `.table-header`: Padding **8px 12px** · Gap **8px** · Nền **#ffffff**
+- `.table-header`: Padding **12px 16px** · Gap **8px** · Nền **#ffffff**
 - `.table-header__left` (── Normal mode ──): Rộng tối thiểu **0** · Gap **8px**
 - `.table-header__left > .table-header__search` (Ô tìm kiếm: bề rộng đặt (search-width) là tối đa — thanh hẹp thì co lại trước khi phải gom ô lọc): Rộng tối thiểu **120px** · Rộng tối đa **100%**
 - `.table-header__search .ibox__native`: Rộng tối thiểu **0**

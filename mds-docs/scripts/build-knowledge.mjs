@@ -13,13 +13,13 @@ for (const f of fs.readdirSync(OUT)) if (f.endsWith('.md')) fs.rmSync(path.join(
 
 /* 1) Bộ skill chung (quy chuẩn + control) */
 const SKILLS = [
-  ['skill-mds-ui-rules.md', 'Quy chuẩn mds-ui (skill mds-ui-rules)', 'Claude/mds-ui-rules/SKILL.md'],
-  ['skill-webapp.md', 'Quy chuẩn dựng web app MDS (skill mds-webapp-developer)', 'Claude/.claude/skills/mds-webapp-developer/SKILL.md'],
-  ['vue-controls.md', 'Control Vue trong mds-ui (vue-controls)', 'Claude/.claude/skills/mds-webapp-developer/references/vue-controls.md'],
-  ['design-tokens.md', 'Design tokens (Figma Variables → CSS)', 'Claude/.claude/skills/mds-webapp-developer/references/design-tokens.md'],
-  ['themes.md', 'Màu chủ đề (THEMES)', 'Claude/.claude/skills/mds-webapp-developer/THEMES.md'],
-  ['viewport-scroll.md', 'Cuộn & khung nhìn', 'Claude/.claude/skills/mds-webapp-developer/references/viewport-scroll.md'],
-  ['echarts.md', 'Biểu đồ ECharts', 'Claude/.claude/skills/mds-webapp-developer/references/echarts-dashboard.md'],
+  ['ui-specs.md', 'Đặc tả chi tiết & quy tắc bổ sung (ui-specs)', '.claude/skills/mds-webapp-developer/references/ui-specs.md'],
+  ['skill-webapp.md', 'Quy chuẩn dựng web app MDS (skill mds-webapp-developer)', '.claude/skills/mds-webapp-developer/SKILL.md'],
+  ['vue-controls.md', 'Control Vue trong mds-ui (vue-controls)', '.claude/skills/mds-webapp-developer/references/vue-controls.md'],
+  ['design-tokens.md', 'Design tokens (Figma Variables → CSS)', '.claude/skills/mds-webapp-developer/references/design-tokens.md'],
+  ['themes.md', 'Màu chủ đề (THEMES)', '.claude/skills/mds-webapp-developer/THEMES.md'],
+  ['viewport-scroll.md', 'Cuộn & khung nhìn', '.claude/skills/mds-webapp-developer/references/viewport-scroll.md'],
+  ['echarts.md', 'Biểu đồ ECharts', '.claude/skills/mds-webapp-developer/references/echarts-dashboard.md'],
 ]
 for (const [out, title, src] of SKILLS) {
   const p = path.join(REPO, src)

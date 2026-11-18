@@ -48,6 +48,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import TIcon from './TIcon.vue'
 import AppCheckbox from './AppCheckbox.vue'
 import { ensureAiGradient } from '../utils/aiGradient.js'
+import { placeFloating, floatingStyle } from '../utils/floating.js'
 
 const props = defineProps({
   items:     { type: Array,             default: () => [] },
@@ -65,33 +66,16 @@ const isOpen  = ref(false)
 const atPoint = ref(null)   // mở bằng chuột phải → toạ độ con trỏ (null = mở dưới nút trigger)
 const pos     = ref({ top: 0, left: 0, right: 0, minWidth: 0 })
 
-/* Canh vị trí: mặc định dưới nút · KHÔNG đủ chỗ phía dưới (VD dòng cuối bảng sát đáy màn hình) → LẬT lên trên nút ·
-   cả 2 phía đều thiếu → ghim sát đáy màn hình (cách 8) · tràn ngang → kéo vào trong (cách mép 8) */
+/* Canh vị trí: thuật toán chung utils/floating.js (dưới nút · thiếu chỗ → lật lên · tràn ngang → kéo vào cách mép 8) */
 function computePos() {
   if (!wrapRef.value) return
-  const r = wrapRef.value.getBoundingClientRect()
   const m = menuRef.value?.getBoundingClientRect()
-  const h = m?.height ?? 0, w = Math.max(m?.width ?? 0, props.minWidth, r.width)
-  const vh = window.innerHeight, vw = window.innerWidth, gap = 4, edge = 8
-  let top = r.bottom + gap
-  if (h && top + h > vh - edge) top = r.top - gap - h >= edge ? r.top - gap - h : Math.max(edge, vh - edge - h)
-  let left = r.left, right = vw - r.right
-  if (props.placement === 'bottom-end') right = Math.max(edge, Math.min(right, vw - w - edge))
-  else left = Math.max(edge, Math.min(left, vw - w - edge))
-  pos.value = { top, left, right, minWidth: Math.max(props.minWidth, r.width) }
+  pos.value = placeFloating(wrapRef.value.getBoundingClientRect(), { width: m?.width, height: m?.height }, { placement: props.placement, minWidth: props.minWidth })
 }
 
 const menuStyle = computed(() => {
   if (atPoint.value) return { position: 'fixed', top: atPoint.value.y + 'px', left: atPoint.value.x + 'px', minWidth: props.minWidth + 'px', zIndex: 9999 }
-  const s = {
-    position: 'fixed',
-    top:      pos.value.top + 'px',
-    minWidth: pos.value.minWidth + 'px',
-    zIndex:   9999,
-  }
-  if (props.placement === 'bottom-end') s.right = pos.value.right + 'px'
-  else                                  s.left  = pos.value.left  + 'px'
-  return s
+  return floatingStyle(pos.value, props.placement)
 })
 
 async function toggle() {

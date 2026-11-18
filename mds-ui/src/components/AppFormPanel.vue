@@ -1,7 +1,7 @@
 <template>
   <div :class="['form-panel', { 'form-panel--maximized': maximizable && maximized }]">
     <!-- Header -->
-    <div class="form-header" :class="{ 'form-header--divider': divider }">
+    <div class="form-header" :class="{ 'form-header--divider': divider, 'form-header--top': $slots.title }">
       <span class="form-header__title">
         <slot name="title">{{ title }}</slot>
       </span>

@@ -1,16 +1,45 @@
 <!-- source: Quy chuẩn dựng web app MDS (skill mds-webapp-developer) -->
+
 # MDS Web App Developer
 
 Skill build UI **Vue.js + HTML/CSS** theo chuẩn design system **MDS Web Components v2.0**.
 
 > Skill này tách biệt hoàn toàn khỏi Figma. Dùng khi prompt build thẳng ra HTML/CSS/Vue — không cần mở Figma.
 
+## 🔒 3 KHOÁ BẮT BUỘC — máy kiểm, không dựa vào trí nhớ
+Ba lỗi hay tái phạm nhất (vẽ lại popover đã có · bố cục màn hình "sáng tạo" khác /ds/layout · vỡ dòng / nhảy vị trí khi hover) đã được **khoá bằng component + công cụ**:
+
+1. **Khung màn hình = component, không tự dựng.** Mọi màn dựng trong `<AppPage>`; master-detail = `<AppMasterDetail>`; chi tiết bên phải = `<AppDrawer>`; popover = `<AppPopover>` / `<DropdownMenu>`. App chỉ điền slot. Thiếu biến thể → thêm prop vào mds-ui, không viết cục bộ.
+2. **ui-lint tự chạy sau MỖI lần sửa .vue / .css** (hook PostToolUse) — chặn ngay: khung nổi tự vẽ, component trùng loại mds-ui, màn không dùng AppPage, đổi kích thước khi hover (đậm chữ / thêm viền / padding / display), chữ < 13px, px cứng trên nút. Báo lỗi ⛔ là **sửa ngay** trước khi làm tiếp. Lỗi cũ của app hiện có nằm trong `mds-ui/scripts/ui-lint-baseline.json` (sửa dần, không chặn).
+3. **ui-guard trước khi báo xong** (hook Stop chặn kết thúc lượt nếu đã sửa giao diện mà chưa chạy đạt): chạy app rồi
+   `node mds-ui/scripts/ui-guard.mjs <url từng màn vừa sửa> [--step "click:<nút mở popup / drawer / menu>"]`
+   → rê chuột qua từng thứ bấm được (lệch ≥ 1px = lỗi), dò chữ gãy dòng, control đè nhau, tràn khung, viền đôi, lỗi JS ở 1366 + 375. Không chạy được app → `--skip "<lý do>"` và nói rõ với người dùng.
+
+**Cần gì → dùng gì** (grep `mds-ui/src/components` trước khi viết bất cứ thứ gì mới):
+| Cần | Dùng |
+|---|---|
+| Khung màn danh sách / thêm-sửa page / chi tiết page / tổng quan | `AppPage` (+ `body="scroll"`, `back`, `#footer` Lưu/Hủy) |
+| Master-detail · drawer chi tiết | `AppMasterDetail` · `AppDrawer` |
+| Menu ⋯ / chuột phải / danh sách lệnh | `DropdownMenu` |
+| Popover nội dung tuỳ ý (chọn người, thông báo, panel lọc nhỏ…) | `AppPopover` (`variant="menu"` / `"panel"`) |
+| Ô chọn / ngày / số / tìm kiếm | `AppCombobox` · `AppDatebox` / `AppDatePicker` · `AppNumberbox` · `AppSearchbox` |
+| Popup / dialog form · xác nhận | `AppFormPanel` · `AppAlertDialog` |
+| Bảng · thanh công cụ · phân trang · hàng loạt | `DataTable` · `TableHeader` · `TablePaging` · `BulkActionBar` |
+| Lọc cùng 1 bảng · đổi layout | `AppSegmented` · `AppTabs` |
+| Tag / trạng thái · avatar · tooltip | `AppTag` / `.dt-status-badge` · `AppAvatar` · `v-tip` |
+Chi tiết props: `references/vue-controls.md`.
+
 **MANDATORY — Load ngay khi bắt đầu:**
+- [ds-notes.md](references/ds-notes.md) — **Tri thức người dùng tự dạy trên mds-docs (ưu tiên CAO NHẤT)**, sinh tự động. Mục “luôn áp dụng” phải tuân thủ mọi màn.
+- [ds-pages.md](references/ds-pages.md) — **Mục lục trang tài liệu /ds** (quy chuẩn đã dạy + làm mẫu). Làm control / màn nào thì mở đúng trang trong `references/ds/<slug>.md` và file demo mẫu `mds-docs/src/demos/*Demo.vue` kèm theo. Thứ tự ưu tiên khi mâu thuẫn: ds-notes > trang /ds > phần còn lại của skill.
+- [ui-specs.md](references/ui-specs.md) — Đặc tả chi tiết từng loại (màu dùng khi nào, cỡ chữ, bo góc, khoảng cách, menu, avatar, bảng, màn chi tiết, AI, số, tiêu đề tab) + mẫu email, font Inter, empty state, loading.
+- [design-tokens.md](references/design-tokens.md) — Toàn bộ token (Figma Variables → CSS); giá trị thật ở `mds-ui/src/style.css`.
 - [vue-controls.md](references/vue-controls.md) — Danh sách Vue components, button classes, datatable structure, master-detail layout đã được duyệt. Đọc trước khi code bất kỳ màn hình nào.
 - [LIST-PAGE.md](LIST-PAGE.md) — Layout pattern màn hình danh sách.
 - [echarts-dashboard.md](references/echarts-dashboard.md) — ECharts patterns chuẩn hóa: line, bar, cashflow, donut; gradient palette, dark mode, tooltip preset, lifecycle management. Đọc khi build màn hình dashboard có biểu đồ.
 - **Dashboard tĩnh (không kéo thả) — lưới 24 cột bắt buộc:** mọi hàng card (KPI, biểu đồ, card phụ) dùng CHUNG `grid-template-columns: repeat(24, minmax(0, 1fr))` với khe đều `var(--card-col-gap)` (= khe dọc giữa các hàng); mỗi card chiếm số ô chia hết để mép các hàng thẳng nhau — 4 KPI = 6 ô, biểu đồ chính = 12 ô (= 2 KPI), card phụ = 6 ô (= 1 KPI), bảng = 24 ô. ⛔ Không dùng `2fr 1fr 1fr` / `repeat(4, 1fr)` riêng từng hàng (số khe khác nhau → lệch nửa khe; `1fr` không có `minmax(0, …)` bị nội dung đẩy rộng). Màn hẹp: KPI 12 ô, biểu đồ 24 ô. Mẫu: `chamdiem-app/src/app.css` (`.kpi-row`, `.charts-row`).
 - **Chữ / icon liên quan AI = màu AI Primary (BẮT BUỘC):** mọi chữ gắn với AI (tên trợ lý AI, “AI gợi ý”, “Hỏi AVA”, “N gợi ý từ AVA”, nhãn / tiêu đề tính năng AI) dùng class `.text-ai-primary` (chữ gradient `#1482ff→#cf11ff`); icon AI dùng `.ti--ai`; nút AI dùng `.btn--ai` / `.btn--ai-outline`. ⛔ Không tô xanh đơn sắc `var(--text-ai)` cho chữ AI. Chi tiết: `references/vue-controls.md` (mục AI).
+- **TÌM CÓ SẴN TRƯỚC, KHÔNG TỰ VẼ MỚI (BẮT BUỘC):** trước khi viết bất kỳ control / popover / danh sách xổ / ô chọn / chip / dialog nào, PHẢI tìm xem đã có chưa — `grep` `mds-ui/src/components` + `references/vue-controls.md` + `mds-ui/src/style.css` + app khác trong monorepo (cùng tính năng đã làm ở nơi khác?). Có rồi → dùng lại component đó và chỉnh bằng prop / slot / class biến thể (VD ô chọn dự án = `AppCombobox` `avatar-square` + `recent-key` + `ghost` + `size="sm"`, có logo, tìm, “Gần đây”). Thiếu một biến thể → **thêm prop vào component mds-ui** (rồi cập nhật vue-controls.md + trang /ds), ⛔ không tạo component riêng trong app để “vẽ lại” danh sách / popover. Chỉ khi đã grep mà không có gì tương đương mới được tạo mới, và phải nói rõ với người dùng vì sao. Sau khi làm xong, tự hỏi: “có dòng CSS/Vue nào đang lặp lại thứ mds-ui đã có không?”.
 - **Cỡ chữ mặc định 13px (`var(--text-body)`):** mọi chữ đọc được (nội dung, nhãn, mô tả phụ, chữ trong ô / chip / thẻ, popover) dùng 13px. ⛔ Không dùng 12px (`--text-sm`) hay 11px cho chữ nội dung — chỉ ngoại lệ cho badge đếm số rất nhỏ (VD số trên chấm đỏ).
 - [widget-grid.md](references/widget-grid.md) — Widget grid kéo thả: 24-col square cells, edit mode, drag & drop với offset chuột, push-aside, resize handle, ghost tile, CSS states & animations. Đọc khi build dashboard có widget tùy chỉnh.
 - [drag-drop.md](references/drag-drop.md) — Kanban card drag & drop: ghost placeholder đẩy card, chống jitter, setTimeout trick, pointer-events none, 4 state bắt buộc. Đọc khi build bất kỳ giao diện kéo thả card/item nào.
@@ -77,7 +106,8 @@ Skill build UI **Vue.js + HTML/CSS** theo chuẩn design system **MDS Web Compon
 > | **Menu xổ ra** (3 chấm, chuột phải, Combobox, menu cột bảng, popover chọn…) | bo **Radius/Default** (8 · Nhỏ 6) + bóng Bottom 12 (`--shadow-popover`), không viền · đệm **8px** · item cao **32px** (Rộng 36, không theo nút) xếp **sát nhau** · ngăn nhóm bằng **Divider** 1px cách 4px · hover/chọn nền brand nhạt | `DropdownMenu` (chuột phải: `openAt($event)`) · token `--menu-pad`, `--menu-item-h`, `--menu-item-px`, `--menu-radius`, `--shadow-popover` — xem `references/vue-controls.md` › DropdownMenu |
 > | **Menu dọc BÊN PHẢI Sidebar chính** (mục lục chi tiết, menu cài đặt, menu danh mục…) | LUÔN dạng Figma **Sub Menu** 1 cột, ẩn Title · item cao **36px** cách nhau **4px**, đệm ngang 12px, bo 8px · hover nền xám nhạt · đang chọn nền brand nhạt + chữ brand Bold · chữ dài 1 dòng “…” + tooltip | `<aside class="card sub-menu"><nav class="menu-list">` + `.menu-list__item` / `--active` / `.menu-list__label` — xem `references/vue-controls.md` › Sub Menu |
 > | **Menu con của mục Sidebar chính** (VD Đề xuất → các loại đề xuất) | rê chuột xổ sang phải, **sát mép sidebar (0px)**, chuẩn menu xổ ra (bo Radius/Default, shadow Bottom 12, đệm 8, item 32 sát nhau, Divider ngăn nhóm) | `AppSidebar` item `children: [...]` — xem `references/vue-controls.md` › AppSidebar — menu con |
-> | Vùng nội dung ↔ sidebar / lề phải / lề dưới trình duyệt | **16px** | `--page-gutter` (`.content-wrapper` padding) |
+> | Vùng nội dung ↔ sidebar / lề phải / lề dưới trình duyệt | **TRÁI / PHẢI / DƯỚI 16px · TRÊN 0** (17/11/2026) — Page Header ghép liền đầu vùng, tự có đệm **12px 16px** nên KHÔNG đệm trên, KHÔNG gap bên dưới header | `--page-gutter` (`.content-wrapper { padding: 0 var(--page-gutter) var(--page-gutter) }`) |
+| **Page Header & Table Toolbar** (thanh tiêu đề trang, thanh công cụ trên bảng) | đệm **TRÁI = PHẢI 16px** (= lề vùng nội dung, thẳng hàng với chữ trong ô bảng) · **TRÊN = DƯỚI 12px** (đỡ tốn chiều cao); control cao 32 ⇒ thanh cao 56 | `TableHeader` (đã đặt sẵn `12px 16px`, không override ở app) · Page Header: `padding: 12px 16px` tràn 2 mép vùng nội dung |
 > | **Thanh nút Lưu, Hủy của form nhập liệu** (popup, drawer, trang thêm / sửa) | **LUÔN ghim ở ĐÁY form** (nút chính bên phải), nội dung form cuộn bên trên, thanh nút luôn thấy. **⛔ KHÔNG đặt nút Lưu / Hủy ở đầu form** (cạnh tiêu đề, trên cùng), kể cả form dài — cũng không đặt 2 nơi | slot `#footer` của `<AppFormPanel>` (đã ghim đáy) · trang thêm / sửa toàn màn: thanh dính đáy `position: sticky; bottom: 0` + `--shadow-top-4` |
 > | **Dialog xác nhận / thông báo** | `<AppAlertDialog>`: rộng 432, đệm 24, cách 16, tiêu đề 16/22 Semi Bold + icon đóng 20, nút căn phải cách 8, bo 12, bóng Bottom 12, không vạch ngăn | `AppAlertDialog` (Figma 6019:180746) |
 > | Form nhãn TRÁI – ô PHẢI | nhãn rộng **200px**, Regular · nhãn → ô **8px** · các hàng cách **12px** | `<AppInput :vertical="false">` trong `.form-fields.form-fields--h` |
@@ -99,6 +129,8 @@ Skill build UI **Vue.js + HTML/CSS** theo chuẩn design system **MDS Web Compon
 > - **⛔ KHÔNG NHẢY BỐ CỤC khi đổi trạng thái** (lỗi đã gặp: sửa tràn bằng `flex-wrap` → link “Đã đọc hết” ẩn / hiện theo tab làm hàng tab nhảy lên / xuống mỗi lần bấm): bố cục KHÔNG được phụ thuộc phần tử điều kiện (`v-if` nút / link / badge). Chia hàng bằng **markup cố định** (div hàng 1, div hàng 2), KHÔNG dựa vào `flex-wrap` tự xuống dòng; hàng chứa phần tử điều kiện đặt `min-height` = chiều cao phần tử đó (VD `var(--btn-height)`). Đổi tab / bộ lọc / chọn dòng → các thanh tab, toolbar, tiêu đề phải đứng yên.
 > - **Test bắt buộc (Playwright, không chỉ nhìn):** mở ĐỦ mọi popup / dropdown / dialog / drawer vừa làm hoặc vừa sửa, ở **dữ liệu tối đa** (số đếm 99+, tên dài, mọi nút/link điều kiện đều hiện — giả lập bằng `page.route` nếu dữ liệu demo không có) và **2 bề rộng 1366px + 375px**, rồi chạy `references/overflow-check.js` → `window.__overflow('<selector khung>')` phải trả `[]`. Chụp màn hình khung để xem lại. **Đồng thời bấm qua lại MỌI tab / trạng thái** (kể cả kịch bản dữ liệu làm phần tử điều kiện ẩn ↔ hiện: chỉ tab A có dữ liệu, chỉ tab B, không tab nào, cả hai) và đo `getBoundingClientRect()` của thanh tab / toolbar / vùng danh sách — vị trí và chiều cao phải GIỐNG HỆT giữa các lần bấm (`window.__layoutKey(sel)` trong overflow-check.js).
 > - **⛔ Viền đôi (double border) — test bắt buộc:** 2 viền 1px nằm sát nhau thành vạch dày 2px (lỗi đã gặp: nút thu gọn sidebar có `border-right` nằm sát viền phải của `.sidebar` ở chế độ thu gọn). Nguyên tắc: **mỗi đường ranh giới chỉ do 1 phần tử vẽ** — phần tử con nằm sát mép khung cha đã có viền thì KHÔNG thêm viền cùng cạnh; 2 ô / card đặt sát nhau thì chỉ 1 bên có viền (hoặc dùng `gap` / viền chung của khung). Muốn vạch nhấn PHỦ lên viền khung (VD gạch chân tab đang chọn) thì dùng margin âm để đè lên, không đặt sát bên trong. Test: chạy `double-border-check.js` (cùng chỗ với overflow-check.js) → `window.__doubleBorders('<selector>')` phải trả `[]` ở MỌI trạng thái của component vừa làm / sửa (thu gọn, mở rộng, rê chuột, đang chọn, sáng / tối) × 1366px + 375px.
+> - **⛔ Shadow bị cắt (clipping) — test bắt buộc:** khối có `box-shadow` (All 2 = tràn 2px mỗi phía) mà cha trực tiếp có `overflow: hidden/auto/scroll` và KHÔNG có đệm ≥ độ tràn ở cạnh đó thì bóng bị cắt (lỗi đã gặp: `.content-wrapper` đệm trên = 0 nên mất bóng cạnh TRÊN của card / panel bảng ở mọi màn danh sách). Nguyên tắc: **vùng cuộn / cắt phải chừa đệm ≥ 2px quanh card sát mép** — nếu cần giữ vị trí thì đệm + `margin` âm cùng độ (đã áp ở `.content-wrapper` trong mds-ui; KHÔNG bỏ). Thêm container `overflow` mới bọc card → tự chừa đệm tương tự, đừng để card dính sát mép vùng cắt. Test: chụp màn hình phóng to mép TRÊN / TRÁI / PHẢI / DƯỚI của card ở màn danh sách + tổng quan, bóng phải liền mạch 4 cạnh (hoặc `getComputedStyle` chứa `overflow` của cha và đo khoảng cách card ↔ mép cha ≥ 2px).
+> - **⛔ Thanh cuộn làm lệch lề phải:** Page Header nằm NGOÀI vùng cuộn (`.content-wrapper`), nên thanh cuộn chiếm chỗ (Windows…) sẽ làm card thụt vào còn combobox / nút bên phải Page Header thì không → lệch. Cách đúng (đã ở mds-ui): thanh cuộn nằm TRONG lề phải 16px, KHÔNG đẩy header — `.content-wrapper { scrollbar-gutter: stable; padding-right: max(0, 16px − var(--sb-w)) }`, `utils/scrollbars.js` đo rãnh thật gán `--sb-w` (thanh mảnh ≈ 11px < 16). Page Header giữ đệm phải 16 bình thường. ⛔ Đừng bù lệch bằng cách đệm thêm cho header; đừng bỏ `scrollbar-gutter` hay công thức đệm phải. Test: giả lập thanh cuộn cổ điển → `getBoundingClientRect().right` của nút phải Page Header = của card.
 
 > **🔢 ĐỊNH DẠNG SỐ HIỂN THỊ — bắt buộc MỌI app (Thông tư 200/2014/TT-BTC, mọi biểu mẫu / bảng biểu / báo cáo):** dấu **chấm (.) phân tách hàng nghìn**, dấu **phẩy (,) phân tách thập phân**.
 >
@@ -762,7 +794,7 @@ function onCollapseClick() { isExpanded.value = !isExpanded.value }
 .sub-nav-tab {   /* Figma Tab Horizontal Item (6019:101046), Underline=True */
   display: flex; align-items: center; gap: 8px;            /* Tabs/Medium/Gap-Content */
   height: var(--tab-h); padding: 0 var(--tab-px);          /* Tabs/Medium/Fix-Height 36 · 36 · 40 · Padding-Horizontal 12 · 12 · 20 */
-  /* ⛔ Tab KHÔNG kéo cao bằng thanh chứa (sub-nav 48 / page-header 56 / drawer) — nằm sát đáy, hàng tab margin-bottom:-1px để gạch chân đè viền dưới thanh */
+  /* ⛔ Tab KHÔNG kéo cao bằng thanh chứa (sub-nav = tab + 4 / page-header 56 / drawer) — nằm sát đáy, hàng tab margin-bottom:-1px để gạch chân đè viền dưới thanh */
   border-radius: var(--radius-default) var(--radius-default) 0 0;   /* chỉ bo 2 góc trên */
   font-size: 13px; font-weight: var(--fw-regular);
   color: var(--text-primary);
@@ -1786,7 +1818,7 @@ function saveAndAdd() { if (validate()) { emit('save', { ...formData }); Object.
   display: flex; flex-direction: column;
   flex: 1; min-height: 0;  /* fix overflow trong flex */
   overflow: hidden;
-  padding: var(--page-gutter);  /* 16px — cách sidebar / lề phải / lề dưới (mds-ui .content-wrapper) */
+  padding: 0 var(--page-gutter) var(--page-gutter);  /* trái / phải / dưới 16px, TRÊN 0 — Page Header ghép liền (tự đệm 12px 16px) (mds-ui .content-wrapper) */
   gap: 0;
 }
 
@@ -2108,6 +2140,11 @@ const miniHeaderStyle = computed(() => draftMode.value === 'light'
 ## 15. CHECKLIST SAU KHI VIẾT CODE
 
 ```
+KHOÁ TỰ ĐỘNG (xem đầu skill)
+□ Màn hình dựng bằng AppPage / AppMasterDetail / AppDrawer, popover bằng AppPopover / DropdownMenu?
+□ ui-lint không còn lỗi ⛔ mới ở file vừa sửa?
+□ ui-guard ĐẠT trên URL mọi màn vừa sửa (mở cả popup / drawer / menu vừa làm bằng --step) ở 1366 + 375?
+
 CONTROLS PRE-CHECK — Phải pass TRƯỚC khi viết code (không phải sau)
 □ Đã đọc vue-controls.md trước khi bắt đầu?
 □ Mọi Vue component (TableHeader, DataTable, AppSidebar, ControlHeader...) đều kéo từ mds-ui?
@@ -2150,7 +2187,7 @@ DESIGN TOKENS
 □ Card ↔ card cách đúng 16px (--card-col-gap)?
 □ Đệm trong MỌI card / khối nền = 16px đều 4 phía (--box-padding) — không có `padding: 8px 12px` / `12px` kiểu lệch?
 □ Control ↔ control cạnh nhau (Button–Button, Button–Textbox…) cách đúng 8px (--gap-control), dùng gap của container, KHÔNG margin?
-□ Nội dung cách sidebar / lề phải / lề dưới đúng 16px (--page-gutter) — đo bằng Playwright, không chỉ nhìn?
+□ Nội dung cách sidebar / lề phải / lề dưới đúng 16px, lề TRÊN = 0 (Page Header ghép liền, đệm 12px 16px, không gap bên dưới); Table Toolbar đệm 12px 16px (--page-gutter) — đo bằng Playwright, không chỉ nhìn?
 □ Form nhãn trái: nhãn 200px Regular, nhãn→ô 8px, hàng cách 12px (.form-fields--h + AppInput :vertical="false")?
 □ Form nhãn trên: nhãn Semibold, nhãn→ô 4px, trường cách 16px (.form-fields + AppInput)?
 □ Form / chi tiết 2 cột: cột cách 80px, < 760px về 1 cột (.form-fields--2col / .detail-grid)?
@@ -2196,5 +2233,5 @@ CHART (nếu có biểu đồ)
 ## ⛔ Menu xổ ra / popover không được bị che (dòng cuối DataTable, nút sát đáy màn hình)
 - `DropdownMenu` (mds-ui) tự canh: mặc định mở **dưới** nút; phía dưới không đủ chỗ (dòng cuối bảng sát đáy, nút ở chân trang) → **tự lật lên trên** nút; cả 2 phía thiếu → ghim cách đáy 8; tràn ngang → kéo vào trong cách mép 8; menu dài → cuộn trong menu (max-height). Menu teleport ra `body` + `position: fixed` → không bị `overflow` của bảng / card cắt.
 - DataTable: nút “…” của thao tác dòng (rê chuột) đang mở menu → nhóm nút trên dòng **giữ hiện** dù chuột đã rời dòng sang menu (`.row-actions:has([aria-expanded="true"])`).
-- ⛔ Không tự viết menu / popover `position: absolute` trong ô bảng (bị che, bị cắt). Popover tự làm phải đo chỗ trống và lật như trên.
+- ⛔ Không tự viết menu / popover `position: absolute` trong ô bảng (bị che, bị cắt). Nội dung tuỳ ý → `AppPopover` (cùng thuật toán định vị `@mds/utils/floating.js`, tự lật như trên) — không tự đo chỗ trống.
 - Kiểm tra bắt buộc: đặt dòng cuối của bảng sát đáy cửa sổ → rê dòng → bấm “…” → menu nằm trọn trong màn hình (lật lên) và chọn được chức năng.

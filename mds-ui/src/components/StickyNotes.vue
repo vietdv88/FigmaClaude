@@ -48,7 +48,7 @@
 
       <!-- Ô nhập nhanh — form để Enter submit đáng tin cậy nhất trên mọi trình duyệt -->
       <form class="sn-add" @submit.prevent="addNote" @mousedown.stop>
-        <input ref="inputEl" v-model="draft" type="text" class="sn-input" placeholder="Nhập ghi chú rồi Enter…" maxlength="200" @blur="addNote" />
+        <textarea ref="inputEl" v-model="draft" rows="1" class="sn-input" placeholder="Nhập ghi chú rồi Enter…" maxlength="200" @input="grow($event.target)" @keydown.enter.prevent="addNote" @blur="addNote" />
       </form>
 
       <!-- Danh sách -->
@@ -60,8 +60,8 @@
             <svg v-else viewBox="0 0 14 14" fill="none"><rect x=".75" y=".75" width="12.5" height="12.5" rx="2.25" stroke="#b8860b" stroke-width="1.5"/></svg>
           </button>
           <span v-if="editId !== n.id" class="sn-text" v-tip="'Nhấp đúp để sửa'" @dblclick="startEdit(n)">{{ n.text }}</span>
-          <input v-else ref="editEl" v-model="editText" type="text" class="sn-edit-input" maxlength="200"
-            @keydown.enter.prevent="commitEdit(n)" @keydown.esc.stop="editId = null" @blur="commitEdit(n)" @mousedown.stop />
+          <textarea v-else ref="editEl" v-model="editText" rows="1" class="sn-edit-input" maxlength="200"
+            @input="grow($event.target)" @keydown.enter.prevent="commitEdit(n)" @keydown.esc.stop="editId = null" @blur="commitEdit(n)" @mousedown.stop></textarea>
           <button type="button" class="sn-del" aria-label="Xóa" @click="del(n)">×</button>
         </div>
       </div>
@@ -252,8 +252,11 @@ const drop = (list, hit) => (props.user ? list.map(n => (hit(n) ? { ...n, sync: 
 
 /* Chữ đang gõ chưa Enter: lưu nháp ngay khi gõ; rời ô / đóng panel / F5 / đóng tab → tự thành ghi chú (không mất chữ) */
 watch(draft, v => { try { v ? localStorage.setItem(LS_DRAFT, v) : localStorage.removeItem(LS_DRAFT) } catch {} })
+/* Ô nhập tự cao theo nội dung — chữ dài tự xuống dòng, không bị che */
+const grow = el => { if (!el) return; el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' }
+watch(draft, () => nextTick(() => grow(inputEl.value)))
 function addNote() {
-  const text = draft.value.trim(); if (!text) return
+  const text = draft.value.replace(/\s+/g, ' ').trim(); if (!text) return
   draft.value = ''
   const at = stamp()
   change(list => [{ id: newId(), text, done: false, createdAt: at, updatedAt: at, ...(props.user ? { sync: 'add' } : null) }, ...list])
@@ -262,10 +265,10 @@ const toggle2   = n => change(list => list.map(x => (x.id === n.id ? touch({ ...
 const del       = n => change(list => drop(list, x => x.id === n.id))
 const clearDone = () => change(list => drop(list, x => x.done && x.sync !== 'del'))
 
-function startEdit(n) { editId.value = n.id; editText.value = n.text; nextTick(() => editEl.value?.[0]?.focus()) }
+function startEdit(n) { editId.value = n.id; editText.value = n.text; nextTick(() => { const el = editEl.value?.[0]; el?.focus(); grow(el) }) }
 function commitEdit(n) {
   if (!editId.value) return; editId.value = null
-  const text = editText.value.trim(); if (!text || text === n.text) return
+  const text = editText.value.replace(/\s+/g, ' ').trim(); if (!text || text === n.text) return
   change(list => list.map(x => (x.id === n.id ? touch({ ...x, text }) : x)))
 }
 
@@ -344,7 +347,7 @@ function onResizeWindow() { if (open.value) fitView(); if (fabPos.value) fabPos.
 function onKey(e) { if (e.key === 'Escape' && open.value) closePanel() }
 function onStorage(e) { if (e.key === storeKey()) notes.value = read() }   // tab khác vừa đổi ghi chú → hiện theo
 
-watch(open, v => { if (v) { load(); nextTick(() => inputEl.value?.focus()) } })
+watch(open, v => { if (v) { load(); nextTick(() => { inputEl.value?.focus(); grow(inputEl.value) }) } })
 watch(() => props.user?.id, () => { clearTimeout(retryTimer); status.value = 'synced'; load() }, { immediate: true })
 onMounted(() => {
   loadSize(); loadFab()
@@ -432,6 +435,7 @@ a.sn-sync:hover { background: rgba(0,0,0,.18); }
 .sn-add { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid rgba(0,0,0,.08); flex-shrink: 0; cursor: default; user-select: text; margin: 0; }
 .sn-input {
   border: none; outline: none; background: transparent;
+  resize: none; overflow: hidden; display: block; white-space: pre-wrap; overflow-wrap: anywhere; padding: 0; margin: 0;
   font-size: var(--text-body); line-height: var(--text-body-lh); color: #3a2a00; font-family: inherit;
 }
 .sn-input::placeholder { color: #a08030; }
@@ -454,6 +458,7 @@ a.sn-sync:hover { background: rgba(0,0,0,.18); }
 .sn-item--done .sn-text      { text-decoration: line-through; opacity: .5; }
 .sn-edit-input {
   flex: 1; min-width: 0; padding: 0 3px; margin: -1px -3px;
+  resize: none; overflow: hidden; display: block; white-space: pre-wrap; overflow-wrap: anywhere;
   border: 1px solid #b8860b; border-radius: 3px; outline: none;
   font-size: var(--text-body); line-height: var(--text-body-lh); font-family: inherit; background: #fffde7; color: #3a2a00;
 }

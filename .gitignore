@@ -37,3 +37,13 @@ desktop.ini
 **/service-account.json
 **/*.key.json
 **/credentials.json
+
+# chamdiem-app — file SQLite khi chạy máy chủ trên máy
+chamdiem-app/server/data/
+
+# Gói cài đã đóng (deploy-kit/build-package.sh)
+deploy-kit/out/
+mds-docs/.live/
+
+# ui-guard — trạng thái kiểm tra giao diện của phiên làm việc (hook Stop)
+.ui-guard/

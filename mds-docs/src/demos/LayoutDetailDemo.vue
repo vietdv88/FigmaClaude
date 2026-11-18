@@ -10,34 +10,26 @@
       <template #controls><span class="demo-muted">Dạng màn hình:</span><AppCombobox v-model="kind" :options="KINDS" required :clearable="false" class="demo-layout-pick" /></template>
       <div :key="kind" class="lf-slot">
       <!-- Xem dạng page: tổng quan + tab nhóm thông tin · phím chức năng ghim góc trên phải (Primary → More ngoài cùng) · rê chuột lên trường để sửa nhanh -->
-      <div v-if="kind === 'page'" class="dt-page">
-        <div class="dt-page__head">
-          <button type="button" class="btn-icon" v-tip="'Quay lại'" aria-label="Quay lại"><TIcon name="arrow-left" /></button>
-          <h2 class="dt-title">{{ c.name }}</h2>
-          <span class="dt-status-badge" :class="`dt-status-badge--${c.status.color}`">{{ c.status.label }}</span>
-          <span class="dt-sp" />
-          <Actions />
-        </div>
-        <div class="dt-page__body">
-          <section class="dt-overview surface">
-            <AppAvatar :size="56" :name="c.name.replace(/^Công ty (CP|TNHH)\s*/, '')" />
-            <div v-for="o in OVERVIEW" :key="o.label" class="dt-overview__item"><span class="demo-muted">{{ o.label }}</span><b>{{ o.value }}</b></div>
-          </section>
-          <section class="dt-main surface">
-            <AppTabs v-model="tab" :items="TABS" aria-label="Nhóm thông tin" />
-            <div v-if="tab === 'info'" class="form-fields form-fields--2col dt-fields">
-              <DetailField v-for="f in FIELDS" :key="f.label" v-model="f.value" :label="f.label" :editable="f.editable !== false" @save="toast.success(`Đã cập nhật ${f.label}`)" />
-            </div>
-            <div v-else class="table-scroll"><DataTable :columns="ORDER_COLUMNS" :rows="ORDERS" /></div>
-          </section>
-        </div>
-      </div>
+      <AppPage v-if="kind === 'page'" :title="c.name" back body="scroll">
+        <template #title-extra><span class="dt-status-badge" :class="`dt-status-badge--${c.status.color}`">{{ c.status.label }}</span></template>
+        <template #actions><Actions /></template>
+        <section class="dt-overview surface">
+          <AppAvatar :size="56" :name="c.name.replace(/^Công ty (CP|TNHH)\s*/, '')" />
+          <div v-for="o in OVERVIEW" :key="o.label" class="dt-overview__item"><span class="demo-muted">{{ o.label }}</span><b>{{ o.value }}</b></div>
+        </section>
+        <section class="dt-main surface">
+          <AppTabs v-model="tab" :items="TABS" aria-label="Nhóm thông tin" />
+          <div v-if="tab === 'info'" class="form-fields form-fields--2col dt-fields">
+            <DetailField v-for="f in FIELDS" :key="f.label" v-model="f.value" :label="f.label" :editable="f.editable !== false" @save="toast.success(`Đã cập nhật ${f.label}`)" />
+          </div>
+          <div v-else class="table-scroll"><DataTable :columns="ORDER_COLUMNS" :rows="ORDERS" /></div>
+        </section>
+      </AppPage>
 
       <template v-else>
-        <div class="dt-behind">
-          <h2 class="dt-title">Khách hàng</h2>
-          <div class="table-panel dt-behind__table"><DataTable :columns="CUSTOMER_COLUMNS" :rows="CUSTOMERS.slice(0, 8)" /></div>
-        </div>
+        <AppPage title="Khách hàng">
+          <div class="table-panel"><DataTable :columns="CUSTOMER_COLUMNS" :rows="CUSTOMERS.slice(0, 8)" /></div>
+        </AppPage>
         <div class="dt-overlay">
           <div class="dt-dialog" :class="`dt-dialog--${kind}`" role="dialog" :aria-label="c.name">
             <AppFormPanel :title="c.name" :tab-fields-only="kind === 'view-edit'">
@@ -82,6 +74,7 @@ import AppTabs from '@mds/components/AppTabs.vue'
 import AppAvatar from '@mds/components/AppAvatar.vue'
 import AppCombobox from '@mds/components/AppCombobox.vue'
 import AppFormPanel from '@mds/components/AppFormPanel.vue'
+import AppPage from '@mds/components/AppPage.vue'
 import DataTable from '@mds/components/DataTable.vue'
 import DetailField from '@mds/components/DetailField.vue'
 import DropdownMenu from '@mds/components/DropdownMenu.vue'
@@ -128,11 +121,6 @@ Actions.props = ['primary', 'primaryIcon']
 <style scoped>
 .lf-slot { display: contents; }   /* đổi dạng → dựng lại nội dung, giữ nguyên khung (và chế độ toàn màn hình) */
 .demo-layout-pick { width: 320px; max-width: 100%; }
-.dt-title { margin: 0; font-size: var(--text-h2); line-height: var(--text-h2-lh); font-weight: var(--fw-semibold); }
-.dt-sp { flex: 1; }
-.dt-page { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.dt-page__head { display: flex; align-items: center; gap: var(--gap-control); padding: 16px 16px 12px; }
-.dt-page__body { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: var(--card-col-gap); padding: 0 16px 16px; }
 .dt-overview { display: flex; align-items: center; gap: 40px; padding: var(--card-py) var(--card-px); }   /* card: đệm 16 đều */
 .dt-overview__item { display: flex; flex-direction: column; gap: 2px; }
 .dt-overview__item b { font-size: 16px; line-height: 24px; }
@@ -140,8 +128,6 @@ Actions.props = ['primary', 'primaryIcon']
 .dt-fields { padding-top: 4px; }
 :deep(.dt-acts) { display: flex; align-items: center; gap: var(--gap-control); }
 .dt-head-acts { display: flex; align-items: center; gap: var(--gap-control); }
-.dt-behind { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--card-col-gap); padding: 16px; }
-.dt-behind__table { flex: 1; min-height: 0; overflow: hidden; background: var(--bg-white); }
 .dt-overlay { position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center; background: var(--bg-overlay); }
 .dt-dialog { display: flex; flex-direction: column; overflow: hidden; border-radius: var(--radius-dialog); box-shadow: var(--shadow-dialog); background: var(--bg-white); max-height: calc(100% - 32px); }
 .dt-dialog :deep(.form-panel) { flex: 1; min-height: 0; border-radius: 0; }

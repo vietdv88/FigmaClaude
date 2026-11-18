@@ -16,9 +16,10 @@ import { notifications, dismissNotification } from '../utils/notify.js'
 
 <style scoped>
 .notifier {
-  position: fixed; top: calc(var(--layout-header-h) + 16px); right: 16px; z-index: 9999;
+  /* Đệm 24px quanh vùng để bóng (Bottom 16) không bị overflow cắt; vị trí thẻ vẫn cách header + mép phải 16px */
+  position: fixed; top: calc(var(--layout-header-h) - 8px); right: -8px; z-index: 9999; padding: 24px; box-sizing: border-box;
   display: flex; flex-direction: column; gap: 16px; align-items: flex-end; pointer-events: none;
-  max-height: calc(100vh - var(--layout-header-h) - 32px); overflow: hidden;
+  max-height: calc(100vh - var(--layout-header-h) + 8px); overflow: hidden;
 }
 .notifier > * { pointer-events: auto; }
 .notif-enter-active, .notif-leave-active { transition: opacity 0.2s, transform 0.2s; }

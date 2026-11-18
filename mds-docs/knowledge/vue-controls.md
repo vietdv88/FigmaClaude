@@ -37,15 +37,17 @@ import { vResizableDrawer } from '@mds/utils/resizableDrawer.js'
 - `min` (px, mặc định 360) · `max` (px, mặc định 92% bề ngang màn hình). CSS tay kéo dùng chung: `.drawer-resize` / `.drawer-resizing` trong style.css — không tự viết lại ở app.
 
 ### TableHeader
+> **Tab gạch chân trong vùng bọc có `border-bottom` — gạch xanh tab ĐANG CHỌN phải ĐÈ LÊN vạch của vùng bọc (17/11/2026):** ⛔ không để gạch xanh nằm cạnh phía trên vạch neutral (nhìn như lỗi, vạch xám lộ ra dưới gạch xanh). Cách làm: vùng bọc `.tabbar { border-bottom: 1px solid var(--stroke-neutral) }` + kéo dải tab xuống đúng bằng độ dày vạch: `.tabbar :deep(.tabs) { margin-bottom: -1px }` (tab chưa chọn vẫn `:baseline="false"`). Kiểm tra: phóng to ×3 ở chỗ tab đang chọn — gạch xanh nằm đúng hàng pixel của vạch xám, không còn vạch xám nào ló ra ở 2 bên / dưới gạch xanh. Màu vạch vùng bọc = `--stroke-neutral` giống vạch kẻ dòng bảng (không dùng neutral-light cho riêng vạch này).
 > **AppTabs `:baseline="false"`:** bỏ vạch nền dưới các tab chưa chọn (chỉ tab đang chọn còn gạch Brand) — dùng khi dải tab nằm sát viền / vạch ngăn của khung chứa, tránh 2 đường kẻ chồng nhau (VD dải tab phân hệ con thay tiêu đề).
 > **Thao tác hàng loạt — 2 trường hợp theo bố cục danh sách (04/11/2026):**
 > 1. **Danh sách có tiêu đề trang** (tiêu đề trái, Nhập khẩu / Thêm / ⋯ bên phải): tick dòng → `<BulkActionBar :selected-count :total-count :page-all-selected @deselect-all @select-all-pages><OverflowActions :actions … /></BulkActionBar>` **thay chỗ tiêu đề + các nút bên phải**; `TableHeader` của bảng **giữ nguyên** (không bật `bulk-action`).
 > 2. **Danh sách có tab phân hệ con thay tiêu đề** (không có tiêu đề; bộ lọc nhanh slot `filters` + Nhập khẩu / Thêm / ⋯ ở `main-buttons` với `main-function-button`): tick dòng → `TableHeader :bulk-action="true"` — thao tác hàng loạt thế chỗ bộ lọc nhanh và Nhập khẩu / Thêm, **giữ ô tìm kiếm** bên trái.
+> **Danh sách có nhiều tab — vị trí nút Thêm / Nhập khẩu (17/11/2026):** ① **Tab chỉ dùng khi mỗi tab nạp nội dung / layout khác hẳn** (đối tượng khác, cột khác — VD Khách hàng · Liên hệ · Cơ hội · Hợp đồng). Chỉ để LỌC cùng một danh sách (Tất cả · Đang xử lý · Hoàn thành) → dùng **AppSegmented**, không dùng tab. ② Có tab (cả dạng “có tiêu đề” lẫn “nền trắng cả vùng tiêu đề”): **Nhập khẩu / Thêm nằm ở thanh công cụ bảng của TỪNG tab** (`TableHeader :main-function-button` + slot `main-buttons`), vì thêm / nhập cho đúng đối tượng của tab đang mở; ⛔ không để ở tiêu đề chung (người dùng không biết thêm cho tab nào). Tiêu đề chung chỉ giữ chức năng tác động CẢ phân hệ: Báo cáo, Cài đặt, Xuất toàn bộ, Đồng bộ, “⋯”. ③ Danh sách chỉ lọc bằng Segmented (cùng một đối tượng) → Nhập khẩu / Thêm ở tiêu đề chung là đúng.
 > Nút hàng loạt luôn qua `OverflowActions` (thiếu chỗ tự gom vào “⋯”, nút nguy hiểm xếp cuối).
 > **Tìm kiếm thông minh TRÊN BẢNG** (`search-mode="ai"`): hành xử Y HỆT `AppAiSearchbox` ở /ds/search-box — kết quả hiện ở **popover “Kết quả tìm kiếm với AI”** (dòng điều kiện bóc tách + kết quả theo NHÓM: trái = tên nhóm · phải = bản ghi + Tag số kết quả), **bảng KHÔNG bị lọc**. Luồng: **icon phân tích** → `@ai-analyze(câu)` → app đặt `:ai-parsed="[{ label, value }]"` (popup “Điều kiện AI bóc tách”) · **Enter** → `@ai-search(câu)` → app tìm rồi đặt `:ai-results="[{ key, title, total, items: [{ id, name, subtitle, meta, avatar }] }]"` · bấm bản ghi → `@ai-select(item, group)` · “Xem thêm” → mở **popup kết quả của riêng nhóm đó** (`AppSearchResultsDialog`, cùng popup “Xem thêm” của Global search; popover đóng) — app lắng nghe `@ai-more(group, câu)` rồi đặt `:ai-more-items` (TOÀN BỘ bản ghi của nhóm) + `:ai-more-total` (+ `:ai-more-loading`); sửa từ khóa trong popup → bắn lại `@ai-more` · **✕** → `@ai-clear` (xóa chữ + đóng popover + bỏ kết quả). `ai-results-panel="false"` chỉ cho app muốn Enter lọc thẳng bảng (không khuyến nghị). ⛔ Không biến ô thông minh thành lọc bảng ngầm, ⛔ không để popover kết quả mở lại sau khi bấm ✕ (đã sửa trong AppAiSearchbox: `clear()` quên lần tìm trước khi focus). Sample: /ds/data-table › Tìm kiếm › Thông minh.
 > **Tìm kiếm thông minh (04/11/2026):** `<TableHeader :search-mode="mode" @ai-search="q => …">` — `search-mode`: `'normal'` (ô tìm kiếm thường) | `'ai'` → **AppAiSearchbox** (Figma AI Searchbox 17455:70653: viền gradient AI, icon `mds-search-spark`, placeholder gradient “Tìm kiếm thông minh”, huy hiệu “AI”; đã gõ: ✕ + icon phân tích gửi). Chọn kiểu do APP quyết định (VD tùy chọn / thiết lập “Tìm kiếm: Thường · Thông minh”) — ⛔ không đặt nút chuyển trong ô. Enter / icon phân tích → `@ai-search(câu hỏi)`: app gửi câu hỏi cho AI / máy chủ rồi lọc. Dùng riêng: `<AppAiSearchbox v-model="q" @submit="…" />` (props `placeholder`, `disabled`, `width`).
 > **Thanh luôn 1 dòng (⛔ không để xuống 2 dòng) — có sẵn trong TableHeader, 04/11/2026:** chật thì ô tìm kiếm co từ `search-width` xuống ~120px; vẫn không đủ chỗ → **ẩn các ô lọc bày sẵn (slot `filters`) và gom vào icon lọc bên phải** — bấm xổ popover “Bộ lọc” 320px kiểu bộ lọc cơ bản, ô lọc xếp dọc, đổi là áp dụng ngay (app có bộ lọc riêng thì cuối popover có “Bộ lọc khác” → `@open-filter`). Rộng ra đủ chỗ thì tự bày lại. Chọn hàng loạt: chật thì ẩn ô tìm kiếm; nút hàng loạt dùng `OverflowActions` để tự gom vào “⋯”. ⛔ App không tự đặt `flex-wrap` / chiều cao / ẩn ô lọc theo `window.innerWidth` cho thanh công cụ.
-Padding chuẩn: `8px 12px` (trái = phải 12px) — đã đặt trong component, không override ở app.
+Padding chuẩn: `12px 16px` (trái = phải 16px = lề vùng nội dung, thẳng hàng với chữ trong ô bảng; trên = dưới 12px, đổi 17/11/2026) — đã đặt trong component, không override ở app. Page Header cùng quy tắc `12px 16px`.
 ```vue
 <TableHeader
   v-model="searchQuery"
@@ -350,7 +352,60 @@ Nguồn: Figma MDS “Dropdown Menu” `6019:42469` + biến `Components/Menu Li
 
 **⛔ Lớp chồng (z-index):** menu / popover xổ từ **header** (tài khoản, thông báo, đang hoạt động, tiện ích, chọn vai trò…) LUÔN nằm trên drawer và panel chat / AVA → dùng `z-index: var(--z-header-pop)` (9600) **và Teleport ra `body`** (để trong header thì bị z-index 100 của header giới hạn → drawer đè lên, lỗi đã gặp). Thang chung trong mds-ui: nội dung < header 100 < drawer `--z-drawer` 900 < dialog `--z-dialog` 1000 < panel chat / AVA `--z-side-panel` 1050 < menu header `--z-header-pop` 9600 ≈ menu / combobox / lịch < tooltip < toast. Test: mở drawer (+ panel chat) rồi mở từng menu header, `document.elementFromPoint` ở giữa / các góc menu phải thuộc menu.
 
-Menu tự dựng trong app → dùng các token trên (`--menu-pad`, `--menu-item-h`, `--menu-item-px`, `--menu-radius`, `--shadow-popover`), KHÔNG gõ `box-shadow`/`padding` tay. Lưu ý: `.menu-list` (Sub Menu đặt trong card, không phải menu xổ ra) theo chuẩn riêng — xem **Sub Menu** bên dưới.
+⛔ **App KHÔNG tự dựng menu / popover** (ui-lint chặn `position fixed|absolute` + `box-shadow` trong app). Danh sách lệnh → `DropdownMenu`; nội dung tuỳ ý (danh sách chọn riêng, chọn người, thông báo, panel lọc…) → **`AppPopover`** bên dưới. Lưu ý: `.menu-list` (Sub Menu đặt trong card, không phải menu xổ ra) theo chuẩn riêng — xem **Sub Menu** bên dưới.
+
+### AppPopover — lớp nổi nội dung tuỳ ý (thay MỌI popover tự vẽ trong app)
+Định vị dùng chung `@mds/utils/floating.js` (cùng thuật toán DropdownMenu: dưới nút cách 4 · thiếu chỗ → lật lên · không tràn mép 8) · teleport `body` · bấm ra ngoài / Esc đóng (bấm vào danh sách Combobox / lịch mở từ bên trong KHÔNG đóng) · nút mở tự mang `aria-expanded` (CSS trạng thái mở có sẵn) · tự bám theo khi cuộn / đổi cỡ cửa sổ.
+```vue
+<!-- variant="menu" (mặc định): khung Menu List — item dùng class .dropdown-menu__item (+ --active / --danger) -->
+<AppPopover placement="bottom-end">
+  <template #trigger="{ toggle }"><button type="button" class="btn-icon btn-icon--outline" aria-label="Đang hoạt động" @click="toggle"><TIcon name="users" /></button></template>
+  <template #default="{ close }">
+    <AppSearchbox v-model="q" placeholder="Tìm người" />
+    <button v-for="p in list" :key="p.id" type="button" class="dropdown-menu__item" @click="pick(p); close()"><AppAvatar :size="24" :name="p.name" /><span class="dropdown-menu__label">{{ p.name }}</span></button>
+  </template>
+</AppPopover>
+
+<!-- variant="panel": Figma Body Filter (320px · tiêu đề H3 + ✕ · thân đệm 12 · chân nền Form Footer) -->
+<AppPopover variant="panel" title="Bộ lọc" placement="bottom-end">
+  <template #trigger="{ toggle }"><button type="button" class="btn-icon btn-icon--outline" aria-label="Bộ lọc" @click="toggle"><TIcon name="filter" /></button></template>
+  <AppInput label="Trạng thái"><AppCombobox v-model="st" :options="ST" /></AppInput>
+  <template #footer="{ close }"><button type="button" class="btn btn--outline btn--neutral" data-left @click="clear">Bỏ lọc</button><button type="button" class="btn btn--primary" @click="apply(); close()">Áp dụng</button></template>
+</AppPopover>
+```
+Props: `placement` (`bottom-start` | `bottom-end` — nút ở nửa phải màn hình dùng `bottom-end`) · `variant` (`menu` | `panel`) · `width` (px; bỏ trống: menu 200–360 theo nội dung, panel 320) · `title`, `closable` (panel) · `v-model:open` (điều khiển từ ngoài) · `anchor` (phần tử neo ngoài khi không dùng slot trigger) · `z-index` (popover xổ từ **header** → `9600`). Slot `trigger` nhận `{ toggle, open, close, isOpen }`; slot mặc định / `footer` nhận `{ close }`. Expose `open() / close() / toggle() / reposition()`.
+
+### AppPage — khung màn hình chuẩn /ds/layout (BẮT BUỘC cho mọi màn danh sách / thêm-sửa dạng page / chi tiết dạng page / tổng quan)
+App chỉ điền slot — ⛔ không tự viết hàng tiêu đề, lề trang 16, dải tab phân hệ, chân Lưu/Hủy (ui-lint chặn màn trong `pages/` · `views/` không có `<AppPage>`). Mẫu chạy thật: `mds-docs/src/demos/LayoutListDemo.vue` (10 dạng), `LayoutFormDemo.vue`, `LayoutDetailDemo.vue`.
+```vue
+<!-- Danh sách: tiêu đề trái · nút phụ → nút chính → ⋯ ngoài cùng phải · tick dòng → BulkActionBar che tiêu đề -->
+<AppPage title="Khách hàng">
+  <template #bulk><BulkActionBar v-if="selected.length" … /></template>
+  <template #actions>
+    <button class="btn btn--outline btn--neutral"><TIcon name="file-import" />Nhập khẩu</button>
+    <button class="btn btn--primary"><TIcon name="plus" />Thêm mới</button>
+    <DropdownMenu :items="MORE" placement="bottom-end">…⋯…</DropdownMenu>
+  </template>
+  <div class="table-panel"><TableHeader … /><div class="table-scroll"><DataTable … /></div><TablePaging … /></div>
+</AppPage>
+
+<!-- Có tab phân hệ: tabs-style below (tiêu đề + tab) | white (khối trắng tràn 2 mép) | top (tab thay tiêu đề) -->
+<AppPage title="Quản lý khách hàng" :tabs="TABS" v-model:tab="tab" tabs-style="white">…</AppPage>
+
+<!-- Thêm / sửa / chi tiết dạng page: ← Quay lại, cả vùng cuộn, Lưu/Hủy GHIM ĐÁY -->
+<AppPage title="Thêm khách hàng" back body="scroll" @back="router.back()">
+  <template #title-extra><span class="dt-status-badge dt-status-badge--success">Đang giao dịch</span></template>
+  <section class="app-page__section app-page__section--grow"><h3 class="app-page__section-title">Thông tin chung</h3>…</section>
+  <template #footer><button class="btn btn--outline btn--neutral">Hủy</button><button class="btn btn--primary">Lưu</button></template>
+</AppPage>
+```
+Props: `title` · `back` (emit `back`) · `tabs` + `v-model:tab` + `tabs-style` · `body` (`fill` = bảng tự cuộn bên trong — danh sách · `scroll` = cả vùng cuộn — form / chi tiết / tổng quan). Slot: `title-extra`, `actions`, `bulk`, mặc định, `footer`. Danh sách card: `<div class="app-card-grid">` (tự chia cột ≥ 240px, cách 16).
+
+### AppMasterDetail — Master-Detail trong AppPage
+`layout="wide"` (master rộng + detail tóm tắt 300) · `"narrow"` (master gọn 280 + detail rộng làm việc sâu) · `"bottom"` (master trên 1,2 : detail dưới 1). Slot `master`, `detail` — mỗi slot đặt 1 card (`.table-panel` / `.surface`), tự giãn đầy; dòng đang xem đánh dấu `_mark: 'current'`. Đổi bề rộng: `master-width` (narrow) / `detail-width` (wide).
+
+### AppDrawer — chi tiết dạng drawer bên phải (đặt trong AppPage)
+`<AppDrawer v-model:open="open" :title="row.name" storage-key="kh-drawer">` + slot `actions` (Sửa, ⋯), mặc định (thân cuộn riêng), `footer` (Lưu/Hủy). Đè lên danh sách nhưng danh sách vẫn bấm được để đổi bản ghi (kèm `useArrowNav` ↑ ↓) · kéo mép trái đổi độ rộng (nhấp đúp về mặc định, nhớ theo `storage-key`) · Esc / ✕ đóng. ⛔ Không tự viết `.xxx-drawer { position: fixed; box-shadow… }` trong app.
 
 ### Sub Menu — menu điều hướng BÊN PHẢI Sidebar chính (Figma MDS “Sub Menu” node 8266:95709)
 **BẮT BUỘC** cho MỌI menu dọc nằm cạnh phải Sidebar chính / bên trái vùng nội dung: mục lục màn chi tiết (VD Chi tiết hồ sơ), menu cài đặt, menu danh mục, menu nhóm báo cáo… Dùng dạng **1 cột, ẨN Title** (không tiêu đề nhóm). KHÔNG tự dựng menu dọc khác.
@@ -639,6 +694,7 @@ Props:
 | `size` | String | `'md'` | `md` \| `sm` |
 | `disabled` | Boolean | `false` | |
 | `ghost` | Boolean | `false` | Không border, nền nhạt |
+| `link` | Boolean | `false` | **Combo Link**: chữ màu link (`--text-link`) + mũi tên SÁT chữ, không viền / nền / đệm, rộng đúng bằng chữ (đo canvas), hover gạch chân; danh sách xổ ra giữ nguyên (min 260px). Dùng cho dòng chọn nhỏ trên tiêu đề form, VD `Dự án: X ▾ · Vòng lặp: Y ▾` (chamdiem-app AddTaskFlow). Ngoài ra cho phép nhãn đứng trước bằng chữ thường `--text-secondary`; màn ≤480px ẩn nhãn |
 | `creatable` | Boolean | `false` | (cùng `multiple`) Cho **tự nhập** giá trị ngoài danh sách: gõ chữ không trùng nhãn nào → dòng cuối “`createLabel` “chữ gõ”” (brand, icon +), bấm hoặc Enter để thêm. Giá trị = chữ đã gõ; tag tự nhập viền **nét đứt** + icon bút. Tách giá trị: cái nào có trong `options` là chọn, còn lại là tự nhập |
 | `create-label` | String | `'Thêm'` | Chữ trước giá trị ở dòng tự nhập (VD “Tự nhập dự án”) |
 | `tag-avatar` | Boolean | `false` | (cùng `multiple`) Tag đã chọn hiện ảnh / chữ cái đầu của `option.avatar` (14px) |
@@ -2237,7 +2293,7 @@ Mọi màn cùng loại PHẢI dùng **cùng khung + cùng class**, nhìn giốn
 **1. Khung màn danh sách (chuẩn duy nhất):**
 ```
 page-header (56px: tiêu đề trái · bộ chọn phạm vi / nút trang bên phải)
-└ sub-nav (48px) — CHỈ khi có tab cấp trang (vòng lặp, tháng…). Tab LUÔN ở hàng riêng này, KHÔNG nhét vào page-header
+└ sub-nav (cao = tab + 4 = 40px, Rộng 44) — CHỈ khi có tab cấp trang (vòng lặp, tháng…). Tab LUÔN ở hàng riêng này, KHÔNG nhét vào page-header
    ✅ NGOẠI LỆ — màn CHI TIẾT 1 bản ghi có ít tab (2–3 tab cố định, VD “Hồ sơ nhân viên | Hồ sơ năng lực”): đặt tab NGAY TRÊN thanh tiêu đề cho gọn
       `<nav class="page-header__tabs">` sau tiêu đề (dùng lại .sub-nav-tab; tab cao bằng page-header, gạch chân đè viền dưới).
       Công cụ của tab (chế độ xem, bật/tắt…) chuyển sang page-header__right, đứng trước nút chính.
@@ -2331,7 +2387,7 @@ NGHIÊM CẤM dùng --stroke-neutral-light cho border của control.
 │  Form nhãn TRÁI: giữa các hàng       │  12px   │  --form-row-gap-h│
 │  Form / chi tiết: giữa 2 cột         │  80px   │  .form-fields--2col / .detail-grid │
 │  Card ↔ card                         │  16px   │  --card-col-gap  │
-│  Nội dung ↔ sidebar/lề phải/lề dưới  │  16px   │  --page-gutter   │
+│  Nội dung ↔ sidebar/lề phải/dưới (trên 0)│  16px   │  --page-gutter   │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -2850,7 +2906,7 @@ Thao tác > 10 giây / không rõ thời gian (nhập · xuất khẩu lớn, c�
 - Cao **36px cố định** (không theo mật độ), đệm 12, chữ 13 (đang chọn Bold). Hover Brand Light, nhấn Brand Light Hover. Phím ← → Home End.
 - CSS dùng chung `.tabs` / `.tab` (style.css). Tab đầu trang sub-nav có gom "Xem thêm" → vẫn dùng `SubNavTabs`.
 
-## AppSegmented — chọn 1 trong 2–5 cách xem (Figma ❖ Segmented 6019:80533)
+## AppSegmented — chọn 1 trong 2–7 cách xem (Figma ❖ Segmented 6019:80533)
 
 ```vue
 <AppSegmented v-model="period" :options="[{ value: 'd', label: 'Ngày' }, { value: 'w', label: 'Tuần' }]" variant="text" />
@@ -2860,6 +2916,8 @@ Thao tác > 10 giây / không rõ thời gian (nhập · xuất khẩu lớn, c�
 - Khung cao `--btn-height`, đệm 2, bo 8; mục cao khung − 4, đệm 12, bo `--radius-inner`. Mục chỉ có icon BẮT BUỘC có `tip`.
 - CẤM tự dựng segment riêng (`.view-switch`, `.role-switch`, `.demo-seg`…) cho màn mới — dùng AppSegmented.
 - Mục chưa chọn: chữ **Text/Primary** (#10141B), không dùng chữ phụ.
+- **Số mục tối đa (17/11/2026):** Segmented chỉ chứa được **5–7 mục** và CHỈ khi đủ chỗ hiển thị trọn vẹn (nhãn ngắn, thanh không chật). **Nhiều hơn 7 mục, hoặc nhãn dài / thanh chật không đủ đất → đổi thành Combobox** (VD “Trạng thái: Tất cả”), ⛔ không cho Segmented tự cuộn ngang, tự co nhãn, hay gom “⋯” — các mục lòi ra ngoài nền bo góc là lỗi. Segmented làm bộ lọc trạng thái trong thanh công cụ bảng: thanh chật thì cả slot `filters` tự gom vào popover icon lọc (có sẵn trong TableHeader). Gõ tìm kiếm khi đang ở mục khác “Tất cả” → tự về “Tất cả” để tìm trên toàn bộ dữ liệu (app tự đặt `watch` trên ô tìm kiếm).
+- **Badge số lượng (17/11/2026):** option có `badge` (số) → hiện chip số cuối mục, cùng kiểu `.tab__badge` của AppTabs (chưa chọn nền Neutral Pressed, đang chọn nền Brand chữ trắng). Dùng cho bộ lọc trạng thái cần biết số bản ghi — VD `{ value: 'cho', label: 'Chờ xử lý', badge: 12 }`.
 
 ## AppAvatar — avatar (Figma Avatar 6019:6258)
 

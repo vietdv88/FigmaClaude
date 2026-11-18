@@ -45,41 +45,9 @@ and it's invisible to text search because the literal offending number (e.g.
 `30`) isn't the number the person expects to be hunting for (they're looking
 for `28`, the token's *computed* value, not the token itself).
 
-## The rule (condensed — the full version lives in `/Users/dvviet/Github/FigmaClaude/CLAUDE.md`, keep both in sync if this changes)
+## The rule
 
-- Never write a literal pixel `height`/`width` on a control. Always use:
-  - `var(--btn-height)` / `var(--input-height)` — standard size, or
-  - `calc(var(--btn-height) - 4px)` — the established "small" step (matches
-    `.btn--sm`, `.btn-icon--sm`, and most secondary toolbar controls like
-    `.vctt-grp`, `.fb-search`, `.vctt-view`, `.vctt-filter-btn`), or
-  - `calc(var(--btn-height) + 8px)` — the established "large" step (`.btn--lg`).
-  - Don't invent other offsets (`-12px`, `-16px`, etc.) unless matching a
-    ratio that's already documented as intentional somewhere nearby.
-- Two documented, deliberate exceptions — these are correct as fixed pixel
-  values and are NOT bugs, don't "fix" them:
-  1. **The entire left sidebar** (`congviec-app/src/components/CvSidebar.vue`,
-     plus the shared `.sidebar-item`/`.btn-collapse` rules in
-     `mds-ui/src/style.css`) is fixed pixel sizing throughout, by explicit
-     user instruction — it must NOT follow density at all. This covers the
-     top nav (`.sidebar-item`, 36px), the tree rows (`.cv-group__hd`,
-     `.cv-proj`, `.cv-add-group`, all 36px), `.cv-search-row` (32px),
-     `.cv-tool-btn` (24px), `.cv-act` (20px), `.cv-inline-input` (22px), and
-     `.btn-collapse` (40px). Do not convert any of these to
-     `var(--btn-height)`/`calc(...)` even if they "should" per the general
-     rule — this was tried and explicitly reverted twice in one session.
-     (The quick-add split button, `.btn-add-quick`/`.qab-split`, is the one
-     exception *within* the sidebar that legitimately uses
-     `var(--btn-height)` — that was already the case before anyone touched
-     this file, so leave it alone rather than "fixing" it to match its
-     neighbors.)
-  2. **Dropdown/menu item rows** — things like `.grp-dd__item`, `.qa-dd__item`,
-     `.kcol-dd__item`, `.proj-item` (rows *inside* an open dropdown panel,
-     not the trigger control itself) are conventionally fixed at ~34–40px
-     across this codebase and are not meant to scale with density.
-  - Also not bugs: avatars, color dots/swatches, count badges, modal/dialog
-    chrome, and anything else that isn't actually an interactive
-    button/input-like control a user clicks to act on the density-sensitive
-    row it lives in.
+Quy tắc đầy đủ (token `--btn-height` / `--input-height`, các bậc −4 / +8, ngoại lệ sidebar cố định…) nằm DUY NHẤT ở `/Users/dvviet/Github/FigmaClaude/CLAUDE.md` — đọc ở đó, không chép lại ở đây. Skill này chỉ giữ QUY TRÌNH rà soát bên dưới.
 
 ## How to run the audit
 

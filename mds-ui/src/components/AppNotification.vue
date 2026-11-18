@@ -30,8 +30,8 @@ const ICON = { success: 'circle-check', error: 'alert-circle', warning: 'alert-t
 <style scoped>
 .notif {
   display: flex; align-items: flex-start; gap: 16px; box-sizing: border-box;
-  width: fit-content; min-width: 320px; max-width: min(400px, 100%);
-  padding: 16px; border-radius: var(--radius-dialog); background: var(--bg-white); box-shadow: var(--shadow-popover);
+  width: fit-content; max-width: min(400px, 100%);
+  padding: 16px; border-radius: var(--radius-dialog); background: var(--bg-white); box-shadow: var(--shadow-bottom-16);
   color: var(--text-primary); font-size: var(--text-body); line-height: var(--text-body-lh);
 }
 .notif__ico { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; }

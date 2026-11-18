@@ -211,7 +211,7 @@ onBeforeUnmount(() => { ro?.disconnect(); document.removeEventListener('mousedow
   justify-content: space-between;
   flex-wrap: nowrap;   /* luôn 1 dòng — chật thì co ô tìm kiếm, rồi gom ô lọc vào icon lọc (xem fit() trong script) */
   gap: 8px;
-  padding: 8px 12px;   /* trái = phải 12px */
+  padding: 12px 16px;   /* trái = phải 16 (= lề vùng nội dung, thẳng hàng với chữ trong ô bảng) · trên = dưới 12 (đỡ tốn chiều cao) */
   background: var(--bg-white);
   flex-shrink: 0;
 }

@@ -156,13 +156,14 @@
           <span class="hdr-pop__arrow" :style="{ right: panelArrow + 'px' }" />
           <div class="hdr-apps__title">Ứng dụng của bạn</div>
           <div class="hdr-apps__grid">
-            <button v-for="(a, i) in appItems" :key="a.id" type="button" role="menuitem" class="hdr-apps__tile" :class="{ 'hdr-apps__tile--on': a.checked }" :style="{ '--i': i }"
-              :aria-current="a.checked ? 'true' : undefined" @click="panel = null; onAppSelect(a)">
+            <!-- Có href → thẻ <a> thật: chuột giữa / Ctrl·Cmd+click / chuột phải "Mở tab mới" chạy theo trình duyệt -->
+            <component :is="a.href ? 'a' : 'button'" v-for="(a, i) in appItems" :key="a.id" :href="a.href || undefined" :type="a.href ? undefined : 'button'" role="menuitem" class="hdr-apps__tile" :class="{ 'hdr-apps__tile--on': a.checked }" :style="{ '--i': i }"
+              :aria-current="a.checked ? 'true' : undefined" @click="onAppClick($event, a)">
               <span class="hdr-apps__logo"><img v-if="a.img" :src="a.img" alt="" /><TIcon v-else :name="a.icon || 'apps'" /></span>
               <span class="hdr-apps__name">{{ a.label }}</span>
               <span v-if="a.desc" class="hdr-apps__desc">{{ a.desc }}</span>
               <span v-if="a.checked" class="hdr-apps__check" aria-hidden="true"><TIcon name="check" /></span>
-            </button>
+            </component>
           </div>
         </div>
         <div v-if="panel === 'notify' && notifications" ref="panelEl" class="hdr-pop hdr-notify" :style="panelStyle" role="dialog" aria-label="Thông báo" @click.stop>
@@ -744,6 +745,11 @@ const props = defineProps({
   language:        { type: Object,  default: null },
 })
 const appItems = computed(() => props.apps.map(a => ({ ...a, checked: a.id === props.currentApp })))
+/* Bấm có phím bổ trợ (Ctrl/Cmd/Shift/Alt) → để trình duyệt mở tab/cửa sổ mới; bấm thường → đóng menu, chuyển app như cũ */
+const onAppClick = (e, a) => {
+  if (a.href && (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0)) return
+  e.preventDefault(); panel.value = null; onAppSelect(a)
+}
 const onAppSelect = a => { if (a.id === props.currentApp) return; emit('app-select', a); if (a.href) window.location.href = a.href }   // không có href → app tự xử lý qua @app-select
 /* Ảnh tài khoản (Google) lỗi / hết hạn → hiện chữ cái đầu */
 const picBroken = ref(false)
@@ -1693,7 +1699,7 @@ watch(activeTab,    (v) => { if (v === 'color') nextTick(scalePreview) })
 .hdr-apps__title { margin: 0 4px 12px; font-size: var(--text-body); line-height: var(--text-body-lh); font-weight: var(--fw-semibold); color: var(--text-secondary); }
 .hdr-apps__grid { display: grid; grid-template-columns: repeat(var(--apps-cols, 2), minmax(0, 1fr)); gap: 8px; }
 .hdr-apps__tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 8px 14px; min-width: 0;
-  border: 1px solid transparent; border-radius: 12px; background: transparent; cursor: pointer; font-family: inherit; text-align: center; color: var(--text-primary);
+  border: 1px solid transparent; border-radius: 12px; background: transparent; cursor: pointer; font-family: inherit; text-align: center; color: var(--text-primary); text-decoration: none;
   transition: background 0.18s, box-shadow 0.18s, transform 0.18s, border-color 0.18s; animation: hdr-apps-tile 0.28s ease both; animation-delay: calc(var(--i) * 40ms + 40ms); }
 .hdr-apps__tile:hover { background: var(--bg-white); border-color: var(--stroke-neutral-light); box-shadow: var(--shadow-bottom-8); transform: translateY(-2px); }
 .hdr-apps__tile:active { transform: translateY(0); }

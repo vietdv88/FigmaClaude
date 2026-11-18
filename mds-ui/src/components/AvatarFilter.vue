@@ -50,6 +50,7 @@ import AppSearchbox from './AppSearchbox.vue'
 import { vTip } from '../utils/tooltip.js'
 import { matchText } from '../utils/search.js'
 import { avatarInitials, avatarColor } from '../utils/avatar.js'
+import { placeFloating } from '../utils/floating.js'
 
 const props = defineProps({
   people:     { type: Array, default: () => [] },   // [{ id, name, picture?, sub?, code? }]
@@ -85,10 +86,11 @@ const hiddenCount = computed(() => Math.max(0, props.people.length - visible.val
 /* Danh sách xổ ra */
 const open = ref(false), q = ref(''), moreEl = ref(null), popEl = ref(null), searchEl = ref(null), popStyle = ref({})
 const filtered = computed(() => props.people.filter(p => matchText([p.name, p.sub, p.code], q.value)))
+/* Định vị theo thuật toán chung utils/floating.js: dưới nút · thiếu chỗ phía dưới → lật lên · không tràn mép 8 */
 function place() {
   const r = moreEl.value?.getBoundingClientRect(); if (!r) return
-  const w = 280, left = Math.min(Math.max(8, r.left), window.innerWidth - w - 8)
-  popStyle.value = { top: `${r.bottom + 6}px`, left: `${left}px`, width: `${w}px` }
+  const w = 280, p = placeFloating(r, { width: w, height: popEl.value?.offsetHeight || 0 }, { matchWidth: false })
+  popStyle.value = { top: `${p.top}px`, left: `${p.left}px`, width: `${w}px` }
 }
 function onDoc(e) { if (!popEl.value?.contains(e.target) && !moreEl.value?.contains(e.target)) open.value = false }
 async function toggleOpen() {
@@ -96,6 +98,7 @@ async function toggleOpen() {
   if (!open.value) return
   q.value = ''; place()
   await nextTick()
+  place()   // lần 2: đã đo được chiều cao thật → lật lên nếu thiếu chỗ
   popEl.value?.querySelector('input')?.focus()
 }
 watch(open, v => (v ? document.addEventListener('mousedown', onDoc) : document.removeEventListener('mousedown', onDoc)))

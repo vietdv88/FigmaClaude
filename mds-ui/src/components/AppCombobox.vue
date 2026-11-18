@@ -20,7 +20,7 @@
           <span v-if="!locked" class="cb-tag__x" v-tip="'Bỏ'" aria-label="Bỏ" @click.stop="toggleValue(val)"><TIcon name="x" /></span>
         </span>
       </span>
-      <input ref="triggerEl" class="ibox__native cb-trigger" :class="{ 'cb-trigger--typing': listOpen, 'cb-trigger--tight': multiple && selectedValues.length && !listOpen }"
+      <input ref="triggerEl" class="ibox__native cb-trigger" :style="link ? { width: linkPx + 'px' } : null" :class="{ 'cb-trigger--typing': listOpen, 'cb-trigger--tight': multiple && selectedValues.length && !listOpen }"
         :value="inputText" :placeholder="inputPlaceholder" :readonly="locked" :disabled="disabled || state === 'disabled'"
         autocomplete="off" spellcheck="false" role="combobox" :aria-expanded="listOpen"
         @mousedown.stop="onInputMouseDown" @focus="onFocus" @input="onInput" @keydown="onKey" />
@@ -106,6 +106,8 @@ const props = defineProps({
   options:     { type: Array,   default: () => [] }, // string[] | { value, label, disabled?, description? }[]
   placeholder: { type: String,  default: '' },
   multiple:    { type: Boolean, default: false },
+  /** Tự mở danh sách ngay khi dựng (ô sửa trực tiếp trong bảng: bấm ô → vào thẳng danh sách) */
+  autoOpen:    { type: Boolean, default: false },
   state:       { type: String,  default: 'default' },
   outline:     { type: Boolean, default: true },
   iconLeft:    { type: String,  default: '' },
@@ -113,6 +115,8 @@ const props = defineProps({
   size:        { type: String,  default: 'md' },
   disabled:    { type: Boolean, default: false },
   ghost:       { type: Boolean, default: false },
+  /** Dạng link nhỏ (Combo Link): chữ màu link + mũi tên sát chữ, không viền / nền, rộng vừa chữ — VD dòng “Dự án: X ▾” trên tiêu đề form. Danh sách xổ ra giữ nguyên */
+  link:        { type: Boolean, default: false },
   clearable:   { type: Boolean, default: undefined },  // true: nút × bỏ chọn (MẶC ĐỊNH KHÔNG — quy chuẩn: chỉ ô tìm kiếm có ×) · false: tắt hẳn bỏ chọn (kể cả mục “Chưa chọn”) — dùng cho ô luôn phải có giá trị
   /** Mục “để trống” đầu danh sách (chọn 1) — VD 'Chưa giao' / 'Để trống': cách bỏ chọn thay cho nút × (quy chuẩn không có ×).
       Ô lọc có placeholder “…: Tất cả” tự có mục “Tất cả”, không cần truyền */
@@ -134,7 +138,7 @@ const props = defineProps({
   /** Đang tải danh sách (VD gọi API khi mở — nghe @open): danh sách xổ ra hiện vòng xoay nhỏ ở giữa */
   loading:     { type: Boolean, default: false },  // avatar vuông bo góc (logo dự án…) — cả danh sách và tag  // dạng cây: co / giãn các mục có con (option.parent) — mở danh sách: chỉ mở nhánh chứa mục đang chọn (+ mục có open: true)
 })
-const emit = defineEmits(['update:modelValue', 'change', 'create', 'split', 'add', 'quick-search', 'open'])
+const emit = defineEmits(['update:modelValue', 'change', 'create', 'split', 'add', 'quick-search', 'open', 'close'])
 const slots = useSlots()
 const slotsFooter = () => !!slots.footer
 
@@ -203,6 +207,7 @@ async function fitTags() {
 watch(selectedValues, () => { tagFocus.value = false; fitTags() }, { deep: true })
 let ro = null
 onMounted(() => {
+  if (props.autoOpen) { triggerEl.value?.focus(); openList() }
   fitTags()
   if (props.multiple && window.ResizeObserver && fieldEl.value) { let lastW = 0; ro = new ResizeObserver(([e]) => { const cw = Math.round(e.contentRect.width); if (cw !== lastW) { lastW = cw; fitTags() } }); ro.observe(fieldEl.value) }
 })
@@ -214,6 +219,22 @@ const listOpen = ref(false), activeIdx = ref(-1), listStyle = ref({}), q = ref('
 watch(listOpen, () => fitTags())   // mở / đóng danh sách → chỗ gõ đổi bề rộng, xếp lại thẻ
 /* Ô nhập: đóng → hiện nhãn đang chọn · mở → chữ đang gõ (nhãn đang chọn hiện mờ làm gợi ý) */
 const inputText = computed(() => (listOpen.value ? q.value : (props.multiple ? '' : selectedLabel.value)))
+/* Dạng link: ô rộng đúng bằng chữ đang hiện (đo bằng canvas theo font của ô) → mũi tên sát chữ và ĐỨNG YÊN khi mở / đóng danh sách:
+   đang mở thì ô trống hiện chữ đang chọn làm placeholder → đo theo chữ đó; gõ tìm dài hơn mới giãn ra */
+let measureCtx = null
+const linkPx = computed(() => {
+  const el = triggerEl.value
+  const shown = listOpen.value ? (selectedLabel.value || props.placeholder || '') : (inputText.value || props.placeholder || '')
+  const texts = [shown, inputText.value || '']
+  const widthOf = t => {
+    if (!el) return t.length * 7
+    if (!measureCtx) measureCtx = document.createElement('canvas').getContext('2d')
+    const cs = getComputedStyle(el)
+    measureCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+    return measureCtx.measureText(t).width
+  }
+  return Math.ceil(Math.max(16, ...texts.map(widthOf)) + 2)
+})
 const inputPlaceholder = computed(() => {
   if (props.multiple) return selectedValues.value.length ? (listOpen.value ? 'Gõ để tìm…' : '') : props.placeholder
   return listOpen.value ? ((!clearing.value && selectedLabel.value) || props.placeholder || 'Gõ để tìm…') : props.placeholder
@@ -289,12 +310,12 @@ async function placeList() {
   const box = boxEl.value?.getBoundingClientRect(); if (!box) return
   const below = window.innerHeight - box.bottom
   const vw = window.innerWidth
-  const minW = Math.min(Math.max(box.width, hasDesc.value ? 300 : 0, props.columns.length ? tableW.value : 0), vw - EDGE * 2)
+  const minW = Math.min(Math.max(props.link ? 260 : box.width, hasDesc.value ? 300 : 0, props.columns.length ? tableW.value : 0), vw - EDGE * 2)
   listStyle.value = {
     left: Math.max(EDGE, Math.min(box.left, vw - EDGE - minW)) + 'px',
     width: 'max-content',   // rộng theo chữ dài nhất (trong min / max) — không bị co theo khoảng trống còn lại bên phải
     minWidth: minW + 'px',
-    maxWidth: Math.min(Math.max(box.width, LIST_MAX_W, props.columns.length ? tableW.value : 0), vw - EDGE * 2) + 'px',
+    maxWidth: Math.min(Math.max(props.link ? 260 : box.width, LIST_MAX_W, props.columns.length ? tableW.value : 0), vw - EDGE * 2) + 'px',
     ...(below >= 300 ? { top: box.bottom + 4 + 'px' } : { bottom: window.innerHeight - box.top + 4 + 'px' }),
   }
   await nextTick()
@@ -337,9 +358,11 @@ async function openList(resetQuery = true) {
 function closeList() {
   if (typedSinceOpen && !q.value.trim() && !props.multiple && allOption.value && hasValue.value && !locked.value) emitValue('')
   typedSinceOpen = false; clearing.value = false
+  const wasOpen = listOpen.value
   listOpen.value = false
   q.value = ''
   tagFocus.value = false
+  if (wasOpen) emit('close')
   document.removeEventListener('mousedown', onOutside, true)
   window.removeEventListener('resize', placeList)
   window.removeEventListener('scroll', onScroll, true)
@@ -387,6 +410,7 @@ onBeforeUnmount(closeList)
 const fe = useFieldError()
 const boxClass = computed(() => ({
   'ibox--ghost':     props.ghost,
+  'ibox--link':      props.link,
   'ibox--no-border': !props.ghost && !props.outline,
   'ibox--error':     props.state === 'error' || !!fe?.hasError.value,
   'ibox--success':   props.state === 'success',
@@ -410,6 +434,7 @@ const boxClass = computed(() => ({
   text-overflow: ellipsis;
 }
 .cb-trigger--typing { cursor: text; }
+.ibox--link .cb-trigger { min-width: 0; flex: 0 1 auto; }   /* Combo Link: ô rộng đúng bằng chữ */
 .cb-trigger--tight { min-width: 8px; }   /* chọn nhiều, đang đóng: thẻ dùng gần hết bề rộng */
 .cb-trigger[readonly], .cb-trigger:disabled { cursor: default; }
 .cb-chevron { transition: transform 0.15s; }
@@ -503,6 +528,7 @@ const boxClass = computed(() => ({
 /* Mục 2 dòng (có mô tả): cao theo nội dung — đệm 6 + 20 + khe 2 + 20 + 6, KHÔNG theo chiều cao mục 1 dòng của mật độ (Nhỏ / Rộng) */
 .cb-list__item:has(.cb-list__desc) { min-height: 0; padding-top: 6px; padding-bottom: 6px; align-items: flex-start; }
 .cb-list__item--selected .cb-list__label { color: var(--text-brand); font-weight: var(--fw-semibold); }
+.cb-list__item:has(.cb-list__desc) .cb-list__label { font-weight: var(--fw-semibold); }   /* có mô tả → tên in đậm để phân cấp với mô tả */
 .cb-list__desc { font-size: var(--text-body); line-height: var(--text-body-lh); color: var(--text-secondary); white-space: normal; }
 .cb-list__check { color: var(--icon-brand); font-size: 16px; flex-shrink: 0; }
 /* Dạng cây */

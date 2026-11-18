@@ -166,6 +166,8 @@ defineProps({
   options:     { type: Array,   default: () => [] }, // string[] | { value, label, disabled?, description? }[]
   placeholder: { type: String,  default: '' },
   multiple:    { type: Boolean, default: false },
+  /** Tự mở danh sách ngay khi dựng (ô sửa trực tiếp trong bảng: bấm ô → vào thẳng danh sách) */
+  autoOpen:    { type: Boolean, default: false },
   state:       { type: String,  default: 'default' },
   outline:     { type: Boolean, default: true },
   iconLeft:    { type: String,  default: '' },
@@ -173,6 +175,8 @@ defineProps({
   size:        { type: String,  default: 'md' },
   disabled:    { type: Boolean, default: false },
   ghost:       { type: Boolean, default: false },
+  /** Dạng link nhỏ (Combo Link): chữ màu link + mũi tên sát chữ, không viền / nền, rộng vừa chữ — VD dòng “Dự án: X ▾” trên tiêu đề form. Danh sách xổ ra giữ nguyên */
+  link:        { type: Boolean, default: false },
   clearable:   { type: Boolean, default: undefined },  // true: nút × bỏ chọn (MẶC ĐỊNH KHÔNG — quy chuẩn: chỉ ô tìm kiếm có ×) · false: tắt hẳn bỏ chọn (kể cả mục “Chưa chọn”) — dùng cho ô luôn phải có giá trị
   /** Mục “để trống” đầu danh sách (chọn 1) — VD 'Chưa giao' / 'Để trống': cách bỏ chọn thay cho nút × (quy chuẩn không có ×).
       Ô lọc có placeholder “…: Tất cả” tự có mục “Tất cả”, không cần truyền */
@@ -195,7 +199,7 @@ defineProps({
   loading:     { type: Boolean, default: false },  // avatar vuông bo góc (logo dự án…) — cả danh sách và tag  // dạng cây: co / giãn các mục có con (option.parent) — mở danh sách: chỉ mở nhánh chứa mục đang chọn (+ mục có open: true)
 })
 ```
-Sự kiện: `['update:modelValue', 'change', 'create', 'split', 'add', 'quick-search', 'open']`
+Sự kiện: `['update:modelValue', 'change', 'create', 'split', 'add', 'quick-search', 'open', 'close']`
 
 Slot: `footer`
 
@@ -260,6 +264,23 @@ defineProps({
 ```
 Sự kiện: `['update:modelValue', 'change']`
 
+
+## AppDrawer
+
+AppDrawer — chi tiết dạng drawer bên phải (/ds/layout › Master + Detail dạng drawer):
+
+```js
+defineProps({
+  open:       { type: Boolean, default: false },
+  title:      { type: String, default: '' },
+  width:      { type: Number, default: 420 },
+  minWidth:   { type: Number, default: 320 },
+  storageKey: { type: String, default: '' },
+})
+```
+Sự kiện: `['update:open']`
+
+Slot: `actions`, `default`, `footer`
 
 ## AppFormPanel
 
@@ -361,7 +382,7 @@ defineProps({
   maxSize:         { type: Number,  default: 256 },         // ảnh bitmap thu nhỏ về tối đa (px, cạnh dài)
   maxSvgKb:        { type: Number,  default: 150 },
   placeholderText: { type: String,  default: '' },          // chưa có ảnh → chữ cái đầu (VD mã dự án)
-  hint:            { type: String,  default: 'SVG, PNG, WebP hoặc JPG — bấm chọn, kéo thả hoặc dán ảnh (Ctrl + V)' },
+  hint:            { type: String,  default: 'SVG, PNG, WebP hoặc JPG — bấm chọn, kéo thả, dán ảnh hoặc dán mã SVG (Ctrl + V)' },
   pasteScope:      { type: String,  default: '.modal, [role="dialog"]' },   // dán ảnh ở bất kỳ đâu trong hộp thoại chứa control
 })
 ```
@@ -405,6 +426,19 @@ defineProps({
 })
 ```
 Slot: `default`
+
+## AppMasterDetail
+
+AppMasterDetail — các dạng danh sách Master-Detail của /ds/layout, đặt trong <AppPage>:
+
+```js
+defineProps({
+  layout:      { type: String, default: 'wide' },   // wide | narrow | bottom
+  masterWidth: { type: Number, default: null },     // narrow: mặc định 280
+  detailWidth: { type: Number, default: null },     // wide: mặc định 300
+})
+```
+Slot: `master`, `detail`
 
 ## AppNotification
 
@@ -486,6 +520,29 @@ defineProps({
 Sự kiện: `['update:modelValue', 'update:level', 'task', 'step-done', 'group-done', 'video', 'guide', 'support', 'close']`
 
 
+## AppPage
+
+AppPage — KHUNG MÀN HÌNH chuẩn /ds/layout. Mọi màn (danh sách · thêm/sửa dạng page · chi tiết dạng page · tổng quan) dựng TRONG AppPage,
+
+```js
+defineProps({
+  title:     { type: String, default: '' },
+  /** Nút ← Quay lại trước tiêu đề (màn thêm / sửa / chi tiết dạng page) → emit('back') */
+  back:      { type: Boolean, default: false },
+  /** Tab phân hệ: [{ value, label, badge? }] — mỗi tab là đối tượng / layout KHÁC nhau. Chỉ lọc cùng một bảng → AppSegmented, không dùng tab */
+  tabs:      { type: Array, default: null },
+  tab:       { default: null },
+  /** 'below' = tiêu đề + dải tab bên dưới · 'white' = cả vùng tiêu đề + tab nền trắng tràn 2 mép · 'top' = tab phân hệ con thay tiêu đề */
+  tabsStyle: { type: String, default: 'below' },
+  tabsLabel: { type: String, default: 'Phân hệ' },
+  /** 'fill' = nội dung lấp đầy, bảng / panel tự cuộn bên trong (danh sách) · 'scroll' = cả vùng nội dung cuộn (form, chi tiết, tổng quan) */
+  body:      { type: String, default: 'fill' },
+})
+```
+Sự kiện: `['back', 'update:tab']`
+
+Slot: `default`, `title-extra`, `actions`, `footer`
+
 ## AppPagination
 
 Sum area
@@ -504,6 +561,34 @@ defineProps({
 ```
 Sự kiện: `['update:currentPage', 'update:pageSize']`
 
+
+## AppPopover
+
+AppPopover — lớp nổi NỘI DUNG TUỲ Ý (danh sách chọn riêng, panel lọc, chọn người, form nhỏ…). Danh sách lệnh đơn giản → dùng DropdownMenu.
+
+```js
+defineProps({
+  /** v-model:open (tuỳ chọn — không truyền thì tự quản lý qua slot trigger) */
+  open:      { type: Boolean, default: undefined },
+  /** 'bottom-start' (mép trái thẳng nút) | 'bottom-end' (mép phải thẳng nút — nút ở bên phải màn hình) */
+  placement: { type: String, default: 'bottom-start' },
+  /** 'menu' | 'panel' */
+  variant:   { type: String, default: 'menu' },
+  /** Độ rộng cố định (px). Bỏ trống: menu tự co theo nội dung (200–360), panel 320 */
+  width:     { type: Number, default: null },
+  /** Phần tử neo ngoài (khi không dùng slot trigger) — VD nút lọc TableHeader emit('open-filter', el) */
+  anchor:    { default: null },
+  title:     { type: String, default: '' },
+  closable:  { type: Boolean, default: true },
+  role:      { type: String, default: 'dialog' },
+  /** Lớp chồng: mặc định 9500 (dưới danh sách Combobox 9600). Popover xổ từ HEADER (tài khoản, thông báo…) → var(--z-header-pop) = 9600 */
+  zIndex:    { type: Number, default: 9500 },
+  ariaLabel: { type: String, default: '' },
+})
+```
+Sự kiện: `['update:open', 'open', 'close']`
+
+Slot: `trigger`, `header`, `default`, `footer`
 
 ## AppRadio
 
@@ -595,7 +680,7 @@ Segmented — Figma MDS ❖ Segmented (6019:80533). CSS dùng chung: .seg / .seg
 
 ```js
 defineProps({
-  /** [{ value, label?, icon?, tip? (bắt buộc khi chỉ có icon), disabled? }] */
+  /** [{ value, label?, icon?, badge? (số lượng — VD bộ lọc trạng thái), tip? (bắt buộc khi chỉ có icon), disabled? }] */
   options:    { type: Array, default: () => [] },
   modelValue: { default: null },
   variant:    { type: String, default: 'text' },   // text | solid | filled
@@ -910,6 +995,8 @@ Header NHÓM (gộp ô): cột khai báo `group` → các cột LIỀN NHAU cùn
 ```js
 defineProps({
   columns:         { type: Array,   default: () => [] },
+  /** Sắp xếp mặc định khi mở bảng { key, dir: 'asc' | 'desc' } — hiện mũi tên trên tiêu đề cột; khớp defaultSort của useTableView */
+  defaultSort:     { type: Object,  default: null },
   /** Liên thông với bộ lọc Advance: { mode, conditions } (v-model:filter) — lọc theo cột trên tiêu đề ghi vào CHÍNH bộ lọc này → TableFilterPanel tự tick trường, TableFilterTags hiện tag; ngược lại lọc ở panel → cột tự hiện đang lọc.
       Cột ↔ trường: col.filterKey ?? col.key khớp field.key trong filterFields; cột không có trường → không có nút lọc. Bỏ trống = lọc cột kiểu cũ (emit column-filter) */
   filter:          { type: Object,  default: null },

@@ -31,26 +31,42 @@ const props = defineProps({
   maxSize:         { type: Number,  default: 256 },         // ảnh bitmap thu nhỏ về tối đa (px, cạnh dài)
   maxSvgKb:        { type: Number,  default: 150 },
   placeholderText: { type: String,  default: '' },          // chưa có ảnh → chữ cái đầu (VD mã dự án)
-  hint:            { type: String,  default: 'SVG, PNG, WebP hoặc JPG — bấm chọn, kéo thả hoặc dán ảnh (Ctrl + V)' },
+  hint:            { type: String,  default: 'SVG, PNG, WebP hoặc JPG — bấm chọn, kéo thả, dán ảnh hoặc dán mã SVG (Ctrl + V)' },
   pasteScope:      { type: String,  default: '.modal, [role="dialog"]' },   // dán ảnh ở bất kỳ đâu trong hộp thoại chứa control
 })
 const emit = defineEmits(['update:modelValue'])
 const fileEl = ref(null), error = ref(''), dragOver = ref(false)
+/* Mã SVG dán vào → làm sạch (bỏ script / on… / foreignObject) → data URL base64 */
+function useSvgCode(text) {
+  error.value = ''
+  let code = String(text ?? '').trim()
+  const m = /<svg[\s>][\s\S]*<\/svg\s*>/i.exec(code)
+  if (!m) { error.value = 'Không phải mã SVG hợp lệ (cần có thẻ <svg>…</svg>)'; return }
+  code = m[0]
+    .replace(/<script[\s\S]*?<\/script\s*>/gi, '')
+    .replace(/<foreignObject[\s\S]*?<\/foreignObject\s*>/gi, '')
+    .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/(href\s*=\s*["'])\s*javascript:[^"']*/gi, '$1#')
+  if (!/<svg[^>]*\sxmlns\s*=/i.test(code)) code = code.replace(/<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"')
+  if (new Blob([code]).size > props.maxSvgKb * 1024) { error.value = `Mã SVG tối đa ${props.maxSvgKb} KB`; return }
+  emit('update:modelValue', 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(code))))
+}
 const TYPES = ['image/svg+xml', 'image/png', 'image/webp', 'image/jpeg']
 
 const pick = () => fileEl.value?.click()
 function onFile(e) { use(e.target.files?.[0]); e.target.value = '' }
 function onDrop(e) { dragOver.value = false; use([...(e.dataTransfer?.files ?? [])].find(f => f.type.startsWith('image/'))) }
 function imageFromClipboard(e) { return [...(e.clipboardData?.items ?? [])].find(i => i.kind === 'file' && i.type.startsWith('image/'))?.getAsFile() }
-function onPaste(e) { const f = imageFromClipboard(e); if (f) { e.preventDefault(); e.stopPropagation(); use(f) } }
+const svgFromClipboard = e => { const t = e.clipboardData?.getData('text/plain') ?? ''; return /<svg[\s>]/i.test(t) ? t : '' }
+function onPaste(e) { const f = imageFromClipboard(e); if (f) { e.preventDefault(); e.stopPropagation(); use(f); return } const c = svgFromClipboard(e); if (c) { e.preventDefault(); e.stopPropagation(); useSvgCode(c) } }
 
 /* Dán ảnh khi đang ở trong cùng hộp thoại (không cần focus đúng ô ảnh) — trừ khi đang gõ trong ô nhập chữ */
 let host = null
 function onHostPaste(e) {
-  const f = imageFromClipboard(e)
-  if (!f) return
+  const f = imageFromClipboard(e), c = f ? '' : svgFromClipboard(e)
+  if (!f && !c) return
   if (e.target.closest?.('input, textarea, [contenteditable="true"]') && !e.target.closest('.img-up')) return
-  e.preventDefault(); use(f)
+  e.preventDefault(); f ? use(f) : useSvgCode(c)
 }
 onMounted(() => {
   host = (fileEl.value?.closest(props.pasteScope)) || document

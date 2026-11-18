@@ -43,6 +43,7 @@ import AppCombobox from './AppCombobox.vue'
 import AppDatebox from './AppDatebox.vue'
 import { vTip } from '../utils/tooltip.js'
 import { useEscClose } from '../utils/escStack.js'
+import { placeFloating } from '../utils/floating.js'
 
 const props = defineProps({
   /** Trường lọc: [{ key, label, type?: 'select' (mặc định) | 'date' | 'daterange', options?: [{ value, label }], labels?: [từ, đến] }] */
@@ -62,12 +63,13 @@ const draft = reactive(Object.fromEntries(props.fields.map(f => [f.key, JSON.par
 function apply() { const v = JSON.parse(JSON.stringify(draft)); emit('update:modelValue', v); emit('apply', v) }
 function clear() { props.fields.forEach(f => { draft[f.key] = empty(f) }); apply() }
 
-/* Neo ngay dưới nút lọc, căn mép phải theo nút; không đủ chỗ bên trái → căn trái màn hình 8px */
+/* Neo dưới nút lọc, căn mép phải theo nút — thuật toán chung utils/floating.js (thiếu chỗ phía dưới → lật lên, không tràn mép 8) */
 const popEl = ref(null), pos = ref({ top: '0px', left: '0px' })
 function place() {
   const a = props.anchor?.getBoundingClientRect?.(); if (!a) return
-  const w = popEl.value?.offsetWidth || 320
-  pos.value = { top: a.bottom + 4 + 'px', left: Math.max(8, Math.min(a.right - w, window.innerWidth - w - 8)) + 'px' }
+  const w = popEl.value?.offsetWidth || 320, h = popEl.value?.offsetHeight || 0
+  const p = placeFloating(a, { width: w, height: h }, { placement: 'bottom-end', matchWidth: false })
+  pos.value = { top: p.top + 'px', left: Math.max(8, window.innerWidth - p.right - w) + 'px' }
 }
 function onDown(e) { if (!popEl.value?.contains(e.target) && !props.anchor?.contains?.(e.target) && !e.target.closest?.('.cb-list, .date-pop')) emit('close') }
 onMounted(() => { place(); window.addEventListener('resize', place); window.addEventListener('scroll', place, true); setTimeout(() => document.addEventListener('mousedown', onDown), 0) })

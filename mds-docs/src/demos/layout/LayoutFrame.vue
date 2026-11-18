@@ -6,10 +6,12 @@
     <slot name="bar" />
     <button type="button" class="btn btn--sm btn--text-neutral" @click="full = true"><TIcon name="maximize" />Xem toàn màn hình</button>
   </div>
-  <div ref="host" class="lf-host" :class="{ 'lf-host--full': full }" :style="full ? null : { height: H * scale + 'px' }">
+  <div ref="host" class="lf-host" :class="{ 'lf-host--full': full, 'lf-host--flat-top': $slots.top }" :style="full ? null : { height: H * scale + 'px' }">
     <div class="lf" :class="{ 'lf--panel': $slots.panel }" :style="{ width: W + 'px', height: H + 'px', transform: `scale(${scale})` }">
       <!-- Vùng app (header + sidebar + nội dung). Có panel phải (slot panel) → app co lại, tối thiểu 1024px, hẹp hơn thì cuộn ngang -->
       <div class="lf-app"><div class="lf-app__in">
+      <!-- Slot top: dải nằm TRÊN CÙNG, phía trên header (VD Global Inline) — đẩy header + nội dung xuống -->
+      <div v-if="$slots.top" class="lf-top"><slot name="top" /></div>
       <!-- Header THẬT của mds-ui (ControlHeader) — giống app thật: 9 chấm · logo · tên app · tìm kiếm · AI · thông báo · trợ giúp · ⋯ · bánh răng · avatar -->
       <ControlHeader :app-name="app" no-meta hide-trial-banner home-href="#" settings-only avatar-name="Quân Trần" :help-menu="helpMenu" @help-select="it => emit('help-select', it)">
         <template v-if="$slots['header-actions']" #header-actions><slot name="header-actions" /></template>
@@ -85,6 +87,8 @@ onBeforeUnmount(() => { ro?.disconnect(); window.removeEventListener('keydown', 
 .lf-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .lf-bar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
 .lf-host { position: relative; width: 100%; overflow: hidden; border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
+/* Có dải Global Inline phía trên cùng: dải phẳng, không bo góc trên của khung */
+.lf-host--flat-top:not(.lf-host--full) { border-top-left-radius: 0; border-top-right-radius: 0; }
 .lf-host--full { position: fixed; inset: 0; z-index: var(--z-dialog); width: auto; height: auto !important; display: flex; align-items: center; justify-content: center;
   padding: 56px 16px 16px; box-sizing: border-box; border-radius: 0; background: var(--neutral-200); box-shadow: none; }
 .lf-host--full .lf { position: relative; transform-origin: center center; }
@@ -100,6 +104,7 @@ onBeforeUnmount(() => { ro?.disconnect(); window.removeEventListener('keydown', 
 .lf--panel .lf-app::-webkit-scrollbar-thumb { background: var(--neutral-400); border-radius: var(--radius-pill); border: 3px solid var(--neutral-100); }
 .lf--panel .lf-app__in { min-width: 1024px; }
 .lf :deep(.global-header) { position: relative; top: auto; left: auto; right: auto; flex-shrink: 0; z-index: 1; }   /* header thật nằm trong khung thu nhỏ (không fixed theo cửa sổ) */
+.lf-top { flex-shrink: 0; }
 .lf-main { flex: 1; min-height: 0; display: flex; }
 .lf-side { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 56px; flex-shrink: 0; padding: 12px 0; background: var(--bg-white); border-right: 1px solid var(--stroke-neutral-light); }
 .lf-side__item { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-default); color: var(--icon-neutral); }

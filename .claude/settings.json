@@ -22,5 +22,43 @@
     "additionalDirectories": [
       "\\tmp"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/mds-ui/scripts/ui-lint.mjs\" --hook",
+            "timeout": 30,
+            "statusMessage": "ui-lint: kiểm tra quy chuẩn giao diện"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/mds-ui/scripts/ui-guard.mjs\" --stop-gate",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/mds-docs/scripts/session-sync.mjs\"",
+            "timeout": 120,
+            "statusMessage": "Đồng bộ chuẩn MDS từ /ds"
+          }
+        ]
+      }
+    ]
   }
 }

@@ -170,6 +170,7 @@ import IconBuildingCommunity      from '@tabler/icons-vue/dist/esm/icons/IconBui
 import IconHelp                   from '@tabler/icons-vue/dist/esm/icons/IconHelp.mjs'
 import IconDotsCircleHorizontal   from '@tabler/icons-vue/dist/esm/icons/IconDotsCircleHorizontal.mjs'
 import IconMessageCircle          from '@tabler/icons-vue/dist/esm/icons/IconMessageCircle.mjs'
+import IconMessageUser            from '@tabler/icons-vue/dist/esm/icons/IconMessageUser.mjs'   // chat: Nhắn riêng người gửi
 import IconFileExport             from '@tabler/icons-vue/dist/esm/icons/IconFileExport.mjs'
 import IconFileImport             from '@tabler/icons-vue/dist/esm/icons/IconFileImport.mjs'
 import IconPencil                 from '@tabler/icons-vue/dist/esm/icons/IconPencil.mjs'
@@ -562,6 +563,7 @@ const MAP = {
   'help':                   IconHelp,
   'help-circle':            IconHelpCircle,
   'message-circle':         IconMessageCircle,
+  'message-user':           IconMessageUser,
   'map-pin':                IconMapPin,
   'phone':                  IconPhone,
   'mail':                   IconMail,
