@@ -4,15 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="color-scheme" content="light dark">
-  <meta name="supported-color-schemes" content="light dark">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
   <title>Thông báo gửi biên bản thay thế hóa đơn</title>
   <style>
     body { margin:0; padding:0; background-color:#ecedef; -webkit-text-size-adjust:100%; }
     table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
     img { border:0; -ms-interpolation-mode:bicubic; }
     a { color:#1570ef; }
-    :root { color-scheme: light dark; supported-color-schemes: light dark; }
+    :root { color-scheme: light only; supported-color-schemes: light only; }
+    /* ═══ KHÓA GIAO DIỆN SÁNG (không để dark mode đảo nền email sang đen) ═══
+       1) <meta color-scheme="light only"> + :root → Apple Mail (iOS / macOS) giữ nguyên màu sáng.
+       2) Mọi nền sáng (xám #ecedef, trắng #ffffff, xanh nhạt #eff4ff) đặt thêm background-image: linear-gradient(màu, màu) — Gmail (app iOS / Android) KHÔNG đảo màu phần tử có ảnh nền.
+       3) Outlook.com / Outlook mobile đảo màu rồi gắn [data-ogsb] (nền) / [data-ogsc] (chữ) → ép lại đúng màu gốc ở các rule dưới. */
+    [data-ogsb] [bgcolor="#ecedef"], [data-ogsb] [style*="background-color:#ecedef"] { background-color:#ecedef !important; }
+    [data-ogsb] [bgcolor="#ffffff"], [data-ogsb] [style*="background-color:#ffffff"], [data-ogsb] [style*="background:#ffffff"] { background-color:#ffffff !important; }
+    [data-ogsb] [style*="background:#eff4ff"] { background-color:#eff4ff !important; }
+    [data-ogsc] [style*="color:#10141b"] { color:#10141b !important; }
+    [data-ogsc] [style*="color:#6b707a"] { color:#6b707a !important; }
+    [data-ogsc] .email-link, [data-ogsc] a[style*="color:#1570ef"] { color:#1570ef !important; }
     /* Chữ TRẮNG trên nền màu (nút, banner): dùng #fffffe (không phải #ffffff) + text-fill. Gmail / Apple Mail dark mode tự đảo #ffffff thành chữ ĐEN khi nền màu không đủ sáng;
        #fffffe không bị thuật toán đảo màu nhận ra. Outlook.com đọc qua [data-ogsc]. */
     /* Nền màu của nút / banner đặt thêm bằng background-image: linear-gradient(màu, màu): Gmail dark mode KHÔNG đảo màu phần tử có ảnh nền (nền không ngả tím, chữ không bị đổi đen). !important không thắng được vì Gmail sửa màu SAU khi áp CSS. */
@@ -35,7 +45,7 @@
     }
   </style>
 </head>
-<body style="margin:0;padding:0;background-color:#ecedef;font-family:Inter,Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:#ecedef;font-family:Inter,Arial,sans-serif;background-image:linear-gradient(#ecedef,#ecedef);">
 <!-- MẪU EMAIL KHÁCH HÀNG CỦA MISA GỬI CHO KHÁCH HÀNG CỦA HỌ (hóa đơn, biên bản, phiếu…):
      · KHÔNG có header logo MISA / logo ứng dụng — đây là email của đơn vị khách hàng.
      · Đơn vị đã tự cấu hình mẫu (logo, banner riêng) → dùng phần đầu của họ thay cho khối TIÊU ĐỀ bên dưới.
@@ -43,11 +53,11 @@
      · Footer: “Thông báo được gửi qua [Tên sản phẩm] - Một sản phẩm của MISA.” (thay cho bản quyền / địa chỉ MISA). -->
 
 <!-- Nền xám đặt ở BẢNG NGOÀI CÙNG (bgcolor + style), không chỉ ở <body>: Gmail bỏ toàn bộ style của <body> → nền xám mất, thẻ trắng lọt thỏm trên nền trắng -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ecedef" style="background-color:#ecedef;"><tr>
-<td class="email-outer" align="center" bgcolor="#ecedef" style="padding:60px 10px 0;background-color:#ecedef;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ecedef" style="background-color:#ecedef;background-image:linear-gradient(#ecedef,#ecedef);"><tr>
+<td class="email-outer" align="center" bgcolor="#ecedef" style="padding:60px 10px 0;background-color:#ecedef;background-image:linear-gradient(#ecedef,#ecedef);">
   <table class="email-wrap" role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
          style="width:600px;max-width:600px;"><tr>
-  <td class="email-card" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 0 2px rgba(0,0,0,0.10);">
+  <td class="email-card" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 0 2px rgba(0,0,0,0.10);background-image:linear-gradient(#ffffff,#ffffff);">
 
 <!-- TIÊU ĐỀ (ứng dụng tự điền khi đơn vị chưa cấu hình mẫu riêng): ảnh nền sóng + màu nền dự phòng #116add (Outlook không hiện ảnh nền / gradient) -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
@@ -58,8 +68,8 @@
   </td>
 </tr></table>
 
-<table class="email-body" role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background-color:#ffffff;">
-<tr><td class="email-pad" bgcolor="#ffffff" style="background-color:#ffffff;padding:24px 40px 24px;">
+<table class="email-body" role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);">
+<tr><td class="email-pad" bgcolor="#ffffff" style="background-color:#ffffff;padding:24px 40px 24px;background-image:linear-gradient(#ffffff,#ffffff);">
 
 <!-- ╔══════════════════════════════════════════════════════════════╗
      ║  ✏️  NỘI DUNG EMAIL — CHỈNH SỬA PHẦN NÀY KHI DÙNG MẪU   ║
@@ -75,7 +85,7 @@
 <!-- Khối thông tin: nền Brand Light + viền Stroke Brand Light (không bóng đổ — khối trắng/nhạt nằm trong thẻ trắng) -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
        style="margin-bottom:24px;border-collapse:separate;border-spacing:0;"><tr>
-  <td class="email-box" style="background:#eff4ff;border:1px solid #99c5f7;border-radius:12px;padding:16px 24px;">
+  <td class="email-box" style="background:#eff4ff;border:1px solid #99c5f7;border-radius:12px;padding:16px 24px;background-image:linear-gradient(#eff4ff,#eff4ff);">
     <p style="margin:0 0 8px;font-size:14px;line-height:20px;color:#10141b;"><strong style="font-weight:700;">Thông tin hóa đơn bị thay thế:</strong></p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
       <td class="email-indent" style="padding-left:24px;font-size:14px;line-height:20px;color:#10141b;">

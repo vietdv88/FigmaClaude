@@ -40,7 +40,8 @@ export function emailFromTemplate(file) {
   const html = fs.readFileSync(file, 'utf8'), imgDir = path.join(path.dirname(file), 'images')
   const attachments = new Map()
   const body = html
-    .replace(/((?:src|background)=["']|url\(\s*["']?)images\/([\w.-]+)/g, (all, pre, name) => {
+    // Bỏ luôn đuôi ?v=… (chống cache khi xem trên web): để lại sau cid thì mã cid không khớp ảnh đính kèm → Gmail không hiện ảnh trong thư mà xếp thành tệp đính kèm
+    .replace(/((?:src|background)=["']|url\(\s*["']?)images\/([\w.-]+)(?:\?[^"')\s]*)?/g, (all, pre, name) => {
       const p = path.join(imgDir, name)
       if (!fs.statSync(p, { throwIfNoEntry: false })?.isFile()) return all
       attachments.set(name, { filename: name, path: p, cid: `${name}@mds-docs` })

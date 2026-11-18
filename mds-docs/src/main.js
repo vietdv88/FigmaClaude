@@ -13,6 +13,7 @@ import '@mds/style.css'
 // Màu chủ đề riêng của tài liệu (mặc định Xanh dương) — không dùng chung với PD Point cùng tên miền
 useThemeStorage('mds-docs-theme', 'blue')
 import './app.css'
+import { leafFall } from './leafFall.js'
 
 setAppTitle('MISA Design System')
 enableAutoTooltips()
@@ -31,6 +32,8 @@ const router = createRouter({
   scrollBehavior: (to, _from, saved) => saved || (to.hash ? { el: decodeURIComponent(to.hash), top: 72, behavior: 'smooth' } : { top: 0 }),
 })
 installRouteProgress(router)
+router.afterEach((to, from) => { if (to.path !== from.path) setTimeout(leafFall, 400) })   // 20/11: lá rơi mỗi lần chuyển trang
+setTimeout(leafFall, 800)   // … và khi mở trang
 /* Số dòng/trang chọn gần nhất theo tài khoản PD Point — cùng tên miền nên dùng chung bản lưu với PD Point (pdpoint-pagesize:<id>) */
 const pageKey = () => 'pdpoint-pagesize:' + (state.me.user?.id ?? 'guest')
 const pageSizeStore = {

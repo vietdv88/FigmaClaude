@@ -1,6 +1,6 @@
 <template>
   <div class="demo-stack">
-    <span class="demo-muted">Bảng sửa trực tiếp trong ô (DataTable <code>editable</code>): rê chuột lên dòng để thấy viền ô, bấm vào ô để sửa — chữ, số (căn phải), chọn từ danh sách (Combobox của mds-ui), ghi chú nhiều dòng, bật / tắt. Thành tiền và dòng Tổng tự tính lại. Ô bắt buộc (Tên hàng, Đơn vị tính, Số lượng, Đơn giá) bị xóa trắng → viền đỏ + icon lỗi, rê icon / đang ở ô → tooltip lỗi (<code>col.required</code>, <code>col.validate</code>). Thao tác dòng nằm ở <b>cột icon ghim cuối bảng</b> (<code>action-mode="icons"</code>): tiêu đề cột để trống, icon Xóa căn giữa — không che control khi rê chuột.</span>
+    <span class="demo-muted">Bảng sửa trực tiếp trong ô (DataTable <code>editable</code>): rê chuột lên dòng để thấy viền ô, bấm vào ô để sửa — chữ, số (căn phải), chọn từ danh sách (Combobox của mds-ui), chọn nhiều giá trị (cột Nhãn hàng — <code>multiple: true</code>, giá trị là mảng), ghi chú nhiều dòng, bật / tắt. Thành tiền và dòng Tổng tự tính lại. Ô bắt buộc (Tên hàng, Đơn vị tính, Số lượng, Đơn giá) bị xóa trắng → viền đỏ + icon lỗi, rê icon / đang ở ô → tooltip lỗi (<code>col.required</code>, <code>col.validate</code>). Thao tác dòng nằm ở <b>cột icon ghim cuối bảng</b> (<code>action-mode="icons"</code>): tiêu đề cột để trống, icon Xóa căn giữa — không che control khi rê chuột.</span>
     <div class="demo-stage">
     <div class="table-panel demo-table demo-table--panel demo-table--edit">
       <!-- Bảng đặt trên nền xám → luôn có thanh công cụ (nền trắng) phía trên: không thì hàng tiêu đề xám lẫn vào nền chung -->
@@ -29,11 +29,12 @@ import { fmtNum, parseNum } from '@mds/utils/number.js'
 
 const UNITS = [{ value: 'cai', label: 'Cái' }, { value: 'hop', label: 'Hộp' }, { value: 'thung', label: 'Thùng' }, { value: 'kg', label: 'Kg' }]
 const STORES = [{ value: 'hn', label: 'Kho Hà Nội' }, { value: 'hcm', label: 'Kho TP.HCM' }, { value: 'dn', label: 'Kho Đà Nẵng' }]
+const TAGS = [{ value: 'gap', label: 'Gấp' }, { value: 'moi', label: 'Hàng mới' }, { value: 'km', label: 'Khuyến mại' }, { value: 'sl', label: 'Số lượng lớn' }, { value: 'dv', label: 'Dễ vỡ' }, { value: 'tk', label: 'Tồn kho thấp' }, { value: 'nk', label: 'Nhập khẩu' }, { value: 'bh', label: 'Bảo hành' }, { value: 'ld', label: 'Lạnh' }, { value: 'ht', label: 'Hàng trả' }]
 let seq = 4
 const rows = ref([
-  { id: 1, item: 'Giấy in A4 Double A', unit: 'thung', store: 'hn', qty: 12, price: 520000, note: 'Giao trong tuần', vat: true },
-  { id: 2, item: 'Mực in HP 12A', unit: 'hop', store: 'hcm', qty: 5, price: 1150000, note: '', vat: true },
-  { id: 3, item: 'Bút bi Thiên Long', unit: 'hop', store: 'dn', qty: 40, price: 45000, note: 'Màu xanh', vat: false },
+  { id: 1, item: 'Giấy in A4 Double A', unit: 'thung', store: 'hn', qty: 12, price: 520000, note: 'Giao trong tuần', vat: true, tags: ['gap', 'sl', 'dv', 'tk', 'bh'] },
+  { id: 2, item: 'Mực in HP 12A', unit: 'hop', store: 'hcm', qty: 5, price: 1150000, note: '', vat: true, tags: ['moi', 'km', 'nk', 'bh', 'ld', 'ht'] },
+  { id: 3, item: 'Bút bi Thiên Long', unit: 'hop', store: 'dn', qty: 40, price: 45000, note: 'Màu xanh', vat: false, tags: ['gap', 'moi', 'km', 'sl', 'dv', 'tk', 'nk', 'bh', 'ld', 'ht'] },
 ])
 // Ô số bị xóa trắng → giữ trống (null) để báo lỗi bắt buộc, không tự điền 0
 const numText = n => (n == null ? '' : fmtNum(n))
@@ -44,6 +45,7 @@ const columns = computed(() => [
   { key: 'item', label: 'Tên hàng', type: 'textbox', minWidth: 220, required: true },
   { key: 'unit', label: 'Đơn vị tính', type: 'combobox', width: 140, options: UNITS, required: true },
   { key: 'store', label: 'Kho', type: 'combobox', width: 160, options: STORES },
+  { key: 'tags', label: 'Nhãn hàng', type: 'combobox', multiple: true, maxTags: 2, width: 240, options: TAGS },
   { key: 'qtyText', label: 'Số lượng', type: 'numberbox', width: 110, align: 'right', required: true, validate: v => (v !== '' && !(parseNum(v) > 0) ? 'Số lượng phải lớn hơn 0' : '') },
   { key: 'priceText', label: 'Đơn giá', type: 'numberbox', width: 140, align: 'right', required: true },
   { key: 'totalText', label: 'Thành tiền', width: 150, align: 'right', footerText: fmtNum(total.value) },
@@ -56,7 +58,7 @@ function onCell({ row, col, value }) {
   else if (col.key === 'priceText') r.price = value.trim() === '' ? null : parseNum(value) || 0
   else r[col.key] = value
 }
-function addRow() { q.value = ''; rows.value.push({ id: seq++, item: '', unit: 'cai', store: 'hn', qty: 1, price: 0, note: '', vat: true }) }
+function addRow() { q.value = ''; rows.value.push({ id: seq++, item: '', unit: 'cai', store: 'hn', qty: 1, price: 0, note: '', vat: true, tags: [] }) }
 function removeRow(row) {
   const before = rows.value.map(r => ({ ...r }))
   rows.value = rows.value.filter(r => r.id !== row.id)

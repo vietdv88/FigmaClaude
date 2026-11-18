@@ -288,7 +288,7 @@ function addWidget() { list.push({ id: 'n' + Date.now(), title: 'Biểu đồ m�
 .db-ai-icon { color: var(--ai-begin-600); }   /* màu dự phòng — icon tô gradient AI qua .ti--ai (Icon/AI là gradient) */
 .db-new { margin-left: 4px; background: var(--bg-warning); color: var(--text-white); }   /* tag “Mới” cam như Figma */
 .db-tabholder { flex: 1; display: flex; align-items: center; justify-content: center; }
-.db-head { position: relative; z-index: 6; flex-shrink: 0; display: flex; align-items: center; gap: var(--gap-control); padding: 16px 16px 10px; background: var(--bg-page); }   /* control ↔ control 8; tiêu đề → KPI 12 (10 + 2 đệm trên vùng cuộn để không cắt bóng card) */
+.db-head { position: relative; z-index: 6; flex-shrink: 0; display: flex; align-items: center; gap: var(--gap-control); padding: 12px 16px 10px; background: var(--bg-page); }   /* Page Header: đệm 12 16 (dưới 10 + 2 đệm trên vùng cuộn để không cắt bóng card = 12) · control ↔ control 8 */
 .db-title { margin: 0; font-size: var(--text-h2); line-height: var(--text-h2-lh); font-weight: var(--fw-semibold); }
 .db-view { width: 240px; }
 .db-period { width: 140px; }

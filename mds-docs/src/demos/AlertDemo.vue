@@ -52,15 +52,19 @@
       <div v-if="closed.a || closed.b" class="demo-row"><button type="button" class="btn btn--outline btn--neutral" @click="closed = {}">Hiện lại</button></div>
     </template>
 
-    <!-- Global Inline: dải trên cùng app, phía trên header -->
+    <!-- Global Inline: dải trên cùng app, phía trên global header — đẩy header + nội dung xuống -->
     <template v-else>
-      <div class="demo-canvas demo-canvas--flush">
-        <AppGlobalAlert v-if="!closed.s" :type="type" :title="cur.title" action-label="Chi tiết" closable @action="toast.info('Mở chi tiết')" @close="closed.s = true">{{ cur.short }}</AppGlobalAlert>
-        <AppGlobalAlert v-if="!closed.l" :type="type" variant="light" :title="cur.title" action-label="Chi tiết" closable @action="toast.info('Mở chi tiết')" @close="closed.l = true">{{ cur.short }}</AppGlobalAlert>
-        <AppGlobalAlert :type="type" :title="cur.title">{{ cur.short }} (không có nút thao tác, không có nút ×)</AppGlobalAlert>
-        <AppGlobalAlert :type="type" variant="light" :title="cur.title">{{ cur.short }} (không có nút thao tác, không có nút ×)</AppGlobalAlert>
+      <div class="demo-row">
+        <AppSegmented v-model="gvariant" :options="[{ value: 'solid', label: 'Nền đậm' }, { value: 'light', label: 'Nền nhạt' }]" aria-label="Kiểu Global Inline" />
+        <AppSegmented v-if="gSamples.length > 1" v-model="gidx" :options="gSamples.map((x, i) => ({ value: i, label: x.label }))" aria-label="Mẫu nội dung" />
+        <button v-if="closed.g" type="button" class="btn btn--outline btn--neutral" @click="closed = {}">Hiện lại</button>
       </div>
-      <div v-if="closed.s || closed.l" class="demo-row"><button type="button" class="btn btn--outline btn--neutral" @click="closed = {}">Hiện lại</button></div>
+      <LayoutFrame :active="0">
+        <template v-if="!closed.g" #top>
+          <AppGlobalAlert :type="alertType" :variant="gvariant === 'light' ? 'light' : undefined" :title="gCur.title" :action-label="gCur.action" closable @action="toast.info('Mở chi tiết')" @close="closed.g = true">{{ gCur.text }}</AppGlobalAlert>
+        </template>
+        <DashboardScreen />
+      </LayoutFrame>
     </template>
   </div>
 </template>
@@ -69,6 +73,8 @@
 import { ref, computed, watch } from 'vue'
 import TIcon from '@mds/components/TIcon.vue'
 import AppSegmented from '@mds/components/AppSegmented.vue'
+import LayoutFrame from './layout/LayoutFrame.vue'
+import DashboardScreen from './layout/DashboardScreen.vue'
 import AppInlineAlert from '@mds/components/AppInlineAlert.vue'
 import AppAlertDialog from '@mds/components/AppAlertDialog.vue'
 import AppNotification from '@mds/components/AppNotification.vue'
@@ -87,11 +93,28 @@ const NOTES = {
   inline: 'Nằm ngay trong nội dung (trang, popup, card), gần khu vực liên quan, không nổi lên giao diện. Tiêu đề ngắn có thể để cùng 1 hàng với nội dung; nút × tùy trường hợp.',
   global: 'Dải thông báo toàn app, trên cùng, phía trên thanh header (hết hạn dùng, sắp bảo trì, hệ thống chậm…). Hai kiểu: nền màu đặc và nền nhạt; nút × và nút thao tác tùy trường hợp.',
 }
-const form = ref('toast'), type = ref('success'), dlg = ref(''), closed = ref({})
+const gvariant = ref('solid'), form = ref('toast'), type = ref('success'), dlg = ref(''), closed = ref({})
 const BASE = [{ value: 'success', label: 'Thành công' }, { value: 'error', label: 'Lỗi' }, { value: 'warning', label: 'Cảnh báo' }, { value: 'info', label: 'Thông tin' }]
 const types = computed(() => (form.value === 'global' ? [...BASE, { value: 'neutral', label: 'Trung tính' }] : BASE))
 watch(form, () => { closed.value = {}; if (form.value !== 'global' && type.value === 'neutral') type.value = 'info' })
 // Tên loại trong AppInlineAlert / AppGlobalAlert là danger; Toast / Notification là error
+// Mẫu nội dung Global Inline (thông báo dùng thử / hết hạn / hết tài nguyên) — <…> điền giá trị ví dụ
+const SW = 'AMIS Kế toán', RES = 'Hóa đơn, Chữ ký số'
+const G_WARN = [
+  { label: 'Dùng thử còn N ngày', action: 'Nâng cấp', text: `Thời gian dùng thử ${SW} của quý khách còn 7 ngày. Vui lòng nâng cấp phiên bản chính thức để không bị gián đoạn công việc.` },
+  { label: 'Sắp hết hạn', action: 'Gia hạn', text: `Thời gian sử dụng ${SW} của quý khách chỉ còn 15 ngày. Vui lòng gia hạn để không bị gián đoạn công việc.` },
+  { label: 'Sắp hết tài nguyên', action: 'Mua thêm', text: `Số lượng ${RES} của quý khách sắp hết. Vui lòng mua thêm để không bị gián đoạn công việc.` },
+  { label: 'Sắp hết thời gian + tài nguyên', action: 'Gia hạn', text: `Thời gian sử dụng và tài nguyên của ${SW} sắp hết. Vui lòng gia hạn để không bị gián đoạn công việc.` },
+]
+const G_DANGER = [
+  { label: 'Hết hạn dùng thử', action: 'Nâng cấp', text: `Thời gian dùng thử ${SW} của quý khách đã hết hạn. Vui lòng nâng cấp phiên bản chính thức để không bị gián đoạn công việc.` },
+  { label: 'Hết tài nguyên', action: 'Mua thêm', text: `${RES} của quý khách đã hết. Vui lòng mua thêm để không bị gián đoạn công việc.` },
+  { label: 'Hết hạn N ngày', action: 'Gia hạn', text: `Phần mềm ${SW} của quý khách đã hết hạn 3 ngày. Vui lòng gia hạn để tiếp tục sử dụng phần mềm.` },
+]
+const gidx = ref(0)
+const gSamples = computed(() => (type.value === 'warning' ? G_WARN : type.value === 'error' ? G_DANGER : []))
+const gCur = computed(() => gSamples.value[gidx.value] || { title: cur.value.title, action: 'Chi tiết', text: cur.value.short })
+watch(type, () => { gidx.value = 0 })
 const alertType = computed(() => (type.value === 'error' ? 'danger' : type.value))
 const TEXT = {
   success: { label: 'Thành công', title: 'Nhập khẩu Hồ sơ thành công', text: '50 hồ sơ đã được nhập khẩu thành công vào hệ thống. Xem chi tiết.', short: '50 hồ sơ đã được nhập khẩu thành công vào hệ thống.', toast: 'Lưu thành công',
@@ -114,6 +137,6 @@ function done() { dlg.value = ''; toast.success('Đã thực hiện') }
 <style scoped>
 .demo-canvas { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: var(--radius-card); background: var(--bg-page); }
 .demo-canvas--col { align-items: flex-start; }
-.demo-canvas--col > * { max-width: 100%; }
+.demo-canvas--col > *:not(.notif) { max-width: 100%; }   /* Notification giữ max-width 400px của chính nó */
 .demo-canvas--flush { padding: 0; gap: 8px; overflow: hidden; }
 </style>

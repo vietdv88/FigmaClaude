@@ -9,6 +9,12 @@
       <div class="seg" role="group" aria-label="Kiểu xem">
         <button v-for="v in VIEWS" :key="v.id" type="button" class="seg__item" :class="{ 'seg__item--active': view === v.id }" :aria-pressed="view === v.id" @click="view = v.id">{{ v.label }}</button>
       </div>
+      <template v-if="view === 'gmail'">
+        <span class="demo-muted">Giao diện:</span>
+        <div class="seg" role="group" aria-label="Giao diện Gmail">
+          <button v-for="m in MODES" :key="m.id" type="button" class="seg__item" :class="{ 'seg__item--active': mode === m.id }" :aria-pressed="mode === m.id" @click="mode = m.id">{{ m.label }}</button>
+        </div>
+      </template>
       <span class="demo-muted">Thiết bị:</span>
       <div class="seg" role="group" aria-label="Thiết bị xem">
         <button v-for="d in DEVICES" :key="d.id" type="button" class="seg__item" :class="{ 'seg__item--active': device === d.id }" :aria-pressed="device === d.id" @click="device = d.id">{{ d.label }}</button>
@@ -40,9 +46,10 @@
     <!-- Xem như Gmail: khung giao diện hộp thư (web / app điện thoại) + email đã qua các bước Gmail tự sửa (xem gmailize) — mô phỏng gần đúng -->
     <template v-else>
       <span class="demo-muted">Mô phỏng gần đúng cách Gmail hiển thị: Gmail <b>bỏ toàn bộ style của thẻ &lt;body&gt;</b> — nền xám vì vậy đặt ở bảng ngoài cùng (bgcolor + style) để vẫn hiện, <b>không hiện bóng đổ (box-shadow) và nền chuyển màu (gradient)</b> — dùng màu nền dự phòng. Kết quả cuối vẫn cần gửi thử vào Gmail thật.</span>
-      <div class="demo-email-stage" :class="{ 'demo-email-stage--phone': device === 'mobile' }">
+      <span v-if="mode === 'dark'" class="demo-muted">Chế độ tối: Gmail tự đảo màu nền / chữ của email, <b>trừ phần tử có ảnh nền</b> — các mẫu đã đặt <code>background-image: linear-gradient(màu, màu)</code> cho mọi nền và chữ trắng <code>#fffffe</code> nên thẻ email giữ nguyên màu sáng, chỉ khung hộp thư chuyển tối. Phần nào trong email chưa khóa sẽ hiện đã đảo màu ở đây. Mô phỏng gần đúng — cần gửi thử vào Gmail thật (bật chế độ tối) để chốt.</span>
+      <div class="demo-email-stage" :class="{ 'demo-email-stage--phone': device === 'mobile', 'demo-email-stage--dark': mode === 'dark' }">
         <!-- Gmail web -->
-        <div v-if="device === 'desktop'" class="gm-web">
+        <div v-if="device === 'desktop'" class="gm-web" :class="{ 'gm--dark': mode === 'dark' }">
           <div class="gm-web__bar">
             <span class="gm-ic"><TIcon name="arrow-left" /></span><span class="gm-ic"><TIcon name="archive" /></span><span class="gm-ic"><TIcon name="trash" /></span><span class="gm-ic"><TIcon name="mail" /></span>
             <span class="gm-web__sp" /><span class="gm-ic"><TIcon name="printer" /></span><span class="gm-ic"><TIcon name="external-link" /></span>
@@ -54,11 +61,11 @@
             <span class="gm-mute gm-sender__time">09:30 (0 phút trước)</span>
             <span class="gm-ic"><TIcon name="star" /></span><span class="gm-ic"><TIcon name="arrow-back-up" /></span><span class="gm-ic"><TIcon name="dots-vertical" /></span>
           </div>
-          <iframe :key="tpl + device + srcdocKey" ref="frame" class="gm-web__body" scrolling="no" :srcdoc="gmailDoc" :title="`Xem như Gmail — ${subject}`" @load="fit" />
+          <iframe :key="tpl + device + mode + srcdocKey" ref="frame" class="gm-web__body" scrolling="no" :srcdoc="gmailDoc" :title="`Xem như Gmail — ${subject}`" @load="fit" />
           <div class="gm-actions"><span class="gm-btn"><TIcon name="arrow-back-up" />Trả lời</span><span class="gm-btn">Chuyển tiếp</span></div>
         </div>
         <!-- App Gmail trên điện thoại -->
-        <div v-else class="gm-app">
+        <div v-else class="gm-app" :class="{ 'gm--dark': mode === 'dark' }">
           <div class="gm-app__bar"><span class="gm-ic"><TIcon name="arrow-left" /></span><span class="gm-web__sp" /><span class="gm-ic"><TIcon name="archive" /></span><span class="gm-ic"><TIcon name="trash" /></span><span class="gm-ic"><TIcon name="mail" /></span><span class="gm-ic"><TIcon name="dots-vertical" /></span></div>
           <div class="gm-app__subject">{{ subject }} <span class="gm-chip">Hộp thư đến</span></div>
           <div class="gm-sender gm-sender--app">
@@ -66,7 +73,7 @@
             <div class="gm-sender__who"><b>{{ sender.name }}</b> <span class="gm-mute">09:30</span><div class="gm-mute">đến tôi ▾</div></div>
             <span class="gm-ic"><TIcon name="arrow-back-up" /></span><span class="gm-ic"><TIcon name="dots-vertical" /></span>
           </div>
-          <iframe :key="tpl + device + srcdocKey" ref="frame" class="gm-app__body" scrolling="no" :srcdoc="gmailDoc" :title="`Xem như app Gmail — ${subject}`" @load="fit" />
+          <iframe :key="tpl + device + mode + srcdocKey" ref="frame" class="gm-app__body" scrolling="no" :srcdoc="gmailDoc" :title="`Xem như app Gmail — ${subject}`" @load="fit" />
         </div>
       </div>
     </template>
@@ -106,6 +113,8 @@ const TEMPLATES = [
 ]
 const DEVICES = [{ id: 'desktop', label: 'Máy tính' }, { id: 'mobile', label: 'Điện thoại (375)' }]
 const VIEWS = [{ id: 'raw', label: 'Bản gốc' }, { id: 'gmail', label: 'Như Gmail' }]
+const MODES = [{ id: 'light', label: 'Sáng' }, { id: 'dark', label: 'Tối' }]
+const mode = ref('light')
 const view = ref('raw')
 // Người gửi hiện trên dòng tiêu đề thư (chỉ để hình dung)
 const SENDERS = { misa: { name: 'MISA', email: 'no-reply@misa.vn' }, amis: { name: 'MISA AMIS', email: 'no-reply@amis.vn' }, quytrinh: { name: 'AMIS Quy trình', email: 'no-reply@amis.vn' }, khachhang: { name: 'HỘ KINH DOANH TOKI RETREAT VÂN LONG', email: 'hoadon@meinvoice.vn' } }
@@ -127,15 +136,37 @@ function stripCss(css) {
     .replace(/background-image\s*:([^;]*?)(,\s*)?(linear|radial)-gradient\([^;]*\)/gi, (m, pre) => (pre && /url\(/.test(pre) ? 'background-image:' + pre.replace(/,\s*$/, '') : 'background-image:none'))
     .replace(/(^|;)\s*background\s*:\s*(linear|radial)-gradient\([^;]*/gi, '$1')
 }
+/* Mô phỏng đảo màu của Gmail chế độ tối: phần tử có ảnh nền (gradient / url) được GIỮ NGUYÊN (đã khóa);
+   phần tử khác — nền sáng → tối, chữ tối → sáng. Chữ nằm trong vùng đã khóa không bị đảo. */
+function lum(c) { const m = /^#?([0-9a-f]{6})$/i.exec(c) || /^#?([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(c); if (!m) return null
+  const h = m[2] ? m[1] + m[1] + m[2] + m[2] + m[3] + m[3] : m[1]; const n = parseInt(h, 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 }
+function darken(root) {
+  const walk = (el, locked) => {
+    const st = el.getAttribute?.('style') || ''
+    const lockedHere = locked || el.hasAttribute?.('data-gm-lock')
+    if (!lockedHere) {
+      const bg = /background(?:-color)?\s*:\s*(#[0-9a-f]{3,6})/i.exec(st)?.[1] || el.getAttribute?.('bgcolor')
+      if (bg && (lum(bg) ?? 0) > 0.6) el.style.setProperty('background-color', '#1f1f1f', 'important')
+      const col = /(?:^|;)\s*color\s*:\s*(#[0-9a-f]{3,6})/i.exec(st)?.[1]
+      if (col && (lum(col) ?? 1) < 0.4) el.style.setProperty('color', '#e3e3e3', 'important')
+      else if (!col && el.tagName === 'A') el.style.setProperty('color', '#8ab4f8', 'important')
+    }
+    for (const c of el.children || []) walk(c, lockedHere)
+  }
+  walk(root, false)
+}
 const gmailDoc = computed(() => {
   if (!raw.value) return ''
   const d = new DOMParser().parseFromString(raw.value, 'text/html')
+  d.querySelectorAll('[style]').forEach(el => { if (/background(-image)?\s*:[^;]*(gradient|url)\(/i.test(el.getAttribute('style'))) el.setAttribute('data-gm-lock', '') })   // nhớ phần tử đã khóa (có ảnh nền) trước khi bước bên dưới bỏ gradient
   d.querySelectorAll('[style]').forEach(el => el.setAttribute('style', stripCss(el.getAttribute('style'))))
   const styles = [...d.head.querySelectorAll('style')].map(st => `<style>${stripCss(st.textContent)}</style>`).join('')
   d.querySelectorAll('script').forEach(el => el.remove())
+  const dark = mode.value === 'dark'
+  if (dark) darken(d.body)
   const pad = device.value === 'desktop' ? '0 16px 0 72px' : '0'   // web: thư lùi vào thẳng hàng tên người gửi · app: đủ bề ngang
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><base href="${location.origin}${BASE}">${styles}`
-    + `<style>html,body{margin:0;background:#fff}body{font-family:Arial,Helvetica,sans-serif;font-size:14px}.gm-msg{padding:${pad}}@media (max-width:700px){.gm-msg{padding:0}}</style></head>`   // khung hẹp: bỏ lùi vào để thẻ 600px không bị lẹm
+    + `<style>html,body{margin:0;background:${dark ? '#131314' : '#fff'};color:${dark ? '#e3e3e3' : 'inherit'}}body{font-family:Arial,Helvetica,sans-serif;font-size:14px}.gm-msg{padding:${pad}}@media (max-width:700px){.gm-msg{padding:0}}</style></head>`   // khung hẹp: bỏ lùi vào để thẻ 600px không bị lẹm
     + `<body><div class="gm-msg">${d.body.innerHTML}</div></body></html>`
 })
 
@@ -197,24 +228,29 @@ async function sendTest() {
 .demo-email-frame { display: block; width: 100%; max-width: 720px; min-height: 400px; border: none; background: #ecedef; transition: width 0.2s; }
 .demo-email-frame--mobile { width: 375px; max-width: 100%; }   /* không viền / bóng khung — tránh trông như email có viền xám */
 /* Khung giả lập Gmail (web / app) — chỉ để hình dung, không phải giao diện mds-ui */
-.gm-web { width: 100%; max-width: 900px; background: #fff; border-radius: 16px; padding: 8px 0 16px; font-family: Arial, Helvetica, sans-serif; color: #1f1f1f; }
+.gm-web, .gm-app { --gm-bg: #fff; --gm-text: #1f1f1f; --gm-icon: #444746; --gm-mute: #5e5e5e; --gm-chip: #ddd; --gm-line: #747775; }
+.gm--dark { --gm-bg: #131314; --gm-text: #e3e3e3; --gm-icon: #c4c7c5; --gm-mute: #c4c7c5; --gm-chip: #444746; --gm-line: #8e918f; }
+.gm-web { width: 100%; max-width: 900px; background: var(--gm-bg); border-radius: 16px; padding: 8px 0 16px; font-family: Arial, Helvetica, sans-serif; color: var(--gm-text); }
 .gm-web__bar, .gm-app__bar { display: flex; align-items: center; gap: 4px; padding: 0 12px; height: 48px; }
 .gm-web__sp { flex: 1; }
-.gm-ic { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; color: #444746; font-size: 20px; flex-shrink: 0; }
+.gm-ic { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; color: var(--gm-icon); font-size: 20px; flex-shrink: 0; }
 .gm-web__subject { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 12px 16px 12px 72px; font-size: 22px; line-height: 28px; }
-.gm-chip { padding: 0 6px; border-radius: 4px; background: #ddd; color: #444746; font-size: 12px; line-height: 20px; }
+.gm-chip { padding: 0 6px; border-radius: 4px; background: var(--gm-chip); color: var(--gm-icon); font-size: 12px; line-height: 20px; }
 .gm-sender { display: flex; align-items: flex-start; gap: 12px; padding: 8px 16px 12px; font-size: 14px; line-height: 20px; }
 .gm-sender__who { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .gm-sender__time { white-space: nowrap; font-size: 12px; line-height: 40px; }
 .gm-sender .gm-ic { margin-top: -10px; }
 .gm-avatar { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #7b1fa2; color: #fff; font-size: 18px; flex-shrink: 0; }
-.gm-mute { color: #5e5e5e; font-size: 12px; }
-.gm-web__body, .gm-app__body { display: block; width: 100%; min-height: 300px; border: none; background: #fff; }
+.gm-mute { color: var(--gm-mute); font-size: 12px; }
+.gm-web__body, .gm-app__body { display: block; width: 100%; min-height: 300px; border: none; background: var(--gm-bg); }
 .gm-actions { display: flex; gap: 12px; padding: 24px 16px 0 72px; }
-.gm-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 20px; border: 1px solid #747775; border-radius: 20px; color: #444746; font-size: 14px; }
-.gm-app { width: 395px; max-width: 100%; background: #fff; border: 10px solid #1f1f1f; border-radius: 36px; overflow: hidden; box-sizing: border-box;   /* viền máy tối: tách nền xám của email khỏi nền khung xem */
-  font-family: Arial, Helvetica, sans-serif; color: #1f1f1f; }
+.gm-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 20px; border: 1px solid var(--gm-line); border-radius: 20px; color: var(--gm-icon); font-size: 14px; }
+.gm-app { width: 395px; max-width: 100%; background: var(--gm-bg); border: 10px solid #1f1f1f; border-radius: 36px; overflow: hidden; box-sizing: border-box;   /* viền máy tối: tách nền xám của email khỏi nền khung xem */
+  font-family: Arial, Helvetica, sans-serif; color: var(--gm-text); }
+.gm-app.gm--dark { border-color: #3c3c3c; }
 .demo-email-stage--phone { background: var(--bg-white); box-shadow: inset 0 0 0 1px var(--stroke-neutral-light); }   /* khung xem trắng + máy viền tối — khác hẳn nền xám #ECEDEF của email */
+.demo-email-stage--dark { background: #000; }
+.demo-email-stage--phone.demo-email-stage--dark { background: #000; box-shadow: none; }
 .gm-app__subject { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 16px; font-size: 20px; line-height: 28px; }
 .gm-sender--app { padding: 8px 8px 12px 16px; }
 .demo-email-code { border: 1px solid var(--stroke-neutral-light); border-radius: var(--radius-card); overflow: hidden; }

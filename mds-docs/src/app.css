@@ -342,3 +342,22 @@ a.btn, a.btn:hover { text-decoration: none; }
   .ds-search--open .ds-search__close .ti { font-size: 16px; }
   .global-header--white .ds-search--open .ds-search__box { background: var(--bg-white); }
 }
+
+/* ── Lá rơi chào mừng 20/11 (leafFall.js) — rơi chậm từ mép trên, lắc nhẹ, mờ dần ── */
+.leaf-layer { position: fixed; inset: 0; z-index: 9000; pointer-events: none; overflow: hidden; }
+.leaf {
+  position: absolute; top: 16px; opacity: 0;
+  border-radius: 150% 0 150% 0;                     /* dáng cánh hoa phượng */
+  box-shadow: 0 1px 2px rgba(217, 72, 47, 0.25);
+  animation-name: leaf-fall, leaf-sway; animation-timing-function: cubic-bezier(.35, .1, .45, 1), ease-in-out;
+  animation-iteration-count: 1, infinite; animation-fill-mode: forwards, none;
+}
+.leaf--emoji { border-radius: 0; box-shadow: none; background: none; line-height: 1; }
+@keyframes leaf-fall {
+  0%   { opacity: 0;   transform: translate3d(0, 0, 0) rotate(0deg); }
+  8%   { opacity: .95; }
+  75%  { opacity: .85; }
+  100% { opacity: 0;   transform: translate3d(var(--drift), 92vh, 0) rotate(var(--spin)); }
+}
+@keyframes leaf-sway { 0%, 100% { margin-left: 0; } 50% { margin-left: 18px; } }
+@media (prefers-reduced-motion: reduce) { .leaf-layer { display: none; } }
